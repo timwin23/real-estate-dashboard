@@ -1,3 +1,4 @@
+// lib/sheets.ts
 export async function fetchSheetData() {
   try {
     const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
@@ -18,17 +19,26 @@ export async function fetchSheetData() {
 
     console.log('Raw data from sheets:', rows);
 
+    const processPercentage = (value: any): number => {
+      if (typeof value === 'number') return value;
+      if (!value) return 0;
+      if (typeof value === 'string') {
+        return Number(value.replace('%', '')) || 0;
+      }
+      return 0;
+    };
+
     return rows.map((row: any[]) => ({
       date: row[0],
       dials: Number(row[1]) || 0,
       triage: Number(row[2]) || 0,
-      triageRate: row[3] ? Number(row[3].replace('%', '')) : 0,
+      triageRate: processPercentage(row[3]),
       appointments: Number(row[4]) || 0,
-      setRate: row[5] ? Number(row[5].replace('%', '')) : 0,
+      setRate: processPercentage(row[5]),
       shows: Number(row[6]) || 0,
-      showRate: row[7] ? Number(row[7].replace('%', '')) : 0,
+      showRate: processPercentage(row[7]),
       closes: Number(row[8]) || 0,
-      closeRate: row[9] ? Number(row[9].replace('%', '')) : 0,
+      closeRate: processPercentage(row[9]),
       revenue: Number(row[10]) || 0,
       revenuePerClose: Number(row[11]) || 0,
       energy: Number(row[12]) || 0,
