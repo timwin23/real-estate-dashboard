@@ -1,6 +1,17 @@
 // app/lib/sheets.ts
 
-export async function fetchSheetData() {
+// Helper function to parse percentage values
+function parsePercentage(value: any): number {
+  if (typeof value === 'string') {
+    return parseFloat(value.replace('%', '')) / 100;
+  }
+  if (typeof value === 'number') {
+    return value;
+  }
+  return 0;
+ }
+ 
+ export async function fetchSheetData() {
   try {
     const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
     const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
@@ -15,19 +26,19 @@ export async function fetchSheetData() {
       console.error('No data values returned from sheets');
       return [];
     }
-
-    // Simple direct mapping without any string manipulation
+ 
+    // Enhanced data processing with percentage handling
     return data.values.map(row => ({
       date: row[0],
       dials: Number(row[1]) || 0,
       triage: Number(row[2]) || 0,
-      triageRate: Number(row[3]) || 0,
-      appointments: Number(row[4]) || 0,
-      setRate: Number(row[5]) || 0,
+      triageRate: parsePercentage(row[3]),
+      appointments: Number(row[4]) || 0, 
+      setRate: parsePercentage(row[5]),
       shows: Number(row[6]) || 0,
-      showRate: Number(row[7]) || 0,
+      showRate: parsePercentage(row[7]),
       closes: Number(row[8]) || 0,
-      closeRate: Number(row[9]) || 0,
+      closeRate: parsePercentage(row[9]),
       revenue: Number(row[10]) || 0,
       revenuePerClose: Number(row[11]) || 0,
       energy: Number(row[12]) || 0,
@@ -37,9 +48,9 @@ export async function fetchSheetData() {
     console.error('Error fetching sheet data:', error);
     return [];
   }
-}
-
-export function filterDataByDateRange(data: any[], startDate: string, endDate: string) {
+ }
+ 
+ export function filterDataByDateRange(data: any[], startDate: string, endDate: string) {
   const start = new Date(startDate);
   const end = new Date(endDate);
   
@@ -51,4 +62,4 @@ export function filterDataByDateRange(data: any[], startDate: string, endDate: s
       return false;
     }
   });
-}
+ }
