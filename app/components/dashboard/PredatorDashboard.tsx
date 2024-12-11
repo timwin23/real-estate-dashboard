@@ -10,17 +10,17 @@ export default function PredatorDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [level, setLevel] = useState(7);
-  const [totalXP, setTotalXP] = useState(0);  // Changed to start at 0
+  const [totalXP, setTotalXP] = useState(0);
   const [nextLevelXP, setNextLevelXP] = useState(50000);
   const [currentStreak, setCurrentStreak] = useState(3);
 
   // Calculate progress percentage to Level 25
   const progressToLevel25 = (totalXP / nextLevelXP) * 100;
 
-  // Calculate metrics from real data
+  // Calculate metrics from real data with safe number handling
   const calculateMetrics = () => {
     if (!data.length) return {
-      totalDials: 0,
+      totalOutbound: 0,
       totalTriage: 0,
       totalAppointments: 0,
       totalShows: 0,
@@ -30,15 +30,15 @@ export default function PredatorDashboard() {
     };
 
     return data.reduce((acc, curr) => ({
-      totalDials: acc.totalDials + curr.dials,
-      totalTriage: acc.totalTriage + curr.triage,
-      totalAppointments: acc.totalAppointments + curr.appointments,
-      totalShows: acc.totalShows + curr.shows,
-      totalCloses: acc.totalCloses + curr.closes,
-      totalRevenue: acc.totalRevenue + curr.revenue,
-      totalXP: acc.totalXP + curr.totalXP
+      totalOutbound: acc.totalOutbound + (Number(curr.outbound) || 0),
+      totalTriage: acc.totalTriage + (Number(curr.triage) || 0),
+      totalAppointments: acc.totalAppointments + (Number(curr.appointments) || 0),
+      totalShows: acc.totalShows + (Number(curr.shows) || 0),
+      totalCloses: acc.totalCloses + (Number(curr.closes) || 0),
+      totalRevenue: acc.totalRevenue + (Number(curr.revenue) || 0),
+      totalXP: acc.totalXP + (Number(curr.totalXP) || 0)
     }), {
-      totalDials: 0,
+      totalOutbound: 0,
       totalTriage: 0,
       totalAppointments: 0,
       totalShows: 0,
@@ -55,13 +55,16 @@ export default function PredatorDashboard() {
         setLoading(true);
         const sheetData = await fetchSheetData();
         
-        // Calculate date range
-        const today = new Date();
-        const startDate = new Date();
-        startDate.setDate(today.getDate() - parseInt(dateRange));
-        
-        const filteredData = filterDataByDateRange(sheetData, startDate.toISOString(), today.toISOString());
-        setData(filteredData);
+        if (dateRange === 'ALL') {
+          setData(sheetData);
+        } else {
+          const today = new Date();
+          const startDate = new Date();
+          startDate.setDate(today.getDate() - parseInt(dateRange));
+          
+          const filteredData = filterDataByDateRange(sheetData, startDate.toISOString(), today.toISOString());
+          setData(filteredData);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -75,7 +78,7 @@ export default function PredatorDashboard() {
   // Update XP when data changes
   useEffect(() => {
     if (data.length > 0) {
-      const sum = data.reduce((acc, curr) => acc + (curr.totalXP || 0), 0);
+      const sum = data.reduce((acc, curr) => acc + (Number(curr.totalXP) || 0), 0);
       setTotalXP(sum);
     }
   }, [data]);
@@ -120,7 +123,7 @@ export default function PredatorDashboard() {
         <div className="w-full bg-gray-800 h-4 rounded-full mb-2">
           <div 
             className="bg-red-500 h-full rounded-full transition-all duration-500"
-            style={{ width: `${progressToLevel25}%` }}
+            style={{ width: `${Math.min(progressToLevel25, 100)}%` }}
           />
         </div>
       </div>
@@ -139,9 +142,9 @@ export default function PredatorDashboard() {
               }} 
             />
             <Legend />
-            <Line type="monotone" dataKey="dials" stroke="#ff0000" dot={false} />
-            <Line type="monotone" dataKey="triage" stroke="#ff4444" dot={false} />
-            <Line type="monotone" dataKey="appointments" stroke="#ff8888" dot={false} />
+            <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
+            <Line type="monotone" dataKey="triage" name="Conversations" stroke="#ff4444" dot={false} />
+            <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -149,10 +152,10 @@ export default function PredatorDashboard() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         <MetricCard 
-          title="DIALS"
-          value={metrics.totalDials.toLocaleString()}
+          title="OUTBOUND"
+          value={metrics.totalOutbound.toLocaleString()}
           rate="Conv. Rate"
-          rateValue={formatRate((metrics.totalTriage / metrics.totalDials) * 100)}
+          rateValue={formatRate((metrics.totalTriage / metrics.totalOutbound) * 100)}
           xp="+1 XP each"
           icon={Target}
         />
@@ -206,7 +209,6 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-// Define the MetricCardProps type
 type MetricCardProps = {
   title: string;
   value: string | number;
@@ -216,7 +218,6 @@ type MetricCardProps = {
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 };
 
-// Metric Card Component
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
   return (
     <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
