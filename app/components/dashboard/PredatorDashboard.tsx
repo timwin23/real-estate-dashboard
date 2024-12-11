@@ -1,9 +1,10 @@
+// app/components/dashboard/PredatorDashboard.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchSheetData, filterDataByDateRange } from '@/lib/sheets';
+import { fetchSheetData, filterDataByDateRange } from '../../../lib/sheets';
 
 interface MetricCardProps {
   title: string;
@@ -29,7 +30,7 @@ export default function PredatorDashboard() {
   // Calculate metrics from real data
   const calculateMetrics = () => {
     if (!data.length) return {
-      totalOutbound: 0,
+      totalDials: 0,
       totalTriage: 0,
       totalAppointments: 0,
       totalShows: 0,
@@ -39,7 +40,7 @@ export default function PredatorDashboard() {
     };
 
     return data.reduce((acc, curr) => ({
-      totalOutbound: acc.totalOutbound + (Number(curr.outbound) || 0),
+      totalDials: acc.totalDials + (Number(curr.dials) || 0),
       totalTriage: acc.totalTriage + (Number(curr.triage) || 0),
       totalAppointments: acc.totalAppointments + (Number(curr.appointments) || 0),
       totalShows: acc.totalShows + (Number(curr.shows) || 0),
@@ -47,7 +48,7 @@ export default function PredatorDashboard() {
       totalRevenue: acc.totalRevenue + (Number(curr.revenue) || 0),
       totalXP: acc.totalXP + (Number(curr.totalXP) || 0)
     }), {
-      totalOutbound: 0,
+      totalDials: 0,
       totalTriage: 0,
       totalAppointments: 0,
       totalShows: 0,
@@ -149,7 +150,7 @@ export default function PredatorDashboard() {
               }} 
             />
             <Legend />
-            <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
+            <Line type="monotone" dataKey="dials" name="Dials" stroke="#ff0000" dot={false} />
             <Line type="monotone" dataKey="triage" name="Conversations" stroke="#ff4444" dot={false} />
             <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
           </LineChart>
@@ -159,10 +160,10 @@ export default function PredatorDashboard() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         <MetricCard 
-          title="OUTBOUND"
-          value={metrics.totalOutbound.toLocaleString()}
+          title="DIALS"
+          value={metrics.totalDials.toLocaleString()}
           rate="Conv. Rate"
-          rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
+          rateValue={`${((metrics.totalTriage / metrics.totalDials * 100) || 0).toFixed(1)}%`}
           xp="+1 XP each"
           icon={Target}
         />

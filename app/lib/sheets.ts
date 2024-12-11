@@ -1,8 +1,8 @@
-// lib/sheets.ts
+// app/lib/sheets.ts
 
 interface SheetRow {
   date: string;
-  outbound: number;
+  dials: number;
   triage: number;
   triageRate: number;
   appointments: number;
@@ -39,25 +39,17 @@ export async function fetchSheetData(): Promise<SheetRow[]> {
 
     // Convert any value to a safe number
     const safeNumber = (value: any): number => {
-      // If it's already a number, return it
       if (typeof value === 'number') return value;
-      // If it's null/undefined/empty, return 0
       if (!value) return 0;
-      // If it's a string with a percentage sign, remove it
-      if (typeof value === 'string') {
-        const cleaned = value.replace(/%/g, '').trim();
-        const num = parseFloat(cleaned);
-        return isNaN(num) ? 0 : num;
-      }
-      return 0;
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
     };
 
-    // Map raw data to strongly typed objects
     return data.values.map((row: any[]): SheetRow => {
       try {
         return {
           date: String(row[0] || ''),
-          outbound: safeNumber(row[1]),
+          dials: safeNumber(row[1]),
           triage: safeNumber(row[2]),
           triageRate: safeNumber(row[3]),
           appointments: safeNumber(row[4]),
@@ -73,9 +65,10 @@ export async function fetchSheetData(): Promise<SheetRow[]> {
         };
       } catch (error) {
         console.error('Error processing row:', row, error);
+        // Return safe defaults if processing fails
         return {
-          date: new Date().toISOString(),
-          outbound: 0,
+          date: String(row[0] || new Date().toISOString()),
+          dials: 0,
           triage: 0,
           triageRate: 0,
           appointments: 0,
