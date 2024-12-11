@@ -1,25 +1,26 @@
 // app/lib/sheets.ts
 
-// Helper function to parse percentage values
+// Helper function to handle ANY type of percentage value
 function parsePercentage(value: any): number {
-  if (typeof value === 'string') {
+  // If it's a string ending with %
+  if (typeof value === 'string' && value.endsWith('%')) {
     return parseFloat(value.replace('%', '')) / 100;
   }
+  // If it's already a decimal number
   if (typeof value === 'number') {
     return value;
   }
+  // Default case
   return 0;
- }
- 
- export async function fetchSheetData() {
+}
+
+export async function fetchSheetData() {
   try {
-    const spreadsheetId = process.env.NEXT_PUBLIC_SPREADSHEET_ID;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
+    const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
+    const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
     const range = 'Analysis!A2:O';
     
-    // Rest of your code...s
-    
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
     
     const response = await fetch(url);
     const data = await response.json();
@@ -28,31 +29,31 @@ function parsePercentage(value: any): number {
       console.error('No data values returned from sheets');
       return [];
     }
- 
-    // Enhanced data processing with percentage handling
-    return data.values.map(row => ({
-      date: row[0],
-      dials: Number(row[1]) || 0,
-      triage: Number(row[2]) || 0,
+
+    // More defensive data processing
+    return data.values.map((row: any[]) => ({
+      date: row[0] || '',
+      dials: parseInt(String(row[1])) || 0,
+      triage: parseInt(String(row[2])) || 0,
       triageRate: parsePercentage(row[3]),
-      appointments: Number(row[4]) || 0, 
+      appointments: parseInt(String(row[4])) || 0,
       setRate: parsePercentage(row[5]),
-      shows: Number(row[6]) || 0,
+      shows: parseInt(String(row[6])) || 0,
       showRate: parsePercentage(row[7]),
-      closes: Number(row[8]) || 0,
+      closes: parseInt(String(row[8])) || 0,
       closeRate: parsePercentage(row[9]),
-      revenue: Number(row[10]) || 0,
-      revenuePerClose: Number(row[11]) || 0,
-      energy: Number(row[12]) || 0,
-      totalXP: Number(row[13]) || 0
+      revenue: parseFloat(String(row[10])) || 0,
+      revenuePerClose: parseFloat(String(row[11])) || 0,
+      energy: parseFloat(String(row[12])) || 0,
+      totalXP: parseInt(String(row[13])) || 0
     }));
   } catch (error) {
     console.error('Error fetching sheet data:', error);
     return [];
   }
- }
- 
- export function filterDataByDateRange(data: any[], startDate: string, endDate: string) {
+}
+
+export function filterDataByDateRange(data: any[], startDate: string, endDate: string) {
   const start = new Date(startDate);
   const end = new Date(endDate);
   
@@ -64,4 +65,4 @@ function parsePercentage(value: any): number {
       return false;
     }
   });
- }
+}
