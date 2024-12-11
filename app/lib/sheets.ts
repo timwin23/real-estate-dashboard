@@ -13,9 +13,11 @@ function parsePercentage(value: any): number {
  
  export async function fetchSheetData() {
   try {
-    const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
-    const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
+    const spreadsheetId = process.env.NEXT_PUBLIC_SPREADSHEET_ID;
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
     const range = 'Analysis!A2:O';
+    
+    // Rest of your code...s
     
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
     
