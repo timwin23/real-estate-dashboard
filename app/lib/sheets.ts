@@ -1,4 +1,5 @@
 // lib/sheets.ts
+
 export async function fetchSheetData() {
   try {
     const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
@@ -14,10 +15,19 @@ export async function fetchSheetData() {
     console.log('Debug - URL:', url);
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
-    const rows = data.values || [];
+    
+    if (!data.values) {
+      console.error('No data values found in response:', data);
+      return [];
+    }
 
-    console.log('Raw data from sheets:', rows);
+    console.log('Raw data from sheets:', data.values);
 
     const processPercentage = (value: any): number => {
       if (typeof value === 'number') return value;
@@ -28,9 +38,9 @@ export async function fetchSheetData() {
       return 0;
     };
 
-    return rows.map((row: any[]) => ({
+    return data.values.map((row: any[]) => ({
       date: row[0],
-      dials: Number(row[1]) || 0,
+      outbound: Number(row[1]) || 0,
       triage: Number(row[2]) || 0,
       triageRate: processPercentage(row[3]),
       appointments: Number(row[4]) || 0,
@@ -46,15 +56,21 @@ export async function fetchSheetData() {
     }));
   } catch (error) {
     console.error('Error fetching sheet data:', error);
-    return [];
+    throw error; // Rethrow to handle in component
   }
 }
 
 export function filterDataByDateRange(data: any[], startDate: string, endDate: string) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
   return data.filter(row => {
-    const rowDate = new Date(row.date);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return rowDate >= start && rowDate <= end;
+    try {
+      const rowDate = new Date(row.date);
+      return rowDate >= start && rowDate <= end;
+    } catch (error) {
+      console.error('Error parsing date:', row.date, error);
+      return false;
+    }
   });
 }
