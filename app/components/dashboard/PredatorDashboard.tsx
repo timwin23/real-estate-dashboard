@@ -5,19 +5,28 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } f
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
 import { fetchSheetData, filterDataByDateRange } from '../../lib/sheets';
 
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  rate: string;
+  rateValue: string | number;
+  xp: string;
+  icon: React.ComponentType<any>;
+}
+
 export default function PredatorDashboard() {
   const [dateRange, setDateRange] = useState('7');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [level, setLevel] = useState(7);
   const [totalXP, setTotalXP] = useState(0);
-  const [nextLevelXP, setNextLevelXP] = useState(50000);
-  const [currentStreak, setCurrentStreak] = useState(3);
+  const [nextLevelXP] = useState(50000);
+  const [currentStreak] = useState(3);
 
   // Calculate progress percentage to Level 25
-  const progressToLevel25 = (totalXP / nextLevelXP) * 100;
+  const progressToLevel25 = Math.min((totalXP / nextLevelXP) * 100, 100);
 
-  // Calculate metrics from real data with safe number handling
+  // Calculate metrics from real data
   const calculateMetrics = () => {
     if (!data.length) return {
       totalOutbound: 0,
@@ -48,12 +57,12 @@ export default function PredatorDashboard() {
     });
   };
 
-  // Fetch data on mount and when date range changes
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         const sheetData = await fetchSheetData();
+        console.log('Sheet data loaded:', sheetData);
         
         if (dateRange === 'ALL') {
           setData(sheetData);
@@ -61,7 +70,6 @@ export default function PredatorDashboard() {
           const today = new Date();
           const startDate = new Date();
           startDate.setDate(today.getDate() - parseInt(dateRange));
-          
           const filteredData = filterDataByDateRange(sheetData, startDate.toISOString(), today.toISOString());
           setData(filteredData);
         }
@@ -75,7 +83,6 @@ export default function PredatorDashboard() {
     loadData();
   }, [dateRange]);
 
-  // Update XP when data changes
   useEffect(() => {
     if (data.length > 0) {
       const sum = data.reduce((acc, curr) => acc + (Number(curr.totalXP) || 0), 0);
@@ -123,7 +130,7 @@ export default function PredatorDashboard() {
         <div className="w-full bg-gray-800 h-4 rounded-full mb-2">
           <div 
             className="bg-red-500 h-full rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(progressToLevel25, 100)}%` }}
+            style={{ width: `${progressToLevel25}%` }}
           />
         </div>
       </div>
@@ -155,7 +162,7 @@ export default function PredatorDashboard() {
           title="OUTBOUND"
           value={metrics.totalOutbound.toLocaleString()}
           rate="Conv. Rate"
-          rateValue={formatRate((metrics.totalTriage / metrics.totalOutbound) * 100)}
+          rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
           xp="+1 XP each"
           icon={Target}
         />
@@ -163,7 +170,7 @@ export default function PredatorDashboard() {
           title="CONVERSATIONS"
           value={metrics.totalTriage.toLocaleString()}
           rate="Set Rate"
-          rateValue={formatRate((metrics.totalAppointments / metrics.totalTriage) * 100)}
+          rateValue={`${((metrics.totalAppointments / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
           xp="+10 XP each"
           icon={Swords}
         />
@@ -171,7 +178,7 @@ export default function PredatorDashboard() {
           title="APPOINTMENTS"
           value={metrics.totalAppointments.toLocaleString()}
           rate="Show Rate"
-          rateValue={formatRate((metrics.totalShows / metrics.totalAppointments) * 100)}
+          rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
           xp="+25 XP each"
           icon={Calendar}
         />
@@ -179,15 +186,15 @@ export default function PredatorDashboard() {
           title="CLOSES"
           value={metrics.totalCloses.toLocaleString()}
           rate="Close Rate"
-          rateValue={formatRate((metrics.totalCloses / metrics.totalShows) * 100)}
+          rateValue={`${((metrics.totalCloses / metrics.totalShows * 100) || 0).toFixed(1)}%`}
           xp="+100 XP each"
           icon={Flame}
         />
         <MetricCard 
           title="REVENUE"
-          value={formatCurrency(metrics.totalRevenue)}
+          value={`$${metrics.totalRevenue.toLocaleString()}`}
           rate="Per Close"
-          rateValue={formatCurrency(metrics.totalRevenue / metrics.totalCloses || 0)}
+          rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
           xp="Level Bonus: 2x"
           icon={DollarSign}
         />
@@ -195,28 +202,6 @@ export default function PredatorDashboard() {
     </div>
   );
 }
-
-// Formatting functions
-function formatRate(value: number): string {
-  if (isNaN(value) || !isFinite(value)) return '0%';
-  return `${value.toFixed(1)}%`;
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(value);
-}
-
-type MetricCardProps = {
-  title: string;
-  value: string | number;
-  rate: string;
-  rateValue: string | number;
-  xp: string;
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-};
 
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
   return (
