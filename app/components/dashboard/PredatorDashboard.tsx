@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchSheetData, filterDataByDateRange } from '../../lib/sheets';
+import { fetchSheetData, filterDataByDateRange } from '@/lib/sheets';
 
 interface MetricCardProps {
   title: string;
