@@ -26,6 +26,10 @@ export async function fetchSheetData(): Promise<SheetRow[]> {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
     
     const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     
     if (!data.values) {
@@ -33,31 +37,59 @@ export async function fetchSheetData(): Promise<SheetRow[]> {
       return [];
     }
 
-    // Safely convert any value to number
-    const toNumber = (value: any): number => {
+    // Convert any value to a safe number
+    const safeNumber = (value: any): number => {
+      // If it's already a number, return it
       if (typeof value === 'number') return value;
+      // If it's null/undefined/empty, return 0
       if (!value) return 0;
-      const num = Number(value);
-      return isNaN(num) ? 0 : num;
+      // If it's a string with a percentage sign, remove it
+      if (typeof value === 'string') {
+        const cleaned = value.replace(/%/g, '').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+      }
+      return 0;
     };
 
+    // Map raw data to strongly typed objects
     return data.values.map((row: any[]): SheetRow => {
-      return {
-        date: String(row[0] || ''),
-        outbound: toNumber(row[1]),
-        triage: toNumber(row[2]),
-        triageRate: toNumber(row[3]),
-        appointments: toNumber(row[4]),
-        setRate: toNumber(row[5]),
-        shows: toNumber(row[6]),
-        showRate: toNumber(row[7]),
-        closes: toNumber(row[8]),
-        closeRate: toNumber(row[9]),
-        revenue: toNumber(row[10]),
-        revenuePerClose: toNumber(row[11]),
-        energy: toNumber(row[12]),
-        totalXP: toNumber(row[13])
-      };
+      try {
+        return {
+          date: String(row[0] || ''),
+          outbound: safeNumber(row[1]),
+          triage: safeNumber(row[2]),
+          triageRate: safeNumber(row[3]),
+          appointments: safeNumber(row[4]),
+          setRate: safeNumber(row[5]),
+          shows: safeNumber(row[6]),
+          showRate: safeNumber(row[7]),
+          closes: safeNumber(row[8]),
+          closeRate: safeNumber(row[9]),
+          revenue: safeNumber(row[10]),
+          revenuePerClose: safeNumber(row[11]),
+          energy: safeNumber(row[12]),
+          totalXP: safeNumber(row[13])
+        };
+      } catch (error) {
+        console.error('Error processing row:', row, error);
+        return {
+          date: new Date().toISOString(),
+          outbound: 0,
+          triage: 0,
+          triageRate: 0,
+          appointments: 0,
+          setRate: 0,
+          shows: 0,
+          showRate: 0,
+          closes: 0,
+          closeRate: 0,
+          revenue: 0,
+          revenuePerClose: 0,
+          energy: 0,
+          totalXP: 0
+        };
+      }
     });
   } catch (error) {
     console.error('Error fetching sheet data:', error);
