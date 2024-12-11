@@ -5,58 +5,80 @@ export async function fetchSheetData() {
     const spreadsheetId = "1DUIj8ILJn2l5or35ihq-meBDyv_TAU22aLeyul8z_WM";
     const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
     
-    console.log('Debug - Sheet ID:', spreadsheetId);
-    console.log('Debug - API Key:', apiKey);
-
     const range = 'Analysis!A2:O';
     
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
     
-    console.log('Debug - URL:', url);
-    
     const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
     const data = await response.json();
     
     if (!data.values) {
-      console.error('No data values found in response:', data);
+      console.error('No data values returned from sheets');
       return [];
     }
 
-    console.log('Raw data from sheets:', data.values);
+    console.log('Raw row data:', data.values);
 
     const processPercentage = (value: any): number => {
-      if (typeof value === 'number') return value;
-      if (!value) return 0;
+      console.log('Processing percentage value:', value, 'type:', typeof value);
+      
+      if (typeof value === 'number') {
+        return value;
+      }
+      if (!value) {
+        return 0;
+      }
       if (typeof value === 'string') {
-        return Number(value.replace('%', '')) || 0;
+        const cleaned = value.replace('%', '');
+        return Number(cleaned) || 0;
       }
       return 0;
     };
 
-    return data.values.map((row: any[]) => ({
-      date: row[0],
-      outbound: Number(row[1]) || 0,
-      triage: Number(row[2]) || 0,
-      triageRate: processPercentage(row[3]),
-      appointments: Number(row[4]) || 0,
-      setRate: processPercentage(row[5]),
-      shows: Number(row[6]) || 0,
-      showRate: processPercentage(row[7]),
-      closes: Number(row[8]) || 0,
-      closeRate: processPercentage(row[9]),
-      revenue: Number(row[10]) || 0,
-      revenuePerClose: Number(row[11]) || 0,
-      energy: Number(row[12]) || 0,
-      totalXP: Number(row[13]) || 0
-    }));
+    return data.values.map((row: any[], index: number) => {
+      try {
+        console.log(`Processing row ${index}:`, row);
+        
+        return {
+          date: row[0],
+          outbound: Number(row[1] ?? 0),
+          triage: Number(row[2] ?? 0),
+          triageRate: Number(row[3] ?? 0), // Changed from processPercentage
+          appointments: Number(row[4] ?? 0),
+          setRate: Number(row[5] ?? 0),    // Changed from processPercentage
+          shows: Number(row[6] ?? 0),
+          showRate: Number(row[7] ?? 0),    // Changed from processPercentage
+          closes: Number(row[8] ?? 0),
+          closeRate: Number(row[9] ?? 0),    // Changed from processPercentage
+          revenue: Number(row[10] ?? 0),
+          revenuePerClose: Number(row[11] ?? 0),
+          energy: Number(row[12] ?? 0),
+          totalXP: Number(row[13] ?? 0)
+        };
+      } catch (error) {
+        console.error(`Error processing row ${index}:`, row, error);
+        // Return default values if row processing fails
+        return {
+          date: row[0] || new Date().toISOString(),
+          outbound: 0,
+          triage: 0,
+          triageRate: 0,
+          appointments: 0,
+          setRate: 0,
+          shows: 0,
+          showRate: 0,
+          closes: 0,
+          closeRate: 0,
+          revenue: 0,
+          revenuePerClose: 0,
+          energy: 0,
+          totalXP: 0
+        };
+      }
+    });
   } catch (error) {
     console.error('Error fetching sheet data:', error);
-    throw error; // Rethrow to handle in component
+    return [];
   }
 }
 
