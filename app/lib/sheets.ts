@@ -1,13 +1,8 @@
 // app/lib/sheets.ts
 
-// Helper function that's more defensive about handling percentages
-function safeParsePercentage(value: any): number {
-  if (value === null || value === undefined) return 0;
+function safeRate(value: any): number {
+  if (!value) return 0;
   if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const cleaned = value.replace('%', '');
-    return parseFloat(cleaned) / 100 || 0;
-  }
   return 0;
 }
 
@@ -27,31 +22,22 @@ export async function fetchSheetData() {
       return [];
     }
 
-    // More defensive data mapping
-    return data.values.map((row: any[]) => {
-      try {
-        return {
-          date: row[0] || '',
-          dials: parseInt(String(row[1])) || 0,
-          triage: parseInt(String(row[2])) || 0,
-          triageRate: safeParsePercentage(row[3]),
-          appointments: parseInt(String(row[4])) || 0,
-          setRate: safeParsePercentage(row[5]),
-          shows: parseInt(String(row[6])) || 0,
-          showRate: safeParsePercentage(row[7]),
-          closes: parseInt(String(row[8])) || 0,
-          closeRate: safeParsePercentage(row[9]),
-          revenue: parseFloat(String(row[10])) || 0,
-          revenuePerClose: parseFloat(String(row[11])) || 0,
-          energy: parseFloat(String(row[12])) || 0,
-          totalXP: parseInt(String(row[13])) || 0
-        };
-      } catch (e) {
-        console.error('Error processing row:', e);
-        return null;
-      }
-    }).filter(Boolean);
-
+    return data.values.map(row => ({
+      date: row[0],
+      dials: Number(row[1]) || 0,
+      triage: Number(row[2]) || 0,
+      triageRate: safeRate(row[3]),
+      appointments: Number(row[4]) || 0,
+      setRate: safeRate(row[5]),
+      shows: Number(row[6]) || 0,
+      showRate: safeRate(row[7]),
+      closes: Number(row[8]) || 0,
+      closeRate: safeRate(row[9]),
+      revenue: Number(row[10]) || 0,
+      revenuePerClose: Number(row[11]) || 0,
+      energy: Number(row[12]) || 0,
+      totalXP: Number(row[13]) || 0
+    }));
   } catch (error) {
     console.error('Error fetching sheet data:', error);
     return [];
