@@ -22,7 +22,7 @@ export async function fetchSheetData() {
       return [];
     }
 
-    return data.values.map(row => ({
+    return data.values.map((row: any[]) => ({
       date: row[0],
       dials: Number(row[1]) || 0,
       triage: Number(row[2]) || 0,
