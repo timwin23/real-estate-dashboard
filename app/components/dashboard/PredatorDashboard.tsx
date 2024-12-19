@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
 import { fetchSheetData, filterDataByDateRange, fetchProjections } from './sheets';
-import { fetchMarketingData, fetchMarketingProjections } from '../lib/marketingSheets';
+import { fetchMarketingData, fetchMarketingProjections } from '../../lib/marketingSheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
 
@@ -193,12 +193,14 @@ export default function PredatorDashboard() {
   }, [dateRange]);
 
   useEffect(() => {
-    if (data.length > 0) {
+    if (dashboardType === 'sales' && data.length > 0) {
       const sum = data.reduce((acc, curr) => acc + (Number(curr.totalXP) || 0), 0);
       setTotalXP(sum);
+    } else if (dashboardType === 'marketing' && marketingData.length > 0) {
+      const sum = marketingData.reduce((acc, curr) => acc + (Number(curr.marketingXP) || 0), 0);
+      setTotalXP(sum);
     }
-  }, [data]);
-
+  }, [data, marketingData, dashboardType]);
   const metrics = calculateMetrics();
 
   if (loading) {

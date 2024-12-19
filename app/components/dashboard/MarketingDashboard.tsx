@@ -3,6 +3,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users } from 'lucide-react';
+import MarketingTargetBarChart from './MarketingTargetBarChart';
 
 type MetricCardProps = {
   title: string;
@@ -21,13 +22,19 @@ type MarketingMetrics = {
   totalPaid: number;
   totalPosts: number;
   totalLeads: number;
-  totalXP: number;
+  marketingXP: number;
+  responseRate: number;
+  vslViewRate: number;
+  trialRate: number;
+  paidRate: number;
+  leadsPerPost: number;
 };
 
 const getRateColor = (title: string, rate: number): string => {
   const value = parseFloat(String(rate).replace('%', ''));
   
   switch (title) {
+    case 'OUTBOUND':
     case 'RESPONSES':
     case 'VSL VIEWS':
     case 'TRIALS':
@@ -58,10 +65,15 @@ export default function MarketingDashboard({
       totalPaid: 0,
       totalPosts: 0,
       totalLeads: 0,
-      totalXP: 0
+      marketingXP: 0,
+      responseRate: 0,
+      vslViewRate: 0,
+      trialRate: 0,
+      paidRate: 0,
+      leadsPerPost: 0
     };
 
-    return marketingData.reduce((acc, curr) => ({
+    const totals = marketingData.reduce((acc, curr) => ({
       totalOutbound: acc.totalOutbound + (curr.outboundMessages || 0),
       totalResponses: acc.totalResponses + (curr.positiveResponses || 0),
       totalVSLViews: acc.totalVSLViews + (curr.vslViews || 0),
@@ -69,7 +81,7 @@ export default function MarketingDashboard({
       totalPaid: acc.totalPaid + (curr.paidUsers || 0),
       totalPosts: acc.totalPosts + (curr.postsCreated || 0),
       totalLeads: acc.totalLeads + (curr.leadsGenerated || 0),
-      totalXP: acc.totalXP + (curr.marketingXP || 0)
+      marketingXP: acc.marketingXP + (curr.marketingXP || 0)
     }), {
       totalOutbound: 0,
       totalResponses: 0,
@@ -78,8 +90,43 @@ export default function MarketingDashboard({
       totalPaid: 0,
       totalPosts: 0,
       totalLeads: 0,
-      totalXP: 0
+      marketingXP: 0
     });
+
+    return {
+      ...totals,
+      responseRate: (totals.totalResponses / totals.totalOutbound * 100) || 0,
+      vslViewRate: (totals.totalVSLViews / totals.totalResponses * 100) || 0,
+      trialRate: (totals.totalTrials / totals.totalVSLViews * 100) || 0,
+      paidRate: (totals.totalPaid / totals.totalTrials * 100) || 0,
+      leadsPerPost: (totals.totalLeads / totals.totalPosts) || 0
+    };
+  };
+
+  const formatDataForBarChart = (data: any[]) => {
+    const dailyData = data[data.length - 1] || {};
+    
+    const weeklyData = data.slice(-7).reduce((acc, curr) => ({
+      outboundMessages: (acc.outboundMessages || 0) + (curr.outboundMessages || 0),
+      positiveResponses: (acc.positiveResponses || 0) + (curr.positiveResponses || 0),
+      vslViews: (acc.vslViews || 0) + (curr.vslViews || 0),
+      trialUsers: (acc.trialUsers || 0) + (curr.trialUsers || 0),
+      paidUsers: (acc.paidUsers || 0) + (curr.paidUsers || 0)
+    }), {});
+
+    const monthlyData = data.slice(-30).reduce((acc, curr) => ({
+      outboundMessages: (acc.outboundMessages || 0) + (curr.outboundMessages || 0),
+      positiveResponses: (acc.positiveResponses || 0) + (curr.positiveResponses || 0),
+      vslViews: (acc.vslViews || 0) + (curr.vslViews || 0),
+      trialUsers: (acc.trialUsers || 0) + (curr.trialUsers || 0),
+      paidUsers: (acc.paidUsers || 0) + (curr.paidUsers || 0)
+    }), {});
+
+    return {
+      daily: dailyData,
+      weekly: weeklyData,
+      monthly: monthlyData
+    };
   };
 
   const metrics = calculateMetrics();
@@ -109,54 +156,12 @@ export default function MarketingDashboard({
           </ResponsiveContainer>
         </div>
 
-        {/* Metrics Table */}
+        {/* Bar Chart */}
         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-          <div className="w-full h-full overflow-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-gray-400">
-                  <th className="text-left p-2">Metric</th>
-                  <th className="text-right p-2">Value</th>
-                  <th className="text-right p-2">Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="p-2">Outbound Messages</td>
-                  <td className="text-right p-2">{metrics.totalOutbound}</td>
-                  <td className={`text-right p-2 ${getRateColor('RESPONSES', (metrics.totalResponses / metrics.totalOutbound * 100))}`}>
-                    {((metrics.totalResponses / metrics.totalOutbound * 100) || 0).toFixed(1)}%
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">VSL Views</td>
-                  <td className="text-right p-2">{metrics.totalVSLViews}</td>
-                  <td className={`text-right p-2 ${getRateColor('VSL VIEWS', (metrics.totalVSLViews / metrics.totalResponses * 100))}`}>
-                    {((metrics.totalVSLViews / metrics.totalResponses * 100) || 0).toFixed(1)}%
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">Trial Users</td>
-                  <td className="text-right p-2">{metrics.totalTrials}</td>
-                  <td className={`text-right p-2 ${getRateColor('TRIALS', (metrics.totalTrials / metrics.totalVSLViews * 100))}`}>
-                    {((metrics.totalTrials / metrics.totalVSLViews * 100) || 0).toFixed(1)}%
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">Posts Created</td>
-                  <td className="text-right p-2">{metrics.totalPosts}</td>
-                  <td className="text-right p-2">-</td>
-                </tr>
-                <tr>
-                  <td className="p-2">Leads Generated</td>
-                  <td className="text-right p-2">{metrics.totalLeads}</td>
-                  <td className="text-right p-2">
-                    {((metrics.totalLeads / metrics.totalPosts) || 0).toFixed(1)} per post
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <MarketingTargetBarChart 
+            data={formatDataForBarChart(marketingData)} 
+            projections={{}} 
+          />
         </div>
       </div>
 
@@ -166,7 +171,7 @@ export default function MarketingDashboard({
           title="OUTBOUND"
           value={metrics.totalOutbound.toLocaleString()}
           rate="Response Rate"
-          rateValue={`${((metrics.totalResponses / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
+          rateValue={`${metrics.responseRate.toFixed(1)}%`}
           xp="+1 XP each"
           icon={Target}
         />
@@ -174,7 +179,7 @@ export default function MarketingDashboard({
           title="VSL VIEWS"
           value={metrics.totalVSLViews.toLocaleString()}
           rate="View Rate"
-          rateValue={`${((metrics.totalVSLViews / metrics.totalResponses * 100) || 0).toFixed(1)}%`}
+          rateValue={`${metrics.vslViewRate.toFixed(1)}%`}
           xp="+5 XP each"
           icon={PhoneCall}
         />
@@ -182,7 +187,7 @@ export default function MarketingDashboard({
           title="TRIALS"
           value={metrics.totalTrials.toLocaleString()}
           rate="Trial Rate"
-          rateValue={`${((metrics.totalTrials / metrics.totalVSLViews * 100) || 0).toFixed(1)}%`}
+          rateValue={`${metrics.trialRate.toFixed(1)}%`}
           xp="+25 XP each"
           icon={Users}
         />
@@ -190,7 +195,7 @@ export default function MarketingDashboard({
           title="PAID USERS"
           value={metrics.totalPaid.toLocaleString()}
           rate="Conversion Rate"
-          rateValue={`${((metrics.totalPaid / metrics.totalTrials * 100) || 0).toFixed(1)}%`}
+          rateValue={`${metrics.paidRate.toFixed(1)}%`}
           xp="+100 XP each"
           icon={Crown}
         />
@@ -198,7 +203,7 @@ export default function MarketingDashboard({
           title="POSTS"
           value={metrics.totalPosts.toLocaleString()}
           rate="Leads per Post"
-          rateValue={((metrics.totalLeads / metrics.totalPosts) || 0).toFixed(1)}
+          rateValue={metrics.leadsPerPost.toFixed(1)}
           xp="+25 XP each"
           icon={Star}
         />
