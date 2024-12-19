@@ -352,8 +352,8 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
   return (
     <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2">
-        <span className="text-gray-300">{title}</span>
-        {Icon &&{Icon && <Icon className="text-red-500" />}
+      <span className="text-gray-300">{title}</span>
+      {Icon && <Icon className="text-red-500" />}
       </div>
       <div className="text-2xl font-bold mb-1 text-white">{value}</div>
       <div className="text-sm text-gray-300">{rate}</div>
