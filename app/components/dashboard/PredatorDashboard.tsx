@@ -75,7 +75,7 @@ export default function PredatorDashboard() {
   const [nextLevelXP] = useState(50000);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [projections, setProjections] = useState<any>(null);
-
+  const [marketingProjections, setMarketingProjections] = useState<any>(null);
   const progressToLevel25 = Math.min((totalXP / nextLevelXP) * 100, 100);
 
   const calculateStreak = (data: any[], projections: any) => {
@@ -159,13 +159,19 @@ export default function PredatorDashboard() {
     async function loadData() {
       try {
         setLoading(true);
-        const [sheetData, projectionsData, mktgData] = await Promise.all([
+        const [sheetData, projectionsData, mktgData, mktgProjections] = await Promise.all([
           fetchSheetData(),
           fetchProjections(),
-          fetchMarketingData()
+          fetchMarketingData(),
+          fetchMarketingProjections()
         ]);
         
         setProjections(projectionsData);
+        setMarketingProjections(mktgProjections);
+
+        // ADD THESE TWO LINES:
+        console.log('Marketing Data:', mktgData);
+        console.log('Marketing Projections:', mktgProjections);
         
         if (dateRange === 'ALL') {
           setData(sheetData);
@@ -201,6 +207,7 @@ export default function PredatorDashboard() {
       setTotalXP(sum);
     }
   }, [data, marketingData, dashboardType]);
+
   const metrics = calculateMetrics();
 
   if (loading) {
@@ -344,6 +351,7 @@ export default function PredatorDashboard() {
           marketingData={marketingData}
           dateRange={dateRange}
           onDateRangeChange={(range) => setDateRange(range)}
+          projections={marketingProjections}  // Add this line here
         />
       )}
     </div>

@@ -23,7 +23,7 @@ type ChartProps = {
 
 const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
   const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
-  
+
   const getPerformanceColor = (actual: number, target: number) => {
     if (!target) return 'text-gray-400';
     const percent = (actual / target) * 100;
@@ -33,11 +33,13 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
   };
 
   const metrics = [
-    { key: 'outboundMessages', label: 'Outbound Messages' },
-    { key: 'positiveResponses', label: 'Responses' },
-    { key: 'vslViews', label: 'VSL Views' },
-    { key: 'trialUsers', label: 'Trial Users' },
-    { key: 'paidUsers', label: 'Paid Users' }
+    { key: 'outbound_msgs', label: 'Outbound Messages' },
+    { key: 'responses', label: 'Responses' },
+    { key: 'vsl_views', label: 'VSL Views' },
+    { key: 'trials', label: 'Trial Users' },
+    { key: 'paid_conv', label: 'Paid Users' },
+    { key: 'posts', label: 'Posts' },
+    { key: 'leads', label: 'Leads' },
   ];
 
   return (
@@ -45,7 +47,7 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-200">Performance vs Targets</h3>
-        <select 
+        <select
           value={timeframe}
           onChange={(e) => setTimeframe(e.target.value as TimeframeType)}
           className="bg-gray-800 text-white rounded-md px-3 py-1.5 text-sm border border-gray-700"
@@ -57,8 +59,8 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
       </div>
 
       {/* Table */}
-      <div className="w-full border border-gray-800 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-3 text-sm">
+      <div className="w-full border border-gray-800 rounded-lg overflow-hidden h-[300px]"> {/* Added fixed height */}
+  <div className="grid grid-cols-3 text-sm h-full overflow-y-auto"> {/* Added overflow scroll */}
           {/* Table Header */}
           <div className="bg-gray-800/50 px-4 py-2 font-medium text-gray-400">METRIC</div>
           <div className="bg-gray-800/50 px-4 py-2 font-medium text-gray-400 text-right">TARGET</div>
@@ -68,7 +70,7 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
           {metrics.map((metric, idx) => {
             const actual = data[timeframe]?.[metric.key] || 0;
             const target = projections[metric.key]?.[timeframe] || 0;
-            
+
             return (
               <React.Fragment key={metric.key}>
                 <div className={`px-4 py-3 text-gray-200 font-medium ${idx % 2 === 0 ? 'bg-gray-800/20' : ''}`}>

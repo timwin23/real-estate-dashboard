@@ -30,6 +30,17 @@ type MarketingMetrics = {
   leadsPerPost: number;
 };
 
+interface MetricsFormat {
+  [key: string]: number;
+  outbound_msgs: number;
+  responses: number;
+  vsl_views: number;
+  trials: number;
+  paid_conv: number;
+  posts: number;
+  leads: number;
+}
+
 const getRateColor = (title: string, rate: number): string => {
   const value = parseFloat(String(rate).replace('%', ''));
   
@@ -50,13 +61,17 @@ const getRateColor = (title: string, rate: number): string => {
 export default function MarketingDashboard({ 
   marketingData, 
   dateRange, 
-  onDateRangeChange 
+  onDateRangeChange,
+  projections 
 }: { 
   marketingData: any[];
   dateRange: string;
   onDateRangeChange: (range: string) => void;
+  projections: any;
 }) {
   const calculateMetrics = (): MarketingMetrics => {
+    console.log('Calculating metrics from:', marketingData);
+
     if (!marketingData.length) return {
       totalOutbound: 0,
       totalResponses: 0,
@@ -73,16 +88,19 @@ export default function MarketingDashboard({
       leadsPerPost: 0
     };
 
-    const totals = marketingData.reduce((acc, curr) => ({
-      totalOutbound: acc.totalOutbound + (curr.outboundMessages || 0),
-      totalResponses: acc.totalResponses + (curr.positiveResponses || 0),
-      totalVSLViews: acc.totalVSLViews + (curr.vslViews || 0),
-      totalTrials: acc.totalTrials + (curr.trialUsers || 0),
-      totalPaid: acc.totalPaid + (curr.paidUsers || 0),
-      totalPosts: acc.totalPosts + (curr.postsCreated || 0),
-      totalLeads: acc.totalLeads + (curr.leadsGenerated || 0),
-      marketingXP: acc.marketingXP + (curr.marketingXP || 0)
-    }), {
+    const totals = marketingData.reduce((acc, curr) => {
+      console.log('Processing row:', curr);
+      return {
+        totalOutbound: acc.totalOutbound + (curr.outboundMessages || 0),
+        totalResponses: acc.totalResponses + (curr.positiveResponses || 0),
+        totalVSLViews: acc.totalVSLViews + (curr.vslViews || 0),
+        totalTrials: acc.totalTrials + (curr.trialUsers || 0),
+        totalPaid: acc.totalPaid + (curr.paidUsers || 0),
+        totalPosts: acc.totalPosts + (curr.postsCreated || 0),
+        totalLeads: acc.totalLeads + (curr.leadsGenerated || 0),
+        marketingXP: acc.marketingXP + (curr.marketingXP || 0)
+      };
+    }, {
       totalOutbound: 0,
       totalResponses: 0,
       totalVSLViews: 0,
@@ -93,7 +111,9 @@ export default function MarketingDashboard({
       marketingXP: 0
     });
 
-    return {
+    console.log('Calculated totals:', totals);
+
+    const metrics = {
       ...totals,
       responseRate: (totals.totalResponses / totals.totalOutbound * 100) || 0,
       vslViewRate: (totals.totalVSLViews / totals.totalResponses * 100) || 0,
@@ -101,35 +121,71 @@ export default function MarketingDashboard({
       paidRate: (totals.totalPaid / totals.totalTrials * 100) || 0,
       leadsPerPost: (totals.totalLeads / totals.totalPosts) || 0
     };
+
+    console.log('Final metrics:', metrics);
+    return metrics;
   };
 
   const formatDataForBarChart = (data: any[]) => {
-    const dailyData = data[data.length - 1] || {};
+    console.log('Formatting bar chart data from:', data);
     
-    const weeklyData = data.slice(-7).reduce((acc, curr) => ({
-      outboundMessages: (acc.outboundMessages || 0) + (curr.outboundMessages || 0),
-      positiveResponses: (acc.positiveResponses || 0) + (curr.positiveResponses || 0),
-      vslViews: (acc.vslViews || 0) + (curr.vslViews || 0),
-      trialUsers: (acc.trialUsers || 0) + (curr.trialUsers || 0),
-      paidUsers: (acc.paidUsers || 0) + (curr.paidUsers || 0)
-    }), {});
+    const dailyData = data[data.length - 1] || {};
+    console.log('Latest daily data:', dailyData);
 
-    const monthlyData = data.slice(-30).reduce((acc, curr) => ({
-      outboundMessages: (acc.outboundMessages || 0) + (curr.outboundMessages || 0),
-      positiveResponses: (acc.positiveResponses || 0) + (curr.positiveResponses || 0),
-      vslViews: (acc.vslViews || 0) + (curr.vslViews || 0),
-      trialUsers: (acc.trialUsers || 0) + (curr.trialUsers || 0),
-      paidUsers: (acc.paidUsers || 0) + (curr.paidUsers || 0)
-    }), {});
+    const formatMetrics = (row: any): MetricsFormat => {
+      const result = {
+        outbound_msgs: row.outboundMessages || 0,
+        responses: row.positiveResponses || 0,
+        vsl_views: row.vslViews || 0,
+        trials: row.trialUsers || 0,
+        paid_conv: row.paidUsers || 0,
+        posts: row.postsCreated || 0,
+        leads: row.leadsGenerated || 0
+      };
+      console.log('Formatted metrics for row:', result);
+      return result;
+    };
 
-    return {
-      daily: dailyData,
+    const weeklyData = data.slice(-7).reduce((acc, curr) => {
+      const metrics = formatMetrics(curr);
+      return {
+        ...acc,
+        outbound_msgs: (acc.outbound_msgs || 0) + metrics.outbound_msgs,
+        responses: (acc.responses || 0) + metrics.responses,
+        vsl_views: (acc.vsl_views || 0) + metrics.vsl_views,
+        trials: (acc.trials || 0) + metrics.trials,
+        paid_conv: (acc.paid_conv || 0) + metrics.paid_conv,
+        posts: (acc.posts || 0) + metrics.posts,
+        leads: (acc.leads || 0) + metrics.leads
+      };
+    }, {} as MetricsFormat);
+
+    const monthlyData = data.slice(-30).reduce((acc, curr) => {
+      const metrics = formatMetrics(curr);
+      return {
+        ...acc,
+        outbound_msgs: (acc.outbound_msgs || 0) + metrics.outbound_msgs,
+        responses: (acc.responses || 0) + metrics.responses,
+        vsl_views: (acc.vsl_views || 0) + metrics.vsl_views,
+        trials: (acc.trials || 0) + metrics.trials,
+        paid_conv: (acc.paid_conv || 0) + metrics.paid_conv,
+        posts: (acc.posts || 0) + metrics.posts,
+        leads: (acc.leads || 0) + metrics.leads
+      };
+    }, {} as MetricsFormat);
+
+    const result = {
+      daily: formatMetrics(dailyData),
       weekly: weeklyData,
       monthly: monthlyData
     };
+
+    console.log('Final bar chart data:', result);
+    return result;
   };
 
   const metrics = calculateMetrics();
+  console.log('Using metrics:', metrics);
 
   return (
     <div>
@@ -160,7 +216,7 @@ export default function MarketingDashboard({
         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
           <MarketingTargetBarChart 
             data={formatDataForBarChart(marketingData)} 
-            projections={{}} 
+            projections={projections || {}} 
           />
         </div>
       </div>
