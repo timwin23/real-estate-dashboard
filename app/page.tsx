@@ -1,5 +1,5 @@
-import PredatorDashboard from './components/dashboard/PredatorDashboard';
+import RealEstateDashboard from './components/dashboard/RealEstateDashboard';
 
 export default function Home() {
-  return <PredatorDashboard />;
+  return <RealEstateDashboard />;
 }
