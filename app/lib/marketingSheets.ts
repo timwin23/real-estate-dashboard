@@ -11,52 +11,51 @@ function safeRate(numerator: any, denominator: any): number {
   return rate > 100 ? 100 : Math.round(rate * 10) / 10; // Cap at 100% and round to 1 decimal
 }
 
-// Marketing data fetching function
-export async function fetchMarketingData() {
-  try {
-    const spreadsheetId = "1NdCBL0usG_V7LlZBMfB43E48T3_NB5itV5ZeOsGAhJE";
-    const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
-    const range = 'Marketing Analysis!A2:N';
+// Interface for marketing metrics
+interface MarketingMetrics {
+  date: string;
+  outboundMessages: number;
+  positiveResponses: number;
+  responseRate: number;
+  postsCreated: number;
+  leadsGenerated: number;
+  leadsPerPost: number;
+  marketingXP: number;
+}
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+// Fetch marketing data for a specific team member
+export async function fetchTeamMemberMarketingData(memberName: string): Promise<MarketingMetrics[]> {
+  try {
+    const spreadsheetId = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
+    const range = `${memberName} Analysis!A2:X`; // Expanded range to include all columns
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
     const response = await fetch(url);
     const data = await response.json();
 
     if (!data.values) {
-      console.error('No marketing data values returned from Google Sheets');
+      console.error(`No marketing data values returned for ${memberName}`);
       return [];
     }
 
     return data.values.map((row: any[]) => {
-      // First get all raw numbers
-      const outboundMessages = Number(row[1]) || 0;
-      const positiveResponses = Number(row[2]) || 0;
-      const vslViews = Number(row[4]) || 0;
-      const trialUsers = Number(row[6]) || 0;
-      const paidUsers = Number(row[8]) || 0;
-      const postsCreated = Number(row[10]) || 0;
-      const leadsGenerated = Number(row[11]) || 0;
-    
-      // Calculate rates - matching your Google Sheet exactly
-      const responseRate = safeRate(positiveResponses, outboundMessages);
-      const vslViewRate = safeRate(vslViews, outboundMessages);  // This was wrong before
-      const trialRate = safeRate(trialUsers, vslViews);      // As percentage of VSL Views
-    
+      // Get raw numbers based on your sheet structure
+      const outboundMessages = Number(row[15]) || 0;  // Column P
+      const positiveResponses = Number(row[16]) || 0; // Column Q
+      const postsCreated = Number(row[18]) || 0;      // Column S
+      const leadsGenerated = Number(row[19]) || 0;    // Column T
+      const marketingXP = Number(row[21]) || 0;       // Column V
+
       return {
-        date: row[0] || '',
+        date: row[0] || '',                           // Column A
         outboundMessages,
         positiveResponses,
-        responseRate,
-        vslViews,
-        vslViewRate,           // Fixed
-        trialUsers,
-        trialRate,            // Fixed
-        paidUsers,
-        paidRate: safeRate(paidUsers, trialUsers),
+        responseRate: safeRate(positiveResponses, outboundMessages),
         postsCreated,
         leadsGenerated,
         leadsPerPost: safeRate(leadsGenerated, postsCreated),
-        marketingXP: Number(row[13]) || 0
+        marketingXP
       };
     });
 
@@ -66,59 +65,102 @@ export async function fetchMarketingData() {
   }
 }
 
-// Marketing projections fetch function
-export async function fetchMarketingProjections() {
-  try {
-    const spreadsheetId = "1NdCBL0usG_V7LlZBMfB43E48T3_NB5itV5ZeOsGAhJE";
-    const apiKey = "AIzaSyA8xFp3JzgFdgbSTdUjO7wMI32yz0NVKGQ";
-    const range = 'Projections!A8:D14';
-
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!data.values) {
-      console.error('No marketing projections data returned from sheets');
-      return null;
-    }
-
-    const metricMap: { [key: string]: string } = {
-      'Posts': 'posts',
-      'Leads': 'leads',
-      'Outbound Msgs': 'outbound_msgs',
-      'Responses': 'responses',
-      'VSL Views': 'vsl_views',
-      'Trials': 'trials',
-      'Paid Conv': 'paid_conv'
-    };
-
-    const projections = data.values.reduce((acc: { [key: string]: any }, row: any[]) => {
-      const origMetricName = row[0];
-      const mappedName = metricMap[origMetricName];
-
-      if (mappedName) {
-        acc[mappedName] = {
-          daily: Number(row[1]) || 0,
-          weekly: Number(row[2]) || 0,
-          monthly: Number(row[3]) || 0
-        };
-      }
-      return acc;
-    }, {});
-
-    console.log('Marketing Projections:', projections); // For debugging
-    return projections;
-
-  } catch (error) {
-    console.error('Error fetching marketing projections:', error);
-    return null;
-  }
+// Interface for team member projections
+interface TeamMemberProjections {
+  outbound: Projection;
+  posts: Projection;
+  leads: Projection;
+  responses: Projection;
 }
 
-// Projection type interface
 interface Projection {
   daily: number;
   weekly: number;
   monthly: number;
+}
+
+interface TeamProjections {
+  chris: TeamMemberProjections;
+  israel: TeamMemberProjections;
+  ivette: TeamMemberProjections;
+}
+
+// Fetch marketing projections for all team members
+export async function fetchMarketingProjections(): Promise<TeamProjections> {
+  try {
+    const spreadsheetId = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
+    const range = 'Projections!A2:J15';  // Full projections range
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.values) {
+      throw new Error('No marketing projections data returned from sheets');
+    }
+
+    // Initialize projections object
+    const projections: TeamProjections = {
+      chris: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+      },
+      israel: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+      },
+      ivette: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+      }
+    };
+
+    // Map sheet metrics to projection keys
+    const metricMap: { [key: string]: keyof TeamMemberProjections } = {
+      'Outbound': 'outbound',
+      'Posts': 'posts',
+      'Leads': 'leads',
+      'Responses': 'responses'
+    };
+
+    // Process each row
+    data.values.forEach((row: any[]) => {
+      const metricKey = metricMap[row[0]];
+      if (metricKey) {
+        // Chris (columns B,C,D)
+        projections.chris[metricKey] = {
+          daily: Number(row[1]) || 0,
+          weekly: Number(row[2]) || 0,
+          monthly: Number(row[3]) || 0
+        };
+
+        // Israel (columns E,F,G)
+        projections.israel[metricKey] = {
+          daily: Number(row[4]) || 0,
+          weekly: Number(row[5]) || 0,
+          monthly: Number(row[6]) || 0
+        };
+
+        // Ivette (columns H,I,J)
+        projections.ivette[metricKey] = {
+          daily: Number(row[7]) || 0,
+          weekly: Number(row[8]) || 0,
+          monthly: Number(row[9]) || 0
+        };
+      }
+    });
+
+    return projections;
+
+  } catch (error) {
+    console.error('Error fetching marketing projections:', error);
+    throw error;
+  }
 }

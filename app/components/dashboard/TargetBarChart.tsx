@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
@@ -33,8 +35,10 @@ const TargetBarChart = ({ data, projections }: ChartProps) => {
   const metrics = [
     { key: 'outbound', label: 'Outbound' },
     { key: 'triage', label: 'Triage' },
+    { key: 'followUps', label: 'Follow Ups' },
     { key: 'appointments', label: 'Appointments' },
     { key: 'shows', label: 'Shows' },
+    { key: 'contracts', label: 'Contracts' },
     { key: 'closes', label: 'Closes' },
     { key: 'revenue', label: 'Revenue', isRevenue: true }
   ];
@@ -44,6 +48,20 @@ const TargetBarChart = ({ data, projections }: ChartProps) => {
       return `$${value.toLocaleString()}`;
     }
     return value.toLocaleString();
+  };
+
+  const getActualValue = (metric: string) => {
+    if (metric === 'contracts') {
+      return data[timeframe]?.['contractsSigned'] || 0;
+    }
+    return data[timeframe]?.[metric] || 0;
+  };
+
+  const getTargetValue = (metric: string) => {
+    if (metric === 'contracts') {
+      return projections['contractsSigned']?.[timeframe] || 0;
+    }
+    return projections[metric]?.[timeframe] || 0;
   };
 
   return (
@@ -72,8 +90,8 @@ const TargetBarChart = ({ data, projections }: ChartProps) => {
 
           {/* Table Body */}
           {metrics.map((metric, idx) => {
-            const actual = data[timeframe]?.[metric.key] || 0;
-            const target = projections[metric.key]?.[timeframe] || 0;
+            const actual = getActualValue(metric.key);
+            const target = getTargetValue(metric.key);
             
             return (
               <React.Fragment key={metric.key}>
