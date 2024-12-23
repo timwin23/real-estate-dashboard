@@ -11,146 +11,146 @@ import MarketingDashboard from './MarketingDashboard';
 import PersonalDashboard from './PersonalDashboard';
 
 type MetricCardProps = {
-  title: string;
-  value: string | number;
-  rate?: string;
-  rateValue?: string | number;
-  xp?: string;
-  icon: React.ComponentType<any>;
+    title: string;
+    value: string | number;
+    rate?: string;
+    rateValue?: string | number;
+    xp?: string;
+    icon: React.ComponentType<any>;
 };
 
 type Metrics = {
-  totalOutbound: number;
-  totalTriage: number;
-  totalFollowUps: number;
-  totalAppointments: number;
-  totalShows: number;
-  totalContracts: number;
-  totalCloses: number;
-  totalRevenue: number;
-  totalXP: number;
+    totalOutbound: number;
+    totalTriage: number;
+    totalFollowUps: number;
+    totalAppointments: number;
+    totalShows: number;
+    totalContracts: number;
+    totalCloses: number;
+    totalRevenue: number;
+    totalXP: number;
 };
 
 type ChartData = {
-  outbound?: number;
-  triage?: number;
-  followUps?: number;
-  appointments?: number;
-  shows?: number;
-  contracts?: number;
-  closes?: number;
+    outbound?: number;
+    triage?: number;
+    followUps?: number;
+    appointments?: number;
+    shows?: number;
+    contracts?: number;
+    closes?: number;
 };
 
 const getRateColor = (title: string, rate?: number): string => {
-  if(rate === undefined) return "text-white";
-  const value = parseFloat(String(rate).replace('%', ''));
-  
-  switch (title) {
-    case 'OUTBOUND':
-      if (value >= 5) return 'text-green-400';
-      if (value >= 3) return 'text-yellow-400';
-      return 'text-red-400';
-      
-    case 'TRIAGE':
-      if (value >= 50) return 'text-green-400';
-      if (value >= 30) return 'text-yellow-400';
-      return 'text-red-400';
-      
-      case 'FOLLOW UPS':
-          if (value >= 50) return 'text-green-400';
-          if (value >= 30) return 'text-yellow-400';
-          return 'text-red-400';
-    
-    case 'APPOINTMENTS':
-      if (value >= 80) return 'text-green-400';
-      if (value >= 70) return 'text-yellow-400';
-      return 'text-red-400';
+    if (rate === undefined) return "text-white";
+    const value = parseFloat(String(rate).replace('%', ''));
 
-     case 'CONTRACTS':
-      if (value >= 50) return 'text-green-400';
-      if (value >= 30) return 'text-yellow-400';
-      return 'text-red-400';
-      
-    case 'CLOSES':
-      if (value >= 30) return 'text-green-400';
-      if (value >= 20) return 'text-yellow-400';
-      return 'text-red-400';
-      
-    default:
-      return 'text-white';
-  }
+    switch (title) {
+        case 'OUTBOUND':
+            if (value >= 5) return 'text-green-400';
+            if (value >= 3) return 'text-yellow-400';
+            return 'text-red-400';
+
+        case 'TRIAGE':
+            if (value >= 50) return 'text-green-400';
+            if (value >= 30) return 'text-yellow-400';
+            return 'text-red-400';
+
+        case 'FOLLOW UPS':
+            if (value >= 50) return 'text-green-400';
+            if (value >= 30) return 'text-yellow-400';
+            return 'text-red-400';
+
+        case 'APPOINTMENTS':
+            if (value >= 80) return 'text-green-400';
+            if (value >= 70) return 'text-yellow-400';
+            return 'text-red-400';
+
+        case 'CONTRACTS':
+            if (value >= 50) return 'text-green-400';
+            if (value >= 30) return 'text-yellow-400';
+            return 'text-red-400';
+
+        case 'CLOSES':
+            if (value >= 30) return 'text-green-400';
+            if (value >= 20) return 'text-yellow-400';
+            return 'text-red-400';
+
+        default:
+            return 'text-white';
+    }
 };
 
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
-  return (
-    <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-gray-300">{title}</span>
-        {Icon && <Icon className="text-red-500" />}
-      </div>
-      <div className="text-2xl font-bold mb-1 text-white">{value}</div>
-       {rate && <div className="text-sm text-gray-300">{rate}</div>}
-      {rateValue &&  <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
-        {rateValue}
-      </div>}
-     {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
-    </div>
-  );
+    return (
+        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-2">
+                <span className="text-gray-300">{title}</span>
+                {Icon && <Icon className="text-red-500" />}
+            </div>
+            <div className="text-2xl font-bold mb-1 text-white">{value}</div>
+             {rate && <div className="text-sm text-gray-300">{rate}</div>}
+             {rateValue && <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
+                {rateValue}
+            </div>}
+            {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
+        </div>
+    );
 }
 
 export default function RealEstateDashboard() {
-  const [selectedMember, setSelectedMember] = useState('all');
-  const [dashboardType, setDashboardType] = useState('sales');
-  const [dateRange, setDateRange] = useState('7');
-  const [data, setData] = useState<any[]>([]);
-  const [marketingData, setMarketingData] = useState<any[]>([]);
-  const [personalData, setPersonalData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [level, setLevel] = useState(7);
-  const [totalXP, setTotalXP] = useState(0);
-  const [nextLevelXP] = useState(50000);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [projections, setProjections] = useState<any>(null);
-  const [marketingProjections, setMarketingProjections] = useState<any>(null);
+    const [selectedMember, setSelectedMember] = useState('all');
+    const [dashboardType, setDashboardType] = useState('sales');
+    const [dateRange, setDateRange] = useState('7');
+    const [data, setData] = useState<any[]>([]);
+    const [marketingData, setMarketingData] = useState<any[]>([]);
+    const [personalData, setPersonalData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [level, setLevel] = useState(7);
+    const [totalXP, setTotalXP] = useState(0);
+    const [nextLevelXP] = useState(50000);
+    const [currentStreak, setCurrentStreak] = useState(0);
+    const [projections, setProjections] = useState<any>(null);
+    const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
-  const teamMembers = [
-    { id: 'all', name: 'All Members' },
-    { id: 'chris', name: 'Chris Piasczyk' },
-    { id: 'israel', name: 'Israel Moreno' },
-    { id: 'ivette', name: 'Ivette Moreno' }
-  ];
+    const teamMembers = [
+        { id: 'all', name: 'All Members' },
+        { id: 'chris', name: 'Chris Piasczyk' },
+        { id: 'israel', name: 'Israel Moreno' },
+        { id: 'ivette', name: 'Ivette Moreno' }
+    ];
 
-  // Get XP based on dashboard type
-  const getCurrentXP = () => {
-    if (dashboardType === 'sales') {
-      return data.reduce((acc, curr) => acc + (Number(curr.salesXP) || 0), 0);
-    } else if (dashboardType === 'marketing') {
-      return marketingData.reduce((acc, curr) => acc + (Number(curr.marketingXP) || 0), 0);
-    }
-    return 0; // No personal XP for team members
-  };
+    // Get XP based on dashboard type
+    const getCurrentXP = () => {
+        if (dashboardType === 'sales') {
+            return data.reduce((acc, curr) => acc + (Number(curr.salesXP) || 0), 0);
+        } else if (dashboardType === 'marketing') {
+            return marketingData.reduce((acc, curr) => acc + (Number(curr.marketingXP) || 0), 0);
+        }
+        return 0; // No personal XP for team members
+    };
 
-  const calculateCurrentLevel = () => {
-    const currentXP = getCurrentXP();
-    return Math.floor(currentXP / 2000) + 1;
-  };
+    const calculateCurrentLevel = () => {
+        const currentXP = getCurrentXP();
+        return Math.floor(currentXP / 2000) + 1;
+    };
 
-  const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
+    const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
 
-  const calculateStreak = (data: any[], projections: any) => {
-      if (!data || data.length === 0 || !projections?.outbound?.daily) return 0;
-  
-        const sortedData = [...data].sort((a, b) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        
+     const calculateStreak = (data: any[], projections: any) => {
+          if (!data || data.length === 0 || !projections?.outbound?.daily) return 0;
+    
+          const sortedData = [...data].sort((a, b) =>
+               new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+
         let streak = 0;
-      const target = projections.outbound.daily;
-      
+        const target = projections.outbound.daily;
+    
         for (let i = 0; i < sortedData.length; i++) {
            if (sortedData[i].outbound >= target) {
-               streak++;
-          } else {
+             streak++;
+           } else {
              break;
            }
       }
@@ -158,65 +158,65 @@ export default function RealEstateDashboard() {
       return streak;
     };
 
-  const calculateMetrics = (): Metrics => {
-      if (!data || data.length === 0) return {
-      totalOutbound: 0,
-      totalTriage: 0,
-      totalFollowUps: 0,
-      totalAppointments: 0,
-      totalShows: 0,
-      totalContracts: 0,
-      totalCloses: 0,
-      totalRevenue: 0,
-      totalXP: 0
+    const calculateMetrics = (): Metrics => {
+        if (!data || data.length === 0) return {
+            totalOutbound: 0,
+            totalTriage: 0,
+            totalFollowUps: 0,
+            totalAppointments: 0,
+            totalShows: 0,
+            totalContracts: 0,
+            totalCloses: 0,
+            totalRevenue: 0,
+            totalXP: 0
+        };
+
+        return data.reduce((acc, curr) => ({
+            totalOutbound: acc.totalOutbound + (Number(curr.outbound) || 0),
+            totalTriage: acc.totalTriage + (Number(curr.triage) || 0),
+            totalFollowUps: acc.totalFollowUps + (Number(curr.followUps) || 0),
+            totalAppointments: acc.totalAppointments + (Number(curr.appointments) || 0),
+            totalShows: acc.totalShows + (Number(curr.shows) || 0),
+            totalContracts: acc.totalContracts + (Number(curr.contractsSigned) || 0),
+            totalCloses: acc.totalCloses + (Number(curr.closes) || 0),
+            totalRevenue: acc.totalRevenue + (Number(curr.revenue) || 0),
+            totalXP: acc.totalXP + (Number(curr.salesXP) || 0)
+        }), {
+            totalOutbound: 0,
+            totalTriage: 0,
+            totalFollowUps: 0,
+            totalAppointments: 0,
+            totalShows: 0,
+            totalContracts: 0,
+            totalCloses: 0,
+            totalRevenue: 0,
+            totalXP: 0
+        });
     };
 
-    return data.reduce((acc, curr) => ({
-      totalOutbound: acc.totalOutbound + (Number(curr.outbound) || 0),
-      totalTriage: acc.totalTriage + (Number(curr.triage) || 0),
-       totalFollowUps: acc.totalFollowUps + (Number(curr.followUps) || 0),
-      totalAppointments: acc.totalAppointments + (Number(curr.appointments) || 0),
-      totalShows: acc.totalShows + (Number(curr.shows) || 0),
-      totalContracts: acc.totalContracts + (Number(curr.contractsSigned) || 0),
-      totalCloses: acc.totalCloses + (Number(curr.closes) || 0),
-        totalRevenue: acc.totalRevenue + (Number(curr.revenue) || 0),
-      totalXP: acc.totalXP + (Number(curr.salesXP) || 0)
-    }), {
-      totalOutbound: 0,
-      totalTriage: 0,
-       totalFollowUps: 0,
-      totalAppointments: 0,
-      totalShows: 0,
-      totalContracts: 0,
-      totalCloses: 0,
-      totalRevenue: 0,
-      totalXP: 0
-    });
-  };
-
- const formatDataForBarChart = (data: any[]) => {
-        if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
+    const formatDataForBarChart = (data: any[]) => {
+         if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
 
         const dailyData = data[data.length - 1] || {};
-
+        
         const weeklyData = data.slice(-7).reduce((acc, curr) => ({
             outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
             triage: (acc.triage || 0) + (Number(curr.triage) || 0),
-             followUps: (acc.followUps || 0) + (Number(curr.followUps) || 0),
+            followUps: (acc.followUps || 0) + (Number(curr.followUps) || 0),
             appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
             shows: (acc.shows || 0) + (Number(curr.shows) || 0),
             contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
             closes: (acc.closes || 0) + (Number(curr.closes) || 0),
         }), {} as ChartData);
 
-        const monthlyData = data.slice(-30).reduce((acc, curr) => ({
-           outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
+          const monthlyData = data.slice(-30).reduce((acc, curr) => ({
+            outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
             triage: (acc.triage || 0) + (Number(curr.triage) || 0),
              followUps: (acc.followUps || 0) + (Number(curr.followUps) || 0),
             appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
             shows: (acc.shows || 0) + (Number(curr.shows) || 0),
              contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
-             closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+            closes: (acc.closes || 0) + (Number(curr.closes) || 0),
         }), {} as ChartData);
 
         return {
@@ -226,92 +226,93 @@ export default function RealEstateDashboard() {
         };
     };
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        let salesData, mktgData, pData;
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setLoading(true);
+                let salesData, mktgData, pData;
 
-        if (selectedMember === 'all') {
-          const [chrisData, israelData, ivetteData] = await Promise.all([
-            fetchTeamMemberData('Chris'),
-            fetchTeamMemberData('Israel'),
-            fetchTeamMemberData('Ivette')
-          ]);
-          salesData = [...chrisData, ...israelData, ...ivetteData];
+                if (selectedMember === 'all') {
+                    const [chrisData, israelData, ivetteData] = await Promise.all([
+                        fetchTeamMemberData('Chris'),
+                        fetchTeamMemberData('Israel'),
+                        fetchTeamMemberData('Ivette')
+                    ]);
+                    salesData = [...chrisData, ...israelData, ...ivetteData];
 
-          const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
-            fetchTeamMemberMarketingData('Chris'),
-            fetchTeamMemberMarketingData('Israel'),
-            fetchTeamMemberMarketingData('Ivette')
-          ]);
-            mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
+                    const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
+                        fetchTeamMemberMarketingData('Chris'),
+                        fetchTeamMemberMarketingData('Israel'),
+                        fetchTeamMemberMarketingData('Ivette')
+                    ]);
+                    mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
 
-             const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-              fetchRawData('Chris'),
-               fetchRawData('Israel'),
-              fetchRawData('Ivette')
-          ]);
-             pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
-        } else {
-          salesData = await fetchTeamMemberData(selectedMember);
-           mktgData = await fetchTeamMemberMarketingData(selectedMember);
-          pData = await fetchRawData(selectedMember);
+                     const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                      fetchRawData('Chris'),
+                       fetchRawData('Israel'),
+                      fetchRawData('Ivette')
+                    ]);
+                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+
+                } else {
+                    salesData = await fetchTeamMemberData(selectedMember);
+                     mktgData = await fetchTeamMemberMarketingData(selectedMember);
+                     pData = await fetchRawData(selectedMember);
+
+                }
+
+                const [projectionsData, mktgProjections] = await Promise.all([
+                    fetchProjections(),
+                    fetchMarketingProjections()
+                ]);
+
+                setProjections(projectionsData);
+                setMarketingProjections(mktgProjections);
+
+
+                if (dateRange === 'ALL') {
+                    setData(salesData);
+                    setMarketingData(mktgData);
+                    setPersonalData(pData);
+                } else {
+                    const today = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(today.getDate() - parseInt(dateRange));
+
+                    const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
+                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+                    setData(filteredSalesData);
+                    setMarketingData(filteredMktgData);
+                     setPersonalData(filteredPersonalData);
+
+                    const streak = calculateStreak(filteredSalesData,
+                        selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+                    setCurrentStreak(streak);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            } finally {
+                setLoading(false);
+            }
         }
 
-        const [projectionsData, mktgProjections] = await Promise.all([
-          fetchProjections(),
-          fetchMarketingProjections()
-        ]);
-        
-        setProjections(projectionsData);
-        setMarketingProjections(mktgProjections);
+        loadData();
+    }, [dateRange, selectedMember]);
 
-
-        if (dateRange === 'ALL') {
-          setData(salesData);
-          setMarketingData(mktgData);
-            setPersonalData(pData);
-        } else {
-          const today = new Date();
-          const startDate = new Date();
-          startDate.setDate(today.getDate() - parseInt(dateRange));
-          
-           const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-            const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-            const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-            
-            setData(filteredSalesData);
-             setMarketingData(filteredMktgData);
-               setPersonalData(filteredPersonalData);
-
-              const streak = calculateStreak(filteredSalesData, 
-                 selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                 setCurrentStreak(streak);
-            }
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, [dateRange, selectedMember]);
-
-  useEffect(() => {
-    setTotalXP(getCurrentXP());
-    setLevel(calculateCurrentLevel());
-  }, [data, marketingData, dashboardType, selectedMember]);
+    useEffect(() => {
+        setTotalXP(getCurrentXP());
+        setLevel(calculateCurrentLevel());
+    }, [data, marketingData, dashboardType, selectedMember]);
 
     const metrics = calculateMetrics();
 
-  if (loading) {
-    return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
-  }
+    if (loading) {
+        return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
+    }
 
-  return (
-     <div className="min-h-screen bg-gray-950 text-white p-6">
+    return (
+        <div className="min-h-screen bg-gray-950 text-white p-6">
             {/* Top Bar */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4 items-center">
@@ -391,12 +392,12 @@ export default function RealEstateDashboard() {
                         <MetricCard
                             title="TRIAGE"
                             value={metrics.totalTriage.toLocaleString()}
-                            rate="Follow Up Rate"
-                             rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
+                             rate="Follow Up Rate"
+                            rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
                             xp="+10 XP each"
                             icon={Swords}
                         />
-                        <MetricCard
+                       <MetricCard
                             title="FOLLOW UPS"
                             value={metrics.totalFollowUps.toLocaleString()}
                             rate="Set Rate"
@@ -408,15 +409,15 @@ export default function RealEstateDashboard() {
                             title="APPOINTMENTS"
                              value={metrics.totalAppointments.toLocaleString()}
                             rate="Show Rate"
-                            rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
                             xp="+25 XP each"
                             icon={Calendar}
                         />
-                        <MetricCard
+                         <MetricCard
                             title="CONTRACTS"
-                           value={metrics.totalContracts.toLocaleString()}
+                            value={metrics.totalContracts.toLocaleString()}
                             rate="Close Rate"
-                           rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
                             xp="+50 XP each"
                             icon={Trophy}
                         />
@@ -424,8 +425,8 @@ export default function RealEstateDashboard() {
                             title="REVENUE"
                             value={`$${metrics.totalRevenue.toLocaleString()}`}
                             rate="Per Close"
-                             rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
-                             xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
+                            rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
+                           xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
                             icon={DollarSign}
                         />
                     </div>
@@ -448,9 +449,9 @@ export default function RealEstateDashboard() {
                                     <Legend />
                                     <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
                                     <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                     <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
-                                     <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
-                                     <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
+                                    <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
+                                    <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
+                                    <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -483,5 +484,5 @@ export default function RealEstateDashboard() {
                 />
             )}
         </div>
-  );
+    );
 }
