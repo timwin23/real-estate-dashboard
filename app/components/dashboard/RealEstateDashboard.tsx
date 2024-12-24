@@ -291,12 +291,12 @@ export default function RealEstateDashboard() {
                     ]);
                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
 
-                    const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-                        fetchRawData(),
-                        fetchRawData(),
+                     const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                         fetchRawData(),
+                         fetchRawData(),
                         fetchRawData()
                     ]);
-                    pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(selectedMember);
@@ -317,7 +317,7 @@ export default function RealEstateDashboard() {
                 if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                     setPersonalData(pData);
+                      setPersonalData(pData);
                 } else {
                     const today = new Date();
                     const startDate = new Date();
@@ -330,7 +330,7 @@ export default function RealEstateDashboard() {
                     logDebug('Filtered data:', {
                         salesData: filteredSalesData,
                         marketingData: filteredMktgData,
-                           personalData: filteredPersonalData
+                        personalData: filteredPersonalData
                     });
 
                     setData(filteredSalesData);
@@ -465,7 +465,7 @@ export default function RealEstateDashboard() {
                             title="FOLLOW UPS"
                             value={metrics.totalFollowUps.toLocaleString()}
                             rate="Set Rate"
-                             rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
+                            rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
                             xp="+15 XP each"
                             icon={PhoneCall}
                         />
@@ -499,4 +499,72 @@ export default function RealEstateDashboard() {
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         {/* Line Chart */}
                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <ResponsiveContainer width="100%" height="100
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={data}>
+                                    <XAxis dataKey="date" stroke="#666" />
+                                    <YAxis stroke="#666" />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1a1a1a',
+                                            border: '1px solid #ff0000',
+                                            color: '#ffffff'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
+                                    <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
+                                      <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
+                                    <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
+                                     <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Bar Chart */}
+                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                           <TargetBarChart
+                            data={formatDataForBarChart(data)}
+                            projections={projections ? projections[selectedMember === 'all' ? 'chris' : selectedMember] : null}
+                           />
+                        </div>
+                    </div>
+                </>
+            ) : dashboardType === 'marketing' ? (
+                <MarketingDashboard
+                    marketingData={marketingData}
+                     dateRange={dateRange}
+                    onDateRangeChange={(range) => setDateRange(range)}
+                    projections={marketingProjections}
+                    teamMember={selectedMember}
+                />
+            ) : (
+                <PersonalDashboard
+                     data={personalData}
+                     dateRange={dateRange}
+                   onDateRangeChange={(range) => setDateRange(range)}
+                    salesData={data}
+                    marketingData={marketingData}
+                     projections={projections}
+                />
+            )}
+        </div>
+    );
+}
+
+/* 
+INSTRUCTIONS FOR GEMINI:
+1. DO NOT SIMPLIFY THIS FILE - every component and feature is needed
+2. Path Structure:
+   - This file: app/components/dashboard/RealEstateDashboard.tsx
+   - Sheets: app/components/dashboard/sheets.ts
+   - Marketing Sheets: app/lib/marketingSheets.ts
+3. When debugging:
+   - Check console logs with [RealEstateDashboard] prefix
+   - Verify data fetching in useEffect
+   - Ensure all imports are correct
+4. Key Features to Maintain:
+   - Team member selection
+   - Multiple dashboard types
+   - XP and leveling system
+   - All metrics and charts
+*/
