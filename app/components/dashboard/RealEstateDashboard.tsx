@@ -6,7 +6,7 @@ File Location: app/components/dashboard/RealEstateDashboard.tsx
 
 Key Points:
 1. Import paths:
-   - sheets.ts is in app/lib/
+   - sheets.ts is in app/components/dashboard/
    - marketingSheets.ts is in app/lib/
    - All other components are in the same folder as this file
 
@@ -291,17 +291,17 @@ export default function RealEstateDashboard() {
                     ]);
                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
 
-                    const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-                        fetchRawData(),
-                        fetchRawData(),
-                        fetchRawData()
-                    ]);
-                    pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                     const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                         fetchRawData(),
+                         fetchRawData(),
+                          fetchRawData()
+                      ]);
+                      pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(selectedMember);
                     mktgData = await fetchTeamMemberMarketingData(selectedMember);
-                      pData = await fetchRawData();
+                    pData = await fetchRawData();
                 }
 
                 const [projectionsData, mktgProjections] = await Promise.all([
@@ -317,24 +317,25 @@ export default function RealEstateDashboard() {
                 if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                     setPersonalData(pData);
+                    setPersonalData(pData)
                 } else {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
 
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
                       const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+
                     logDebug('Filtered data:', {
                         salesData: filteredSalesData,
                         marketingData: filteredMktgData,
-                         personalData: filteredPersonalData
+                          personalData: filteredPersonalData
                     });
 
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
-                      setPersonalData(filteredPersonalData);
+                    setPersonalData(filteredPersonalData);
 
                     const streak = calculateStreak(filteredSalesData,
                         selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
@@ -456,7 +457,7 @@ export default function RealEstateDashboard() {
                             title="TRIAGE"
                             value={metrics.totalTriage.toLocaleString()}
                             rate="Follow Up Rate"
-                            rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
                             xp="+10 XP each"
                             icon={Swords}
                         />
@@ -464,7 +465,7 @@ export default function RealEstateDashboard() {
                             title="FOLLOW UPS"
                             value={metrics.totalFollowUps.toLocaleString()}
                             rate="Set Rate"
-                            rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
                             xp="+15 XP each"
                             icon={PhoneCall}
                         />
@@ -489,7 +490,7 @@ export default function RealEstateDashboard() {
                             value={`$${metrics.totalRevenue.toLocaleString()}`}
                             rate="Per Close"
                              rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
-                             xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
+                            xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
                             icon={DollarSign}
                         />
                     </div>
@@ -538,12 +539,12 @@ export default function RealEstateDashboard() {
                 />
             ) : (
                 <PersonalDashboard
-                    data={personalData}
-                    dateRange={dateRange}
-                    onDateRangeChange={(range) => setDateRange(range)}
-                    salesData={data}
-                    marketingData={marketingData}
-                   projections={projections}
+                   data={personalData}
+                   dateRange={dateRange}
+                   onDateRangeChange={(range) => setDateRange(range)}
+                   salesData={data}
+                   marketingData={marketingData}
+                     projections={projections}
                 />
             )}
         </div>

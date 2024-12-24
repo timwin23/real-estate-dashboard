@@ -5,37 +5,36 @@ function safeRate(value: any): number {
   return isNaN(num) ? 0 : num;
 }
 
-// Add these type definitions at the top of sheets.ts
+// Add the missing types needed by PersonalAchievements
 export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 export type CategoryType = 'sales' | 'marketing';
 
 export interface Achievement {
-    id: string;
-    title: string;
-    category: CategoryType;
-    tier: TierType;
-    description: string;
-    target: number;
-    trait: string;
-    icon: string;
-    isSecret: boolean;
+  id: string;
+  title: string;
+  category: CategoryType;
+  tier: TierType;
+  description: string;
+  target: number;
+  trait: string;
+  icon: string;
+  isSecret: boolean;
 }
 
 export interface Goal extends Achievement {
     type: 'goal' | 'achievement';
-    status: 'active' | 'completed' | 'failed';
+  status: 'active' | 'completed' | 'failed';
     startDate: string;
-    endDate: string | null;
-    progress: number;
+  endDate: string | null;
+  progress: number;
 }
 
 export interface AchievementsData {
-    library: Achievement[];
-    goalsAndAchievements: Goal[];
-    activeGoal?: Goal;
-    completedAchievements: Goal[];
+  library: Achievement[];
+  goalsAndAchievements: Goal[];
+  activeGoal?: Goal | undefined;
+  completedAchievements: Goal[];
 }
-
 
 // Team member data structure
 export interface TeamMemberData {
@@ -64,7 +63,7 @@ export interface TeamMemberData {
   salesXP: number;
 }
 
-// Raw data from form submissions
+// Rest of your existing interfaces
 export interface RawData {
   timestamp: string;
   teamMember: string;
@@ -87,7 +86,6 @@ export interface RawData {
   reflection: string;
 }
 
-// Projection structure for metrics
 export interface TeamProjection {
   [key: string]: {
     daily: number;
@@ -96,10 +94,6 @@ export interface TeamProjection {
   };
 }
 
-// Type-safe team member keys
-export type TeamMemberKey = 'chris' | 'israel' | 'ivette' | string;
-
-// Team projections with index signature and specific members
 export interface TeamProjections {
   [key: string]: TeamProjection;
   chris: TeamProjection;
@@ -129,7 +123,6 @@ async function fetchSheetRange(range: string) {
   }
 }
 
-// Fetch data for a specific team member
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
   const range = `${memberName} Analysis!A2:X`;
   const data = await fetchSheetRange(range);
@@ -161,7 +154,6 @@ export async function fetchTeamMemberData(memberName: string): Promise<TeamMembe
   }));
 }
 
-// Fetch raw form submission data
 export async function fetchRawData(): Promise<RawData[]> {
   const range = 'Raw Data!A2:S';
   const data = await fetchSheetRange(range);
@@ -189,7 +181,6 @@ export async function fetchRawData(): Promise<RawData[]> {
   }));
 }
 
-// Fetch projections for all team members
 export async function fetchProjections(): Promise<TeamProjections> {
   const range = 'Projections!A2:J15';
   const data = await fetchSheetRange(range);
@@ -203,21 +194,18 @@ export async function fetchProjections(): Promise<TeamProjections> {
   data.forEach((row: any[]) => {
     const metric = row[0].toLowerCase().replace(/ /g, '_');
     
-    // Chris projections (columns B,C,D)
     projections.chris[metric] = {
       daily: Number(row[1]) || 0,
       weekly: Number(row[2]) || 0,
       monthly: Number(row[3]) || 0
     };
 
-    // Israel projections (columns E,F,G)
     projections.israel[metric] = {
       daily: Number(row[4]) || 0,
       weekly: Number(row[5]) || 0,
       monthly: Number(row[6]) || 0
     };
 
-    // Ivette projections (columns H,I,J)
     projections.ivette[metric] = {
       daily: Number(row[7]) || 0,
       weekly: Number(row[8]) || 0,
@@ -228,29 +216,29 @@ export async function fetchProjections(): Promise<TeamProjections> {
   return projections;
 }
 
-// Add this function to sheets.ts before filterDataByDateRange
 export async function fetchAchievements(): Promise<AchievementsData> {
-    const achievementsRange = 'Achievement Library!A2:I';
-    const goalsRange = 'Goals & Achievements!A2:M';
-    
-    const [achievementsData, goalsData] = await Promise.all([
-        fetchSheetRange(achievementsRange),
-        fetchSheetRange(goalsRange)
-    ]);
+      const achievementsRange = 'Achievement Library!A2:I';
+      const goalsRange = 'Goals & Achievements!A2:M';
+
+      const [achievementsData, goalsData] = await Promise.all([
+          fetchSheetRange(achievementsRange),
+          fetchSheetRange(goalsRange)
+      ]);
 
 
-     const library: Achievement[] = achievementsData.map((row: any[]) => ({
-        id: row[0] || '',
-        title: row[1] || '',
-        category: row[2] as CategoryType || 'sales',
-        tier: row[3] as TierType || 'none',
-        description: row[4] || '',
-        target: Number(row[5]) || 0,
-         trait: row[6] || '',
-        icon: row[7] || '',
-         isSecret: row[8] === 'TRUE'
-   }));
+       const library: Achievement[] = achievementsData.map((row: any[]) => ({
+         id: row[0] || '',
+         title: row[1] || '',
+         category: row[2] as CategoryType || 'sales',
+         tier: row[3] as TierType || 'none',
+         description: row[4] || '',
+         target: Number(row[5]) || 0,
+          trait: row[6] || '',
+         icon: row[7] || '',
+          isSecret: row[8] === 'TRUE'
+    }));
 
+      // Process goals data
       const goals: Goal[] = goalsData.map((row: any[]) => ({
         id: row[0] || '',
          type: row[1] as 'goal' | 'achievement',
@@ -260,37 +248,37 @@ export async function fetchAchievements(): Promise<AchievementsData> {
           description: row[5] || '',
         target: Number(row[6]) || 0,
         trait: row[7] || '',
-        status: row[8] as 'active' | 'completed' | 'failed',
+         status: row[8] as 'active' | 'completed' | 'failed',
         startDate: row[9] || '',
           endDate: row[10] || null,
-          progress: Number(row[11]) || 0,
+        progress: Number(row[11]) || 0,
           isSecret: row[12] === 'TRUE'
       }));
 
-    return {
+      return {
         library,
         goalsAndAchievements: goals,
-        activeGoal: goals.find(goal => goal.status === 'active') || null,
+          activeGoal: goals.find(goal => goal.status === 'active') || undefined,
         completedAchievements: goals.filter(goal => goal.status === 'completed')
-    };
-}
+      };
+  }
 
 
 export async function fetchGoals() {
-    const range = 'Goals & Achievements!A2:M';
-    return await fetchSheetRange(range);
-}
+      const range = 'Goals & Achievements!A2:M';
+      return await fetchSheetRange(range);
+ }
 
 export function filterDataByDateRange<T extends { date: string }>(data: T[], startDate: string, endDate: string): T[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
   
   return data.filter(row => {
-    try {
-      const rowDate = new Date(row.date);
-      return rowDate >= start && rowDate <= end;
-    } catch {
-      return false;
-    }
+      try {
+          const rowDate = new Date(row.date);
+          return rowDate >= start && rowDate <= end;
+      } catch {
+        return false;
+      }
   });
 }
