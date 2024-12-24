@@ -1,17 +1,23 @@
 // app/lib/marketingSheets.ts
 
-// Improved safe rate function to handle edge cases and prevent >100% results
+const SHEET_TABS = {
+  CHRIS: 'Chris',
+  ISRAEL: 'Israel',
+  IVETTE: 'Ivette',
+  PROJECTIONS: 'Projections'
+};
+
+const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
+const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
+
 function safeRate(numerator: any, denominator: any): number {
   const num = parseFloat(numerator);
   const denom = parseFloat(denominator);
-  if (isNaN(num) || isNaN(denom) || denom === 0) {
-    return 0;
-  }
+  if (isNaN(num) || isNaN(denom) || denom === 0) return 0;
   const rate = (num / denom) * 100;
-  return rate > 100 ? 100 : Math.round(rate * 10) / 10; // Cap at 100% and round to 1 decimal
+  return rate > 100 ? 100 : Math.round(rate * 10) / 10;
 }
 
-// Interface for marketing metrics
 interface MarketingMetrics {
   date: string;
   outboundMessages: number;
@@ -23,49 +29,46 @@ interface MarketingMetrics {
   marketingXP: number;
 }
 
-// Fetch marketing data for a specific team member
-export async function fetchTeamMemberMarketingData(memberName: string): Promise<MarketingMetrics[]> {
+async function fetchSheetRange(range: string) {
   try {
-    const spreadsheetId = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
-    const range = `${memberName} Analysis!A2:X`; // Expanded range to include all columns
-
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`Status ${response.status}`);
     const data = await response.json();
-
-    if (!data.values) {
-      console.error(`No marketing data values returned for ${memberName}`);
+    if (!data.values?.length) {
+      console.log(`[marketingSheets] No data found in range: ${range}`);
       return [];
     }
-
-    return data.values.map((row: any[]) => {
-      // Get raw numbers based on your sheet structure
-      const outboundMessages = Number(row[15]) || 0;  // Column P
-      const positiveResponses = Number(row[16]) || 0; // Column Q
-      const postsCreated = Number(row[18]) || 0;      // Column S
-      const leadsGenerated = Number(row[19]) || 0;    // Column T
-      const marketingXP = Number(row[21]) || 0;       // Column V
-
-      return {
-        date: row[0] || '',                           // Column A
-        outboundMessages,
-        positiveResponses,
-        responseRate: safeRate(positiveResponses, outboundMessages),
-        postsCreated,
-        leadsGenerated,
-        leadsPerPost: safeRate(leadsGenerated, postsCreated),
-        marketingXP
-      };
-    });
-
+    return data.values;
   } catch (error) {
-    console.error('Error fetching marketing data:', error);
+    console.error(`[marketingSheets] Error fetching ${range}:`, error);
     return [];
   }
 }
 
-// Interface for team member projections
+export async function fetchTeamMemberMarketingData(memberName: string): Promise<MarketingMetrics[]> {
+  const data = await fetchSheetRange(`${SHEET_TABS[memberName.toUpperCase()]}!A2:X`);
+  
+  return data.map((row: any[]) => {
+    const outboundMessages = Number(row[15]) || 0;
+    const positiveResponses = Number(row[16]) || 0;
+    const postsCreated = Number(row[18]) || 0;
+    const leadsGenerated = Number(row[19]) || 0;
+    const marketingXP = Number(row[21]) || 0;
+
+    return {
+      date: row[0] || '',
+      outboundMessages,
+      positiveResponses,
+      responseRate: safeRate(positiveResponses, outboundMessages),
+      postsCreated,
+      leadsGenerated,
+      leadsPerPost: safeRate(leadsGenerated, postsCreated),
+      marketingXP
+    };
+  });
+}
+
 interface TeamMemberProjections {
   outbound: Projection;
   posts: Projection;
@@ -85,82 +88,41 @@ interface TeamProjections {
   ivette: TeamMemberProjections;
 }
 
-// Fetch marketing projections for all team members
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
-  try {
-    const spreadsheetId = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
-    const range = 'Projections!A2:J15';  // Full projections range
+  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J15`);
+  
+  const metrics: (keyof TeamMemberProjections)[] = ['outbound', 'posts', 'leads', 'responses'];
+  const members = ['chris', 'israel', 'ivette'] as const;
+  
+  const projections: TeamProjections = {
+    chris: createEmptyProjections(),
+    israel: createEmptyProjections(),
+    ivette: createEmptyProjections()
+  };
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
-    const response = await fetch(url);
-    const data = await response.json();
+  data.forEach((row: any[], index: number) => {
+    const metricIndex = Math.floor(index / 4);
+    const metric = metrics[metricIndex];
+    if (!metric) return;
 
-    if (!data.values) {
-      throw new Error('No marketing projections data returned from sheets');
-    }
-
-    // Initialize projections object
-    const projections: TeamProjections = {
-      chris: {
-        outbound: { daily: 0, weekly: 0, monthly: 0 },
-        posts: { daily: 0, weekly: 0, monthly: 0 },
-        leads: { daily: 0, weekly: 0, monthly: 0 },
-        responses: { daily: 0, weekly: 0, monthly: 0 }
-      },
-      israel: {
-        outbound: { daily: 0, weekly: 0, monthly: 0 },
-        posts: { daily: 0, weekly: 0, monthly: 0 },
-        leads: { daily: 0, weekly: 0, monthly: 0 },
-        responses: { daily: 0, weekly: 0, monthly: 0 }
-      },
-      ivette: {
-        outbound: { daily: 0, weekly: 0, monthly: 0 },
-        posts: { daily: 0, weekly: 0, monthly: 0 },
-        leads: { daily: 0, weekly: 0, monthly: 0 },
-        responses: { daily: 0, weekly: 0, monthly: 0 }
-      }
-    };
-
-    // Map sheet metrics to projection keys
-    const metricMap: { [key: string]: keyof TeamMemberProjections } = {
-      'Outbound': 'outbound',
-      'Posts': 'posts',
-      'Leads': 'leads',
-      'Responses': 'responses'
-    };
-
-    // Process each row
-    data.values.forEach((row: any[]) => {
-      const metricKey = metricMap[row[0]];
-      if (metricKey) {
-        // Chris (columns B,C,D)
-        projections.chris[metricKey] = {
-          daily: Number(row[1]) || 0,
-          weekly: Number(row[2]) || 0,
-          monthly: Number(row[3]) || 0
-        };
-
-        // Israel (columns E,F,G)
-        projections.israel[metricKey] = {
-          daily: Number(row[4]) || 0,
-          weekly: Number(row[5]) || 0,
-          monthly: Number(row[6]) || 0
-        };
-
-        // Ivette (columns H,I,J)
-        projections.ivette[metricKey] = {
-          daily: Number(row[7]) || 0,
-          weekly: Number(row[8]) || 0,
-          monthly: Number(row[9]) || 0
-        };
-      }
+    members.forEach((member, i) => {
+      const baseCol = i * 3;
+      projections[member][metric] = {
+        daily: Number(row[baseCol + 1]) || 0,
+        weekly: Number(row[baseCol + 2]) || 0,
+        monthly: Number(row[baseCol + 3]) || 0
+      };
     });
+  });
 
-    return projections;
+  return projections;
+}
 
-  } catch (error) {
-    console.error('Error fetching marketing projections:', error);
-    throw error;
-  }
+function createEmptyProjections(): TeamMemberProjections {
+  return {
+    outbound: { daily: 0, weekly: 0, monthly: 0 },
+    posts: { daily: 0, weekly: 0, monthly: 0 },
+    leads: { daily: 0, weekly: 0, monthly: 0 },
+    responses: { daily: 0, weekly: 0, monthly: 0 }
+  };
 }
