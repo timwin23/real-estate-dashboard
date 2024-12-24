@@ -4,10 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, type TeamMemberKey, type TeamMemberData, type TeamProjections } from './sheets';
-
-// import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../lib/marketingSheets';
+import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS } from './sheets';
+import type { TeamMemberData, TeamProjections, RawData } from './sheets';
 import TargetBarChart from './TargetBarChart';
+import MarketingDashboard from './MarketingDashboard';
 import PersonalAchievements from './PersonalAchievements';
 
 // Console logging utility for debugging
@@ -45,17 +45,6 @@ type ChartData = {
     shows?: number;
     contracts?: number;
     closes?: number;
-};
-
-type MarketingMetrics = {
-    date: string;
-    outboundMessages: number;
-    positiveResponses: number;
-    responseRate: number;
-    postsCreated: number;
-    leadsGenerated: number;
-    leadsPerPost: number;
-    marketingXP: number;
 };
 
 // Utility function for metric colors
@@ -114,21 +103,22 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
 // Main Dashboard Component
 export default function RealEstateDashboard() {
     // State Management
-    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('CHRIS');
+    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
     const [dashboardType, setDashboardType] = useState('sales');
     const [dateRange, setDateRange] = useState('7');
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<TeamMemberData[]>([]);
     const [marketingData, setMarketingData] = useState<any[]>([]);
-    const [personalData, setPersonalData] = useState<any[]>([]);
+    const [personalData, setPersonalData] = useState<RawData[]>([]);
     const [loading, setLoading] = useState(true);
     const [level, setLevel] = useState(7);
     const [totalXP, setTotalXP] = useState(0);
     const [nextLevelXP] = useState(50000);
     const [currentStreak, setCurrentStreak] = useState(0);
-    const [projections, setProjections] = useState<any>(null);
+    const [projections, setProjections] = useState<TeamProjections | null>(null);
     const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
     const teamMembers: { id: TeamMemberKey; name: string }[] = [
+        { id: 'ALL', name: 'All Members' },
         { id: 'CHRIS', name: 'Chris Analysis' },
         { id: 'ISRAEL', name: 'Israel Analysis' },
         { id: 'IVETTE', name: 'Ivette Analysis' },
@@ -153,14 +143,14 @@ export default function RealEstateDashboard() {
     const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
 
     const calculateStreak = (data: any[], projections: any) => {
-        if (!data || data.length === 0 || !projections?.outbound?.daily) return 0;
+        if (!data || data.length === 0 || !projections?.chris?.outbound?.daily) return 0;
 
         const sortedData = [...data].sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
         );
 
         let streak = 0;
-        const target = projections.outbound.daily;
+        const target = projections.chris.outbound.daily;
 
         for (let i = 0; i < sortedData.length; i++) {
             if (sortedData[i].outbound >= target) {
@@ -250,45 +240,42 @@ export default function RealEstateDashboard() {
     useEffect(() => {
         async function loadData() {
             try {
+                logDebug('Starting data load for member:', selectedMember);
                 setLoading(true);
                 let salesData: TeamMemberData[] = [],
-                    mktgData: MarketingMetrics[] = [],
-                    pData: any[] = [];
-        
-                if (selectedMember === 'all') {
+                    mktgData: any[] = [],
+                    pData: RawData[] = [];
+
+                if (selectedMember === 'ALL') {
+                    logDebug('Fetching data for all members...');
                     const [chrisData, israelData, ivetteData] = await Promise.all([
                         fetchTeamMemberData('CHRIS'),
                         fetchTeamMemberData('ISRAEL'),
                         fetchTeamMemberData('IVETTE')
                     ]);
                     salesData = [...chrisData, ...israelData, ...ivetteData];
-        
-                    const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
-                        fetchTeamMemberMarketingData('CHRIS'),
-                        fetchTeamMemberMarketingData('ISRAEL'),
-                        fetchTeamMemberMarketingData('IVETTE')
-                    ]);
-                    mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
-        
-                    const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-                        fetchRawData(),
-                        fetchRawData(),
-                        fetchRawData()
-                    ]);
-                    pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                    // For marketing data, fetch all and combine
+                    mktgData = await fetchRawData();
+                    pData = await fetchRawData();
+
                 } else {
+                    logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(selectedMember);
-                    mktgData = await fetchTeamMemberMarketingData(selectedMember);
+                    mktgData = await fetchRawData();
                     pData = await fetchRawData();
                 }
+
                 const [projectionsData, mktgProjections] = await Promise.all([
                     fetchProjections(),
                     fetchMarketingProjections()
-                  ]);
-                  setProjections(projectionsData);
-                  setMarketingProjections(mktgProjections);
-          
-                  if (dateRange === 'ALL') {
+                ]);
+
+                logDebug('Projections fetched:', { projectionsData, mktgProjections });
+
+                setProjections(projectionsData);
+                setMarketingProjections(mktgProjections);
+
+                if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
                     setPersonalData(pData);
@@ -296,27 +283,28 @@ export default function RealEstateDashboard() {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
-          
+
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-          
+
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
                     setPersonalData(filteredPersonalData);
-          
-                    const streak = calculateStreak(filteredSalesData, projectionsData?.[selectedMember.toLowerCase()] || {});
+
+                    const streak = calculateStreak(filteredSalesData,
+                        selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
                     setCurrentStreak(streak);
-                  }
-                } catch (error) {
-                  console.error('Error loading data:', error);
-                } finally {
-                  setLoading(false);
                 }
-              }
-          
-              loadData();
-            }, [dateRange, selectedMember]);
+            } catch (error) {
+                console.error('Error loading data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, [dateRange, selectedMember]);
 
     useEffect(() => {
         setTotalXP(getCurrentXP());
