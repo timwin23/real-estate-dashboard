@@ -101,44 +101,35 @@ const PersonalAchievements = ({ salesData, marketingData }: Props) => {
                     </span>
                 </div>
 
-                /* Achievement Categories */
-}
-{
-  Object.entries(groupedAchievements).map(([category, achievements]) => (
-    <div key={category} className="mb-4">
-      <h4 className="text-sm text-gray-400 mb-2">
-        {category.toUpperCase() + ` (${achievements.length})`}
-      </h4>
-      <div className="grid grid-cols-2 gap-2">
-        {achievements.map(achievement => {
-          const IconComponent = achievement.icon
-            ? ICONS[achievement.icon] || Trophy
-            : Trophy;
-          return (
-            <div
-              key={achievement.id}
-              className="bg-gray-800 rounded-lg p-3 border border-red-500/20"
-            >
-              <div className="flex items-center gap-2">
-                <IconComponent
-                  className={`w-4 h-4 ${TIER_COLORS[achievement.tier]}`}
-                />
-                <div>
-                  <div className="text-sm font-bold text-white">
-                    {achievement.title}
-                  </div>
-                  <div className="text-xs text-red-400">
-                    {achievement.trait}
-                  </div>
-                </div>
-              </div>
+                {/* Achievement Categories */}
+                {Object.entries(groupedAchievements).map(([category, achievements]) => (
+                    <div key={category} className="mb-4">
+                        <h4 className="text-sm text-gray-400 mb-2">
+                            {category.toUpperCase()} ({achievements.length})
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            {achievements.map((achievement) => {
+                                const IconComponent = achievement.icon ? ICONS[achievement.icon] || Trophy : Trophy;
+                                return (
+                                    <div key={achievement.id} className="bg-gray-800 rounded-lg p-3 border border-red-500/20">
+                                        <div className="flex items-center gap-2">
+                                            {achievement.icon && <IconComponent className={`w-4 h-4 ${TIER_COLORS[achievement.tier]}`} />}
+                                            <div>
+                                                <div className="text-sm font-bold text-white">
+                                                    {achievement.title}
+                                                </div>
+                                                <div className="text-xs text-red-400">{achievement.trait}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </div>
-          );
-        })}
-      </div>
-    </div>
-  ));
-}
-
+        </div>
+    );
+};
 
 export default PersonalAchievements;
