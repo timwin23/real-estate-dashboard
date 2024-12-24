@@ -26,8 +26,8 @@ Key Points:
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData } from '@/lib/sheets';
-import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '@/lib/marketingSheets';
+import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData } from './sheets';
+import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../lib/marketingSheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
 import PersonalDashboard from './PersonalDashboard';
