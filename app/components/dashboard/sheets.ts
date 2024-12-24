@@ -1,3 +1,5 @@
+// app/components/dashboard/sheets.ts
+
 export {}; // This empty export makes the file a module
 
 const SHEET_TABS = {
@@ -7,19 +9,18 @@ const SHEET_TABS = {
   PROJECTIONS: 'Projections',
   RAW_DATA: 'Raw Data',
   ACHIEVEMENT_LIBRARY: 'Achievement Library',
-  GOALS: 'Goals & Achievements'
+  GOALS_ACHIEVEMENTS: 'Goals & Achievements'
 };
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-export type TeamMemberKey = 'Chris Analysis' | 'Israel Analysis' | 'Ivette Analysis';
+export type TeamMemberKey = keyof typeof SHEET_TABS;
 
-// Rest of sheets.ts code remains the same but update function signatures to use correct member names
-export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
-  const range = `${memberName}!A2:X`;
-  const data = await fetchSheetRange(range);
-
+// Utility function to calculate rates safely
+function safeRate(value: any): number {
+  return isNaN(Number(value)) ? 0 : Number(value);
+}
 
 export interface TeamMemberData {
   date: string;
@@ -105,7 +106,8 @@ export interface AchievementsData {
   completedAchievements: Goal[];
 }
 
-async function fetchSheetRange(range: string) {
+// Simplified range fetcher
+async function fetchSheetRange(range: string): Promise<any[]> {
   try {
     console.log(`[sheets.ts] Fetching data from range: ${range}`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
@@ -116,22 +118,18 @@ async function fetchSheetRange(range: string) {
     }
 
     const data = await response.json();
-    if (!data.values?.length) {
-      console.log(`[sheets.ts] No data found in range: ${range}`);
-      return [];
-    }
-    return data.values;
+    return data.values || [];
   } catch (error) {
     console.error(`[sheets.ts] Error fetching ${range}:`, error);
     return [];
   }
 }
 
+// Fetch data for a specific team member
 export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
-  const upperName = memberName.toUpperCase() as keyof typeof SHEET_TABS;
-  const range = `${SHEET_TABS[upperName]}!A2:X`;
+  const range = `${SHEET_TABS[memberName]}!A2:X`;
   const data = await fetchSheetRange(range);
-  
+
   return data.map((row: any[]) => ({
     date: row[0] || '',
     outbound: Number(row[1]) || 0,
@@ -155,7 +153,7 @@ export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<Te
     leadsGenerated: Number(row[19]) || 0,
     leadsPerPost: safeRate(row[20]),
     marketingXP: Number(row[21]) || 0,
-    salesXP: Number(row[22]) || 0
+    salesXP: Number(row[22]) || 0,
   }));
 }
 
@@ -186,35 +184,37 @@ export async function fetchRawData(): Promise<RawData[]> {
 }
 
 export async function fetchProjections(): Promise<TeamProjections> {
-  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J15`);
-  
-  const projections: TeamProjections = {
-    chris: {},
-    israel: {},
-    ivette: {}
-  };
+    const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
 
-  data.forEach((row: any[]) => {
-    if (!row[0]) return;
-    
-    const metric = row[0].toLowerCase().replace(/ /g, '_');
-    const teamMembers = ['chris', 'israel', 'ivette'];
-    const columns = [
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9]
-    ];
+    const projections: TeamProjections = {
+        chris: {},
+        israel: {},
+        ivette: {}
+    };
 
-    teamMembers.forEach((member, i) => {
-      projections[member][metric] = {
-        daily: Number(row[columns[i][0]]) || 0,
-        weekly: Number(row[columns[i][1]]) || 0,
-        monthly: Number(row[columns[i][2]]) || 0
-      };
+    const metrics = ['outbound', 'triage', 'follow_ups', 'appointments', 'shows', 'contracts', 'revenue', 'posts', 'leads', 'outbound_messages', 'responses'];
+
+    data.forEach((row: any[], index: number) => {
+        const metric = metrics[index];
+        if (!metric) return;
+
+        const teamMembers = ['chris', 'israel', 'ivette'];
+        const columns = [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]
+        ];
+
+        teamMembers.forEach((member, i) => {
+            projections[member][metric] = {
+                daily: Number(row[columns[i][0]]) || 0,
+                weekly: Number(row[columns[i][1]]) || 0,
+                monthly: Number(row[columns[i][2]]) || 0
+            };
+        });
     });
-  });
 
-  return projections;
+    return projections;
 }
 
 export async function fetchAchievements(): Promise<AchievementsData> {
