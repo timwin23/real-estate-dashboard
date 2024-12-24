@@ -15,6 +15,9 @@ const SHEET_TABS = {
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
+// Making sure that those types are exported
+export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
+export type CategoryType = 'sales' | 'marketing';
 export type TeamMemberKey = keyof typeof SHEET_TABS;
 
 // Utility function to calculate rates safely
@@ -106,8 +109,7 @@ export interface AchievementsData {
   completedAchievements: Goal[];
 }
 
-// Simplified range fetcher
-async function fetchSheetRange(range: string): Promise<any[]> {
+async function fetchSheetRange(range: string) {
   try {
     console.log(`[sheets.ts] Fetching data from range: ${range}`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
@@ -118,14 +120,18 @@ async function fetchSheetRange(range: string): Promise<any[]> {
     }
 
     const data = await response.json();
-    return data.values || [];
+    if (!data.values?.length) {
+      console.log(`[sheets.ts] No data found in range: ${range}`);
+      return [];
+    }
+    return data.values;
   } catch (error) {
     console.error(`[sheets.ts] Error fetching ${range}:`, error);
     return [];
   }
 }
 
-// Fetch data for a specific team member
+// Updated function signature to use TeamMemberKey
 export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
   const range = `${SHEET_TABS[memberName]}!A2:X`;
   const data = await fetchSheetRange(range);
