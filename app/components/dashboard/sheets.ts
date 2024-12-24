@@ -5,8 +5,34 @@ function safeRate(value: any): number {
   return isNaN(num) ? 0 : num;
 }
 
+// Add the missing types needed by PersonalAchievements
+export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
+export type CategoryType = 'sales' | 'marketing';
+
+// Modified Achievement interface to match what PersonalAchievements expects
+export interface Achievement {
+  id: string;
+  title: string;
+  category: CategoryType;  // Changed from string to CategoryType
+  tier: TierType;         // Changed from number to TierType
+  description: string;
+  target: number;
+  trait: string;
+  icon: string;
+  isSecret: boolean;
+}
+
+export interface Goal extends Achievement {
+  progress: number;
+}
+
+export interface AchievementsData {
+  activeGoal: Goal | null;
+  completedAchievements: Goal[];
+}
+
 // Team member data structure
-interface TeamMemberData {
+export interface TeamMemberData {
   date: string;
   outbound: number;
   triage: number;
@@ -32,8 +58,8 @@ interface TeamMemberData {
   salesXP: number;
 }
 
-// Raw data from form submissions
-interface RawData {
+// Rest of your existing interfaces
+export interface RawData {
   timestamp: string;
   teamMember: string;
   date: string;
@@ -55,8 +81,7 @@ interface RawData {
   reflection: string;
 }
 
-// Projections structure for each team member
-interface TeamProjection {
+export interface TeamProjection {
   [key: string]: {
     daily: number;
     weekly: number;
@@ -64,23 +89,10 @@ interface TeamProjection {
   };
 }
 
-interface TeamProjections {
+export interface TeamProjections {
   chris: TeamProjection;
   israel: TeamProjection;
   ivette: TeamProjection;
-}
-
-// Achievement structure
-interface Achievement {
-  id: string;
-  title: string;
-  category: string;
-  tier: number;
-  description: string;
-  target: number;
-  trait: string;
-  icon: string;
-  isSecret: boolean;
 }
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
@@ -105,7 +117,6 @@ async function fetchSheetRange(range: string) {
   }
 }
 
-// Fetch data for a specific team member
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
   const range = `${memberName} Analysis!A2:X`;
   const data = await fetchSheetRange(range);
@@ -137,7 +148,6 @@ export async function fetchTeamMemberData(memberName: string): Promise<TeamMembe
   }));
 }
 
-// Fetch raw form submission data
 export async function fetchRawData(): Promise<RawData[]> {
   const range = 'Raw Data!A2:S';
   const data = await fetchSheetRange(range);
@@ -165,7 +175,6 @@ export async function fetchRawData(): Promise<RawData[]> {
   }));
 }
 
-// Fetch projections for all team members
 export async function fetchProjections(): Promise<TeamProjections> {
   const range = 'Projections!A2:J15';
   const data = await fetchSheetRange(range);
@@ -179,21 +188,18 @@ export async function fetchProjections(): Promise<TeamProjections> {
   data.forEach((row: any[]) => {
     const metric = row[0].toLowerCase().replace(/ /g, '_');
     
-    // Chris projections (columns B,C,D)
     projections.chris[metric] = {
       daily: Number(row[1]) || 0,
       weekly: Number(row[2]) || 0,
       monthly: Number(row[3]) || 0
     };
 
-    // Israel projections (columns E,F,G)
     projections.israel[metric] = {
       daily: Number(row[4]) || 0,
       weekly: Number(row[5]) || 0,
       monthly: Number(row[6]) || 0
     };
 
-    // Ivette projections (columns H,I,J)
     projections.ivette[metric] = {
       daily: Number(row[7]) || 0,
       weekly: Number(row[8]) || 0,
@@ -204,31 +210,40 @@ export async function fetchProjections(): Promise<TeamProjections> {
   return projections;
 }
 
-// Fetch achievements library
-export async function fetchAchievements(): Promise<Achievement[]> {
-  const range = 'Achievement Library!A2:I';
-  const data = await fetchSheetRange(range);
+export async function fetchAchievements(): Promise<AchievementsData> {
+  const achievementsRange = 'Achievement Library!A2:I';
+  const goalsRange = 'Goals & Achievements!A2:M';
   
-  return data.map((row: any[]) => ({
+  const [achievementsData, goalsData] = await Promise.all([
+    fetchSheetRange(achievementsRange),
+    fetchSheetRange(goalsRange)
+  ]);
+
+  // Process goals data
+  const goals: Goal[] = goalsData.map((row: any[]) => ({
     id: row[0] || '',
     title: row[1] || '',
-    category: row[2] || '',
-    tier: Number(row[3]) || 0,
+    category: row[2] as CategoryType || 'sales',
+    tier: row[3] as TierType || 'none',
     description: row[4] || '',
     target: Number(row[5]) || 0,
     trait: row[6] || '',
     icon: row[7] || '',
-    isSecret: Boolean(row[8])
+    isSecret: Boolean(row[8]),
+    progress: Number(row[9]) || 0
   }));
+
+  return {
+    activeGoal: goals.find(goal => goal.progress < goal.target) || null,
+    completedAchievements: goals.filter(goal => goal.progress >= goal.target)
+  };
 }
 
-// Fetch goals and achievements progress
 export async function fetchGoals() {
   const range = 'Goals & Achievements!A2:M';
   return await fetchSheetRange(range);
 }
 
-// Helper function to filter data by date range
 export function filterDataByDateRange<T extends { date: string }>(data: T[], startDate: string, endDate: string): T[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
