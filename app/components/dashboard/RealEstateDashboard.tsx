@@ -114,7 +114,7 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
             </div>
             <div className="text-2xl font-bold mb-1 text-white">{value}</div>
             {rate && <div className="text-sm text-gray-300">{rate}</div>}
-            {rateValue && <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
+            {rateValue && <div className={`text-lg font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
                 {rateValue}
             </div>}
             {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
@@ -130,7 +130,7 @@ export default function RealEstateDashboard() {
     const [dateRange, setDateRange] = useState('7');
     const [data, setData] = useState<any[]>([]);
     const [marketingData, setMarketingData] = useState<any[]>([]);
-    const [personalData, setPersonalData] = useState<any[]>([]);
+      const [personalData, setPersonalData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [level, setLevel] = useState(7);
     const [totalXP, setTotalXP] = useState(0);
@@ -279,7 +279,7 @@ export default function RealEstateDashboard() {
                     const [chrisData, israelData, ivetteData] = await Promise.all([
                         fetchTeamMemberData('Chris Analysis'),
                         fetchTeamMemberData('Israel Analysis'),
-                        fetchTeamMemberData('Ivette Analysis')
+                         fetchTeamMemberData('Ivette Analysis')
                     ]);
                     logDebug('Team data fetched:', { chrisData, israelData, ivetteData });
                     salesData = [...chrisData, ...israelData, ...ivetteData];
@@ -287,20 +287,21 @@ export default function RealEstateDashboard() {
                     const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
                         fetchTeamMemberMarketingData('Chris Analysis'),
                         fetchTeamMemberMarketingData('Israel Analysis'),
-                        fetchTeamMemberMarketingData('Ivette Analysis')
+                         fetchTeamMemberMarketingData('Ivette Analysis')
                     ]);
-                    mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
-                        const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
+
+                      const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                        fetchRawData(),
                           fetchRawData(),
-                          fetchRawData(),
-                         fetchRawData()
+                           fetchRawData()
                      ]);
-                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal]
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(`${selectedMember} Analysis`);
                     mktgData = await fetchTeamMemberMarketingData(`${selectedMember} Analysis`);
-                    pData = await fetchRawData();
+                     pData = await fetchRawData();
                 }
 
                 const [projectionsData, mktgProjections] = await Promise.all([
@@ -316,7 +317,7 @@ export default function RealEstateDashboard() {
                 if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                     setPersonalData(pData);
+                      setPersonalData(pData);
                 } else {
                     const today = new Date();
                     const startDate = new Date();
@@ -324,17 +325,17 @@ export default function RealEstateDashboard() {
 
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
                      const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+                      const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
 
                     logDebug('Filtered data:', {
                         salesData: filteredSalesData,
                         marketingData: filteredMktgData,
-                          personalData: filteredPersonalData
+                           personalData: filteredPersonalData
                     });
 
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
-                     setPersonalData(filteredPersonalData);
+                      setPersonalData(filteredPersonalData);
 
                     const streak = calculateStreak(filteredSalesData,
                         selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
@@ -371,7 +372,7 @@ export default function RealEstateDashboard() {
         metrics,
         data: data?.length,
         marketingData: marketingData?.length,
-          personalData: personalData?.length
+        personalData: personalData?.length
     });
 
     return (
@@ -480,7 +481,7 @@ export default function RealEstateDashboard() {
                             title="CONTRACTS"
                             value={metrics.totalContracts.toLocaleString()}
                             rate="Close Rate"
-                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
                             xp="+50 XP each"
                             icon={Trophy}
                         />
@@ -512,9 +513,9 @@ export default function RealEstateDashboard() {
                                     <Legend />
                                     <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
                                     <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                    <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
+                                     <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
                                     <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
-                                    <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
+                                     <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -543,7 +544,7 @@ export default function RealEstateDashboard() {
                    onDateRangeChange={(range) => setDateRange(range)}
                     salesData={data}
                     marketingData={marketingData}
-                     projections={projections}
+                    projections={projections}
                 />
             )}
         </div>
