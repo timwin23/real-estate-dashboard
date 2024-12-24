@@ -1,4 +1,4 @@
-// app/components/dashboard/PersonalAchievements.tsx
+// app/components/real-estate-dashboard/PersonalAchievements.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
