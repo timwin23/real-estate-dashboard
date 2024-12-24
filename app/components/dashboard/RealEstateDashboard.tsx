@@ -130,7 +130,7 @@ export default function RealEstateDashboard() {
     const [dateRange, setDateRange] = useState('7');
     const [data, setData] = useState<any[]>([]);
     const [marketingData, setMarketingData] = useState<any[]>([]);
-    const [personalData, setPersonalData] = useState<any[]>([]);
+      const [personalData, setPersonalData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [level, setLevel] = useState(7);
     const [totalXP, setTotalXP] = useState(0);
@@ -277,30 +277,30 @@ export default function RealEstateDashboard() {
                 if (selectedMember === 'all') {
                     logDebug('Fetching data for all members...');
                     const [chrisData, israelData, ivetteData] = await Promise.all([
-                        fetchTeamMemberData('Chris'),
-                        fetchTeamMemberData('Israel'),
-                        fetchTeamMemberData('Ivette')
+                        fetchTeamMemberData('Chris Analysis'),
+                        fetchTeamMemberData('Israel Analysis'),
+                        fetchTeamMemberData('Ivette Analysis')
                     ]);
                     logDebug('Team data fetched:', { chrisData, israelData, ivetteData });
                     salesData = [...chrisData, ...israelData, ...ivetteData];
 
                     const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
-                        fetchTeamMemberMarketingData('Chris'),
-                        fetchTeamMemberMarketingData('Israel'),
-                        fetchTeamMemberMarketingData('Ivette')
+                        fetchTeamMemberMarketingData('Chris Analysis'),
+                        fetchTeamMemberMarketingData('Israel Analysis'),
+                        fetchTeamMemberMarketingData('Ivette Analysis')
                     ]);
                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
 
                      const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-                         fetchRawData(),
-                         fetchRawData(),
+                        fetchRawData(),
+                        fetchRawData(),
                         fetchRawData()
                     ]);
-                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                      pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
-                    salesData = await fetchTeamMemberData(selectedMember);
-                    mktgData = await fetchTeamMemberMarketingData(selectedMember);
+                    salesData = await fetchTeamMemberData(`${selectedMember} Analysis`);
+                   mktgData = await fetchTeamMemberMarketingData(`${selectedMember} Analysis`);
                      pData = await fetchRawData();
                 }
 
@@ -317,25 +317,25 @@ export default function RealEstateDashboard() {
                 if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                      setPersonalData(pData);
+                     setPersonalData(pData);
                 } else {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
 
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                      const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
 
                     logDebug('Filtered data:', {
                         salesData: filteredSalesData,
                         marketingData: filteredMktgData,
-                        personalData: filteredPersonalData
+                         personalData: filteredPersonalData
                     });
 
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
-                     setPersonalData(filteredPersonalData);
+                      setPersonalData(filteredPersonalData);
 
                     const streak = calculateStreak(filteredSalesData,
                         selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
@@ -465,7 +465,7 @@ export default function RealEstateDashboard() {
                             title="FOLLOW UPS"
                             value={metrics.totalFollowUps.toLocaleString()}
                             rate="Set Rate"
-                            rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
                             xp="+15 XP each"
                             icon={PhoneCall}
                         />
@@ -473,7 +473,7 @@ export default function RealEstateDashboard() {
                             title="APPOINTMENTS"
                              value={metrics.totalAppointments.toLocaleString()}
                             rate="Show Rate"
-                            rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
                             xp="+25 XP each"
                             icon={Calendar}
                         />
@@ -481,7 +481,7 @@ export default function RealEstateDashboard() {
                             title="CONTRACTS"
                             value={metrics.totalContracts.toLocaleString()}
                             rate="Close Rate"
-                             rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
                             xp="+50 XP each"
                             icon={Trophy}
                         />
@@ -489,7 +489,7 @@ export default function RealEstateDashboard() {
                             title="REVENUE"
                             value={`$${metrics.totalRevenue.toLocaleString()}`}
                             rate="Per Close"
-                             rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
+                            rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
                              xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
                             icon={DollarSign}
                         />
@@ -513,7 +513,7 @@ export default function RealEstateDashboard() {
                                     <Legend />
                                     <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
                                     <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                      <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
+                                     <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
                                     <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
                                      <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
                                 </LineChart>
