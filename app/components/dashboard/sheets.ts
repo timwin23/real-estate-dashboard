@@ -5,6 +5,38 @@ function safeRate(value: any): number {
   return isNaN(num) ? 0 : num;
 }
 
+// Add these type definitions at the top of sheets.ts
+export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
+export type CategoryType = 'sales' | 'marketing';
+
+export interface Achievement {
+    id: string;
+    title: string;
+    category: CategoryType;
+    tier: TierType;
+    description: string;
+    target: number;
+    trait: string;
+    icon: string;
+    isSecret: boolean;
+}
+
+export interface Goal extends Achievement {
+    type: 'goal' | 'achievement';
+    status: 'active' | 'completed' | 'failed';
+    startDate: string;
+    endDate: string | null;
+    progress: number;
+}
+
+export interface AchievementsData {
+    library: Achievement[];
+    goalsAndAchievements: Goal[];
+    activeGoal?: Goal;
+    completedAchievements: Goal[];
+}
+
+
 // Team member data structure
 export interface TeamMemberData {
   date: string;
@@ -196,7 +228,59 @@ export async function fetchProjections(): Promise<TeamProjections> {
   return projections;
 }
 
-// Helper function to filter data by date range
+// Add this function to sheets.ts before filterDataByDateRange
+export async function fetchAchievements(): Promise<AchievementsData> {
+    const achievementsRange = 'Achievement Library!A2:I';
+    const goalsRange = 'Goals & Achievements!A2:M';
+    
+    const [achievementsData, goalsData] = await Promise.all([
+        fetchSheetRange(achievementsRange),
+        fetchSheetRange(goalsRange)
+    ]);
+
+
+     const library: Achievement[] = achievementsData.map((row: any[]) => ({
+        id: row[0] || '',
+        title: row[1] || '',
+        category: row[2] as CategoryType || 'sales',
+        tier: row[3] as TierType || 'none',
+        description: row[4] || '',
+        target: Number(row[5]) || 0,
+         trait: row[6] || '',
+        icon: row[7] || '',
+         isSecret: row[8] === 'TRUE'
+   }));
+
+      const goals: Goal[] = goalsData.map((row: any[]) => ({
+        id: row[0] || '',
+         type: row[1] as 'goal' | 'achievement',
+        category: row[2] as CategoryType || 'sales',
+         tier: row[3] as TierType || 'none',
+        title: row[4] || '',
+          description: row[5] || '',
+        target: Number(row[6]) || 0,
+        trait: row[7] || '',
+        status: row[8] as 'active' | 'completed' | 'failed',
+        startDate: row[9] || '',
+          endDate: row[10] || null,
+          progress: Number(row[11]) || 0,
+          isSecret: row[12] === 'TRUE'
+      }));
+
+    return {
+        library,
+        goalsAndAchievements: goals,
+        activeGoal: goals.find(goal => goal.status === 'active') || null,
+        completedAchievements: goals.filter(goal => goal.status === 'completed')
+    };
+}
+
+
+export async function fetchGoals() {
+    const range = 'Goals & Achievements!A2:M';
+    return await fetchSheetRange(range);
+}
+
 export function filterDataByDateRange<T extends { date: string }>(data: T[], startDate: string, endDate: string): T[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
