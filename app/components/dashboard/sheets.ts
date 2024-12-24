@@ -126,8 +126,9 @@ async function fetchSheetRange(range: string) {
   }
 }
 
-export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
-  const range = `${SHEET_TABS[memberName.toUpperCase()]}!A2:X`;
+export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
+  const upperName = memberName.toUpperCase() as keyof typeof SHEET_TABS;
+  const range = `${SHEET_TABS[upperName]}!A2:X`;
   const data = await fetchSheetRange(range);
   
   return data.map((row: any[]) => ({

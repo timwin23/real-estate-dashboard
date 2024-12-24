@@ -46,8 +46,11 @@ async function fetchSheetRange(range: string) {
   }
 }
 
-export async function fetchTeamMemberMarketingData(memberName: string): Promise<MarketingMetrics[]> {
-  const data = await fetchSheetRange(`${SHEET_TABS[memberName.toUpperCase()]}!A2:X`);
+type SheetTabKey = keyof typeof SHEET_TABS;
+
+export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel' | 'ivette'): Promise<MarketingMetrics[]> {
+  const upperName = memberName.toUpperCase() as SheetTabKey;
+  const data = await fetchSheetRange(`${SHEET_TABS[upperName]}!A2:X`);
   
   return data.map((row: any[]) => {
     const outboundMessages = Number(row[15]) || 0;
