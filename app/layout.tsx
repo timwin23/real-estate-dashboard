@@ -2,8 +2,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Predator Dashboard',
-  description: 'Strategic Predator Analytics Dashboard',
+  title: 'Real Estate Command Center',
+  description: 'Real Estate Team Command Center Dashboard',
 }
 
 export default function RootLayout({
