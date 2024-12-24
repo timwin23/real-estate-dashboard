@@ -186,14 +186,13 @@ export function filterDataByDateRange<T extends { date: string }>(
 
 export interface Achievement {
   id: string;
-  type: string;
-  category: 'sales' | 'marketing'; 
-  tier: 'bronze' | 'silver' | 'gold';
   title: string;
+  category: CategoryType;
+  tier: TierType;
   description: string;
   target: number;
   trait: string;
-  status: 'active' | 'completed';
+  icon: string;
   isSecret: boolean;
 }
 
