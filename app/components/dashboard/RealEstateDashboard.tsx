@@ -9,12 +9,10 @@ import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
 import PersonalAchievements from './PersonalAchievements';
 
-// Console logging utility 
 const logDebug = (message: string, data?: any) => {
     console.log(`[RealEstateDashboard] ${message}`, data || '');
 };
 
-// Types and Interfaces
 type MetricCardProps = {
     title: string;
     value: string | number;
@@ -46,7 +44,6 @@ type ChartData = {
     closes?: number;
 };
 
-// Utility function for metric colors (No changes needed)
 const getRateColor = (title: string, rate?: number): string => {
     if (rate === undefined) return "text-white";
     const value = parseFloat(String(rate).replace('%', ''));
@@ -62,7 +59,6 @@ const getRateColor = (title: string, rate?: number): string => {
     }
 };
 
-// MetricCard component (No changes needed)
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
     return (
         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
@@ -80,9 +76,7 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
     );
 }
 
-// Main Dashboard Component
 export default function RealEstateDashboard() {
-    // State Management
     const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
     const [dashboardType, setDashboardType] = useState('sales');
     const [dateRange, setDateRange] = useState('7');
@@ -103,7 +97,6 @@ export default function RealEstateDashboard() {
         { id: 'IVETTE' as TeamMemberKey, name: 'Ivette' }
     ];
 
-    // Core calculation functions (Rest of the implementation remains the same)
     const getCurrentXP = () => {
         logDebug('Calculating XP for dashboard type:', dashboardType);
         if (dashboardType === 'sales') {
@@ -308,135 +301,135 @@ export default function RealEstateDashboard() {
                         <option value="ALL">All Time</option>
                     </select>
                 </div>
-            </div
+            </div>
 
             {/* Level Progress */}
             {dashboardType !== 'personal' && (
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                        <div className="text-xl text-red-500">Progress to Level 25</div>
-                        <div className="flex items-center gap-2 text-white">
-                            <span className="text-red-500 font-bold">Level {calculateCurrentLevel()}</span>
-                            <span>|</span>
-                            <span>{getCurrentXP().toLocaleString()} / {nextLevelXP.toLocaleString()} XP</span>
-                        </div>
+                <div className="flex justify-between items-center mb-2">
+                    <div className="text-xl text-red-500">Progress to Level 25</div>
+                    <div className="flex items-center gap-2 text-white">
+                        <span className="text-red-500 font-bold">Level {calculateCurrentLevel()}</span>
+                        <span>|</span>
+                        <span>{getCurrentXP().toLocaleString()} / {nextLevelXP.toLocaleString()} XP</span>
                     </div>
-                    <div className="w-full bg-gray-800 h-4 rounded-full">
-                        <div
-                            className="bg-red-500 h-full rounded-full transition-all duration-500"
-                            style={{ width: `${progressToLevel25}%` }}
+                </div>
+                <div className="w-full bg-gray-800 h-4 rounded-full">
+                    <div
+                        className="bg-red-500 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${progressToLevel25}%` }}
+                    />
+                </div>
+            </div>
+        )}
+
+        {/* Dashboard Content */}
+        {dashboardType === 'sales' ? (
+            <>
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-6 gap-4 mb-6">
+                    <MetricCard
+                        title="OUTBOUND"
+                        value={metrics.totalOutbound.toLocaleString()}
+                        rate="Conv. Rate"
+                        rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
+                        xp="+1 XP each"
+                        icon={Target}
+                    />
+                    <MetricCard
+                        title="TRIAGE"
+                        value={metrics.totalTriage.toLocaleString()}
+                        rate="Follow Up Rate"
+                        rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
+                        xp="+10 XP each"
+                        icon={Swords}
+                    />
+                    <MetricCard
+                        title="FOLLOW UPS"
+                        value={metrics.totalFollowUps.toLocaleString()}
+                        rate="Set Rate"
+                        rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
+                        xp="+15 XP each"
+                        icon={PhoneCall}
+                    />
+                    <MetricCard
+                        title="APPOINTMENTS"
+                        value={metrics.totalAppointments.toLocaleString()}
+                        rate="Show Rate"
+                        rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
+                        xp="+25 XP each"
+                        icon={Calendar}
+                    />
+                    <MetricCard
+                        title="CONTRACTS"
+                        value={metrics.totalContracts.toLocaleString()}
+                        rate="Close Rate"
+                        rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                        xp="+50 XP each"
+                        icon={Trophy}
+                    />
+                    <MetricCard
+                        title="REVENUE"
+                        value={`$${metrics.totalRevenue.toLocaleString()}`}
+                        rate="Per Close"
+                        rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
+                        xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
+                        icon={DollarSign}
+                    />
+                </div>
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    {/* Line Chart */}
+                    <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={data}>
+                                <XAxis dataKey="date" stroke="#666" />
+                                <YAxis stroke="#666" />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1a1a1a',
+                                        border: '1px solid #ff0000',
+                                        color: '#ffffff'
+                                    }}
+                                />
+                                <Legend />
+                                <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
+                                <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
+                                <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
+                                <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
+                                <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Bar Chart */}
+                    <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                        <TargetBarChart
+                            data={formatDataForBarChart(data)}
+                            projections={projections ? projections[selectedMember] : null}
                         />
                     </div>
                 </div>
-            )}
-
-            {/* Dashboard Content */}
-            {dashboardType === 'sales' ? (
-                <>
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-6 gap-4 mb-6">
-                        <MetricCard
-                            title="OUTBOUND"
-                            value={metrics.totalOutbound.toLocaleString()}
-                            rate="Conv. Rate"
-                            rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
-                            xp="+1 XP each"
-                            icon={Target}
-                        />
-                        <MetricCard
-                            title="TRIAGE"
-                            value={metrics.totalTriage.toLocaleString()}
-                            rate="Follow Up Rate"
-                            rateValue={`${((metrics.totalFollowUps / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
-                            xp="+10 XP each"
-                            icon={Swords}
-                        />
-                        <MetricCard
-                            title="FOLLOW UPS"
-                            value={metrics.totalFollowUps.toLocaleString()}
-                            rate="Set Rate"
-                            rateValue={`${((metrics.totalAppointments / metrics.totalFollowUps * 100) || 0).toFixed(1)}%`}
-                            xp="+15 XP each"
-                            icon={PhoneCall}
-                        />
-                        <MetricCard
-                            title="APPOINTMENTS"
-                            value={metrics.totalAppointments.toLocaleString()}
-                            rate="Show Rate"
-                            rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
-                            xp="+25 XP each"
-                            icon={Calendar}
-                        />
-                        <MetricCard
-                            title="CONTRACTS"
-                            value={metrics.totalContracts.toLocaleString()}
-                            rate="Close Rate"
-                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
-                            xp="+50 XP each"
-                            icon={Trophy}
-                        />
-                        <MetricCard
-                            title="REVENUE"
-                            value={`$${metrics.totalRevenue.toLocaleString()}`}
-                            rate="Per Close"
-                            rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
-                            xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
-                            icon={DollarSign}
-                        />
-                    </div>
-
-                    {/* Charts Section */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        {/* Line Chart */}
-                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data}>
-                                    <XAxis dataKey="date" stroke="#666" />
-                                    <YAxis stroke="#666" />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #ff0000',
-                                            color: '#ffffff'
-                                        }}
-                                    />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
-                                    <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                    <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
-                                    <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
-                                    <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* Bar Chart */}
-                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <TargetBarChart
-                                data={formatDataForBarChart(data)}
-                                projections={projections ? projections[selectedMember] : null}
-                            />
-                        </div>
-                    </div>
-                </>
-            ) : dashboardType === 'marketing' ? (
-                <MarketingDashboard
-                    marketingData={marketingData}
-                    dateRange={dateRange}
-                    onDateRangeChange={(range) => setDateRange(range)}
-                    projections={projections}
-                    teamMember={selectedMember}
-                />
-            ) : (
-                <PersonalAchievements
-                    data={personalData}
-                    dateRange={dateRange}
-                    onDateRangeChange={(range) => setDateRange(range)}
-                    salesData={data}
-                    marketingData={marketingData}
-                    projections={projections}
-                />
-            )}
-        </div>
-    );
+            </>
+        ) : dashboardType === 'marketing' ? (
+            <MarketingDashboard
+                marketingData={marketingData}
+                dateRange={dateRange}
+                onDateRangeChange={(range) => setDateRange(range)}
+                projections={projections}
+                teamMember={selectedMember}
+            />
+        ) : (
+            <PersonalAchievements
+                data={personalData}
+                dateRange={dateRange}
+                onDateRangeChange={(range) => setDateRange(range)}
+                salesData={data}
+                marketingData={marketingData}
+                projections={projections}
+            />
+        )}
+    </div>
+);
 }
