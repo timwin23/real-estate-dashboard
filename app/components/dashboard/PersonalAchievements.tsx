@@ -1,9 +1,8 @@
-// app/components/real-estate-dashboard/PersonalAchievements.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
 import { Target, Trophy, Star, Lock, Crown, MessageSquare, Gauge } from 'lucide-react';
-import { fetchAchievements, type Achievement, type Goal, type AchievementsData, type TierType, type CategoryType } from '../../../lib/sheets';
+import { fetchAchievements, type Achievement, type Goal, type AchievementsData, type TierType, type CategoryType } from './sheets';
 
 interface Props {
   salesData: any[];
