@@ -185,3 +185,25 @@ export function filterDataByDateRange<T extends { date: string }>(
     }
   });
 }
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  progress: number;
+  target: number;
+}
+
+export async function fetchAchievements() {
+  const data = await fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`);
+  
+  return data.map((row: any[]) => ({
+    id: row[0] || '',
+    title: row[1] || '',
+    description: row[2] || '',
+    completed: Boolean(row[3]),
+    progress: Number(row[4]) || 0,
+    target: Number(row[5]) || 0
+  }));
+}
