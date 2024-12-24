@@ -1,10 +1,9 @@
 // app/components/dashboard/sheets.ts
 
-// Sheet configuration constants
 const SHEET_TABS = {
-  CHRIS: 'Chris',  // Remove 'Analysis'
-  ISRAEL: 'Israel',
-  IVETTE: 'Ivette',
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
   PROJECTIONS: 'Projections',
   RAW_DATA: 'Raw Data',
   ACHIEVEMENT_LIBRARY: 'Achievement Library',
@@ -14,13 +13,11 @@ const SHEET_TABS = {
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-// Utility function for safe rate calculations
 function safeRate(value: any): number {
   const num = parseFloat(value);
   return isNaN(num) ? 0 : num;
 }
 
-// Core interfaces
 export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 export type CategoryType = 'sales' | 'marketing';
 export type TeamMemberKey = 'chris' | 'israel' | 'ivette' | string;
@@ -109,13 +106,11 @@ export interface AchievementsData {
   completedAchievements: Goal[];
 }
 
-// Error handling utility
 function handleSheetError(error: any, range: string) {
   console.error(`[sheets.ts] Error fetching range ${range}:`, error);
   return [];
 }
 
-// Sheet data fetching utility
 async function fetchSheetRange(range: string) {
   try {
     console.log(`[sheets.ts] fetchSheetRange - Fetching data from range: ${range}`);
@@ -137,9 +132,23 @@ async function fetchSheetRange(range: string) {
   }
 }
 
-// Main data fetching functions
+function getSheetName(memberName: string): string {
+  switch(memberName.toLowerCase()) {
+    case 'chris':
+      return SHEET_TABS.CHRIS;
+    case 'israel':
+      return SHEET_TABS.ISRAEL;
+    case 'ivette':
+      return SHEET_TABS.IVETTE;
+    default:
+      throw new Error(`Invalid team member name: ${memberName}`);
+  }
+}
+
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
-  const range = `${memberName}!A2:X`;  // Removed 'Analysis'
+  console.log(`[sheets.ts] fetchTeamMemberData - Fetching data for member: ${memberName}`);
+  const sheetName = getSheetName(memberName);
+  const range = `${sheetName}!A2:X`;
   const data = await fetchSheetRange(range);
   
   return data.map((row: any[]) => ({
@@ -264,7 +273,6 @@ export async function fetchAchievements(): Promise<AchievementsData> {
   };
 }
 
-// Date range filtering utility
 export function filterDataByDateRange<T extends { date: string }>(data: T[], startDate: string, endDate: string): T[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
