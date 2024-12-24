@@ -1,36 +1,14 @@
 // app/components/dashboard/RealEstateDashboard.tsx
-/*
-ATTENTION DEVELOPERS & GEMINI:
-
-File Location: app/components/dashboard/RealEstateDashboard.tsx
-
-Key Points:
-1. Import paths:
-   - sheets.ts is in app/components/dashboard/
-   - marketingSheets.ts is in app/lib/
-   - All other components are in the same folder as this file
-
-2. Data Flow:
-   - Main data fetching happens in useEffect
-   - Support for multiple team members
-   - Three dashboard types: sales, marketing, personal
-
-3. When Modifying:
-   - Keep all console logs for debugging
-   - Maintain correct import paths
-   - Don't remove any existing functionality
-*/
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData } from './sheets';
-import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../lib/marketingSheets';
+import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, type TeamMemberKey, type TeamMemberData, type TeamProjections } from './sheets';
+
+// import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../lib/marketingSheets';
 import TargetBarChart from './TargetBarChart';
-import MarketingDashboard from './MarketingDashboard';
-import PersonalDashboard from './PersonalDashboard';
+import PersonalAchievements from './PersonalAchievements';
 
 // Console logging utility for debugging
 const logDebug = (message: string, data?: any) => {
@@ -67,6 +45,17 @@ type ChartData = {
     shows?: number;
     contracts?: number;
     closes?: number;
+};
+
+type MarketingMetrics = {
+    date: string;
+    outboundMessages: number;
+    positiveResponses: number;
+    responseRate: number;
+    postsCreated: number;
+    leadsGenerated: number;
+    leadsPerPost: number;
+    marketingXP: number;
 };
 
 // Utility function for metric colors
@@ -114,7 +103,7 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
             </div>
             <div className="text-2xl font-bold mb-1 text-white">{value}</div>
             {rate && <div className="text-sm text-gray-300">{rate}</div>}
-            {rateValue && <div className={`text-lg font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
+            {rateValue && <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
                 {rateValue}
             </div>}
             {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
@@ -125,12 +114,12 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
 // Main Dashboard Component
 export default function RealEstateDashboard() {
     // State Management
-    const [selectedMember, setSelectedMember] = useState('all');
+    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('CHRIS');
     const [dashboardType, setDashboardType] = useState('sales');
     const [dateRange, setDateRange] = useState('7');
     const [data, setData] = useState<any[]>([]);
     const [marketingData, setMarketingData] = useState<any[]>([]);
-      const [personalData, setPersonalData] = useState<any[]>([]);
+    const [personalData, setPersonalData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [level, setLevel] = useState(7);
     const [totalXP, setTotalXP] = useState(0);
@@ -139,14 +128,13 @@ export default function RealEstateDashboard() {
     const [projections, setProjections] = useState<any>(null);
     const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
-    const teamMembers = [
-        { id: 'all', name: 'All Members' },
-        { id: 'chris', name: 'Chris Piasczyk' },
-        { id: 'israel', name: 'Israel Moreno' },
-        { id: 'ivette', name: 'Ivette Moreno' }
+    const teamMembers: { id: TeamMemberKey; name: string }[] = [
+        { id: 'CHRIS', name: 'Chris Analysis' },
+        { id: 'ISRAEL', name: 'Israel Analysis' },
+        { id: 'IVETTE', name: 'Ivette Analysis' },
     ];
 
-    // XP and Level Calculations
+    // Get XP based on dashboard type
     const getCurrentXP = () => {
         logDebug('Calculating XP for dashboard type:', dashboardType);
         if (dashboardType === 'sales') {
@@ -164,7 +152,6 @@ export default function RealEstateDashboard() {
 
     const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
 
-    // Metrics Calculations
     const calculateStreak = (data: any[], projections: any) => {
         if (!data || data.length === 0 || !projections?.outbound?.daily) return 0;
 
@@ -229,10 +216,7 @@ export default function RealEstateDashboard() {
     };
 
     const formatDataForBarChart = (data: any[]) => {
-        if (!data || data.length === 0) {
-            logDebug('No data available for bar chart formatting');
-            return { daily: {}, weekly: {}, monthly: {} };
-        }
+        if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
 
         const dailyData = data[data.length - 1] || {};
 
@@ -256,104 +240,85 @@ export default function RealEstateDashboard() {
             closes: (acc.closes || 0) + (Number(curr.closes) || 0),
         }), {} as ChartData);
 
-        const formattedData = {
+        return {
             daily: dailyData,
             weekly: weeklyData,
             monthly: monthlyData
         };
-
-        logDebug('Formatted chart data:', formattedData);
-        return formattedData;
     };
 
-    // Data Loading Effect
     useEffect(() => {
         async function loadData() {
             try {
-                logDebug('Starting data load for member:', selectedMember);
                 setLoading(true);
-                let salesData, mktgData, pData;
-
+                let salesData: TeamMemberData[] = [],
+                    mktgData: MarketingMetrics[] = [],
+                    pData: any[] = [];
+        
                 if (selectedMember === 'all') {
-                    logDebug('Fetching data for all members...');
                     const [chrisData, israelData, ivetteData] = await Promise.all([
-                        fetchTeamMemberData('Chris Analysis'),
-                        fetchTeamMemberData('Israel Analysis'),
-                         fetchTeamMemberData('Ivette Analysis')
+                        fetchTeamMemberData('CHRIS'),
+                        fetchTeamMemberData('ISRAEL'),
+                        fetchTeamMemberData('IVETTE')
                     ]);
-                    logDebug('Team data fetched:', { chrisData, israelData, ivetteData });
                     salesData = [...chrisData, ...israelData, ...ivetteData];
-
+        
                     const [chrisMktg, israelMktg, ivetteMktg] = await Promise.all([
-                        fetchTeamMemberMarketingData('Chris Analysis'),
-                        fetchTeamMemberMarketingData('Israel Analysis'),
-                         fetchTeamMemberMarketingData('Ivette Analysis')
+                        fetchTeamMemberMarketingData('CHRIS'),
+                        fetchTeamMemberMarketingData('ISRAEL'),
+                        fetchTeamMemberMarketingData('IVETTE')
                     ]);
-                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
-
-                      const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                    mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
+        
+                    const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
                         fetchRawData(),
-                          fetchRawData(),
-                           fetchRawData()
-                     ]);
-                     pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal]
+                        fetchRawData(),
+                        fetchRawData()
+                    ]);
+                    pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
                 } else {
-                    logDebug(`Fetching data for single member: ${selectedMember}`);
-                    salesData = await fetchTeamMemberData(`${selectedMember} Analysis`);
-                    mktgData = await fetchTeamMemberMarketingData(`${selectedMember} Analysis`);
-                     pData = await fetchRawData();
+                    salesData = await fetchTeamMemberData(selectedMember);
+                    mktgData = await fetchTeamMemberMarketingData(selectedMember);
+                    pData = await fetchRawData();
                 }
-
                 const [projectionsData, mktgProjections] = await Promise.all([
                     fetchProjections(),
                     fetchMarketingProjections()
-                ]);
-
-                logDebug('Projections fetched:', { projectionsData, mktgProjections });
-
-                setProjections(projectionsData);
-                setMarketingProjections(mktgProjections);
-
-                if (dateRange === 'ALL') {
+                  ]);
+                  setProjections(projectionsData);
+                  setMarketingProjections(mktgProjections);
+          
+                  if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                      setPersonalData(pData);
+                    setPersonalData(pData);
                 } else {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
-
+          
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                      const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-
-                    logDebug('Filtered data:', {
-                        salesData: filteredSalesData,
-                        marketingData: filteredMktgData,
-                           personalData: filteredPersonalData
-                    });
-
+                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                    const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+          
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
-                      setPersonalData(filteredPersonalData);
-
-                    const streak = calculateStreak(filteredSalesData,
-                        selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+                    setPersonalData(filteredPersonalData);
+          
+                    const streak = calculateStreak(filteredSalesData, projectionsData?.[selectedMember.toLowerCase()] || {});
                     setCurrentStreak(streak);
+                  }
+                } catch (error) {
+                  console.error('Error loading data:', error);
+                } finally {
+                  setLoading(false);
                 }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
+              }
+          
+              loadData();
+            }, [dateRange, selectedMember]);
 
-        loadData();
-    }, [dateRange, selectedMember]);
-
-    // XP Effect
     useEffect(() => {
-        logDebug('Updating XP and level');
         setTotalXP(getCurrentXP());
         setLevel(calculateCurrentLevel());
     }, [data, marketingData, dashboardType, selectedMember]);
@@ -364,7 +329,6 @@ export default function RealEstateDashboard() {
         return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
     }
 
-    // Log current state before render
     logDebug('Current state before render:', {
         selectedMember,
         dashboardType,
@@ -392,7 +356,7 @@ export default function RealEstateDashboard() {
                     <select
                         className="bg-gray-900 border border-red-500/30 rounded-md p-2 text-white"
                         value={selectedMember}
-                        onChange={(e) => setSelectedMember(e.target.value)}
+                        onChange={(e) => setSelectedMember(e.target.value as TeamMemberKey)}
                     >
                         {teamMembers.map(member => (
                             <option key={member.id} value={member.id}>{member.name}</option>
@@ -539,32 +503,14 @@ export default function RealEstateDashboard() {
                 />
             ) : (
                 <PersonalDashboard
-                     data={personalData}
-                     dateRange={dateRange}
+                   data={personalData}
+                   dateRange={dateRange}
                    onDateRangeChange={(range) => setDateRange(range)}
-                    salesData={data}
-                    marketingData={marketingData}
-                    projections={projections}
+                   salesData={data}
+                   marketingData={marketingData}
+                   projections={projections}
                 />
             )}
         </div>
     );
 }
-
-/* 
-INSTRUCTIONS FOR GEMINI:
-1. DO NOT SIMPLIFY THIS FILE - every component and feature is needed
-2. Path Structure:
-   - This file: app/components/dashboard/RealEstateDashboard.tsx
-   - Sheets: app/components/dashboard/sheets.ts
-   - Marketing Sheets: app/lib/marketingSheets.ts
-3. When debugging:
-   - Check console logs with [RealEstateDashboard] prefix
-   - Verify data fetching in useEffect
-   - Ensure all imports are correct
-4. Key Features to Maintain:
-   - Team member selection
-   - Multiple dashboard types
-   - XP and leveling system
-   - All metrics and charts
-*/
