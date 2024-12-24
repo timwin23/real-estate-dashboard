@@ -1,5 +1,3 @@
-// app/components/dashboard/sheets.ts
-
 export const SHEET_TABS = {
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
@@ -188,22 +186,45 @@ export function filterDataByDateRange<T extends { date: string }>(
 
 export interface Achievement {
   id: string;
+  type: string;
+  category: 'sales' | 'marketing'; 
+  tier: 'bronze' | 'silver' | 'gold';
   title: string;
   description: string;
-  completed: boolean;
-  progress: number;
   target: number;
+  trait: string;
+  status: 'active' | 'completed';
+  isSecret: boolean;
 }
+
+export interface Goal extends Achievement {
+  progress: number;
+  start_date: string;
+  end_date?: string;
+  team_member: string;
+}
+
+export interface AchievementsData {
+  active: Goal[];
+  completed: Goal[];
+}
+
+export type CategoryType = 'sales' | 'marketing';
+export type TierType = 'bronze' | 'silver' | 'gold';
 
 export async function fetchAchievements() {
   const data = await fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`);
   
   return data.map((row: any[]) => ({
     id: row[0] || '',
-    title: row[1] || '',
-    description: row[2] || '',
-    completed: Boolean(row[3]),
-    progress: Number(row[4]) || 0,
-    target: Number(row[5]) || 0
+    type: row[1] || '',
+    category: row[2] as CategoryType,
+    tier: row[3] as TierType,
+    title: row[4] || '',
+    description: row[5] || '',
+    target: Number(row[6]) || 0,
+    trait: row[7] || '',
+    status: row[8] as 'active' | 'completed',
+    isSecret: Boolean(row[9])
   }));
 }
