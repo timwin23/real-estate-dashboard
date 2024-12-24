@@ -1,12 +1,10 @@
-// app/components/dashboard/sheets.ts
-
 const SHEET_TABS = {
-  CHRIS: 'Chris Analysis',
-  ISRAEL: 'Israel Analysis',
-  IVETTE: 'Ivette Analysis',
+  CHRIS: 'Chris',
+  ISRAEL: 'Israel',
+  IVETTE: 'Ivette',
   PROJECTIONS: 'Projections',
   RAW_DATA: 'Raw Data',
-  ACHIEVEMENT_LIBRARY: 'Achievement Library',
+  ACHIEVEMENT_LIBRARY: 'Achievement Library', 
   GOALS: 'Goals & Achievements'
 };
 
@@ -106,49 +104,30 @@ export interface AchievementsData {
   completedAchievements: Goal[];
 }
 
-function handleSheetError(error: any, range: string) {
-  console.error(`[sheets.ts] Error fetching range ${range}:`, error);
-  return [];
-}
-
 async function fetchSheetRange(range: string) {
   try {
-    console.log(`[sheets.ts] fetchSheetRange - Fetching data from range: ${range}`);
+    console.log(`[sheets.ts] Fetching data from range: ${range}`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      throw new Error(`[sheets.ts] fetchSheetRange - Failed to fetch data for range ${range}: Status ${response.status}`);
+      throw new Error(`Failed to fetch data: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    if (!data.values) {
-      console.error(`[sheets.ts] No data values returned from range ${range}`);
+    if (!data.values?.length) {
+      console.log(`[sheets.ts] No data found in range: ${range}`);
       return [];
     }
     return data.values;
   } catch (error) {
-    return handleSheetError(error, range);
-  }
-}
-
-function getSheetName(memberName: string): string {
-  switch(memberName.toLowerCase()) {
-    case 'chris':
-      return SHEET_TABS.CHRIS;
-    case 'israel':
-      return SHEET_TABS.ISRAEL;
-    case 'ivette':
-      return SHEET_TABS.IVETTE;
-    default:
-      throw new Error(`Invalid team member name: ${memberName}`);
+    console.error(`[sheets.ts] Error fetching ${range}:`, error);
+    return [];
   }
 }
 
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
-  console.log(`[sheets.ts] fetchTeamMemberData - Fetching data for member: ${memberName}`);
-  const sheetName = getSheetName(memberName);
-  const range = `${sheetName}!A2:X`;
+  const range = `${SHEET_TABS[memberName.toUpperCase()]}!A2:X`;
   const data = await fetchSheetRange(range);
   
   return data.map((row: any[]) => ({
@@ -179,9 +158,7 @@ export async function fetchTeamMemberData(memberName: string): Promise<TeamMembe
 }
 
 export async function fetchRawData(): Promise<RawData[]> {
-  console.log(`[sheets.ts] fetchRawData - Fetching raw data with range: ${SHEET_TABS.RAW_DATA}!A2:S`);
-  const range = `${SHEET_TABS.RAW_DATA}!A2:S`;
-  const data = await fetchSheetRange(range);
+  const data = await fetchSheetRange(`${SHEET_TABS.RAW_DATA}!A2:S`);
   
   return data.map((row: any[]) => ({
     timestamp: row[0] || '',
@@ -207,9 +184,7 @@ export async function fetchRawData(): Promise<RawData[]> {
 }
 
 export async function fetchProjections(): Promise<TeamProjections> {
-  console.log(`[sheets.ts] fetchProjections - Fetching projections data with range: ${SHEET_TABS.PROJECTIONS}!A2:J15`);
-  const range = `${SHEET_TABS.PROJECTIONS}!A2:J15`;
-  const data = await fetchSheetRange(range);
+  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J15`);
   
   const projections: TeamProjections = {
     chris: {},
@@ -218,40 +193,32 @@ export async function fetchProjections(): Promise<TeamProjections> {
   };
 
   data.forEach((row: any[]) => {
-    const metric = row[0].toLowerCase().replace(/ /g, '_');
+    if (!row[0]) return;
     
-    // Chris projections (B,C,D)
-    projections.chris[metric] = {
-      daily: Number(row[1]) || 0,
-      weekly: Number(row[2]) || 0,
-      monthly: Number(row[3]) || 0
-    };
+    const metric = row[0].toLowerCase().replace(/ /g, '_');
+    const teamMembers = ['chris', 'israel', 'ivette'];
+    const columns = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ];
 
-    // Israel projections (E,F,G)
-    projections.israel[metric] = {
-      daily: Number(row[4]) || 0,
-      weekly: Number(row[5]) || 0,
-      monthly: Number(row[6]) || 0
-    };
-
-    // Ivette projections (H,I,J)
-    projections.ivette[metric] = {
-      daily: Number(row[7]) || 0,
-      weekly: Number(row[8]) || 0,
-      monthly: Number(row[9]) || 0
-    };
+    teamMembers.forEach((member, i) => {
+      projections[member][metric] = {
+        daily: Number(row[columns[i][0]]) || 0,
+        weekly: Number(row[columns[i][1]]) || 0,
+        monthly: Number(row[columns[i][2]]) || 0
+      };
+    });
   });
 
   return projections;
 }
 
 export async function fetchAchievements(): Promise<AchievementsData> {
-  const achievementsRange = `${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`;
-  const goalsRange = `${SHEET_TABS.GOALS}!A2:M`;
-  
   const [achievementsData, goalsData] = await Promise.all([
-    fetchSheetRange(achievementsRange),
-    fetchSheetRange(goalsRange)
+    fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`),
+    fetchSheetRange(`${SHEET_TABS.GOALS}!A2:M`)
   ]);
 
   const goals: Goal[] = goalsData.map((row: any[]) => ({
@@ -273,7 +240,11 @@ export async function fetchAchievements(): Promise<AchievementsData> {
   };
 }
 
-export function filterDataByDateRange<T extends { date: string }>(data: T[], startDate: string, endDate: string): T[] {
+export function filterDataByDateRange<T extends { date: string }>(
+  data: T[], 
+  startDate: string, 
+  endDate: string
+): T[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
   
