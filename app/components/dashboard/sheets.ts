@@ -2,9 +2,9 @@
 
 // Sheet configuration constants
 const SHEET_TABS = {
-  CHRIS: 'Chris Analysis',
-  ISRAEL: 'Israel Analysis',
-  IVETTE: 'Ivette Analysis',
+  CHRIS: 'Chris',  // Remove 'Analysis'
+  ISRAEL: 'Israel',
+  IVETTE: 'Ivette',
   PROJECTIONS: 'Projections',
   RAW_DATA: 'Raw Data',
   ACHIEVEMENT_LIBRARY: 'Achievement Library',
@@ -139,8 +139,7 @@ async function fetchSheetRange(range: string) {
 
 // Main data fetching functions
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
-  console.log(`[sheets.ts] fetchTeamMemberData - Fetching data for member: ${memberName}`);
-  const range = `${memberName} Analysis!A2:X`;
+  const range = `${memberName}!A2:X`;  // Removed 'Analysis'
   const data = await fetchSheetRange(range);
   
   return data.map((row: any[]) => ({
