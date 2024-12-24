@@ -4,7 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS, type TeamMemberData, type RawData, type TeamProjections } from './sheets';
+import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS } from './sheets';
+import type { TeamMemberData, TeamProjections, RawData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
 import PersonalAchievements from './PersonalAchievements';
@@ -114,13 +115,12 @@ export default function RealEstateDashboard() {
     const [nextLevelXP] = useState(50000);
     const [currentStreak, setCurrentStreak] = useState(0);
     const [projections, setProjections] = useState<TeamProjections | null>(null);
-    const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
     const teamMembers: { id: TeamMemberKey; name: string }[] = [
         { id: 'ALL', name: 'All Members' },
-        { id: 'CHRIS', name: 'Chris Analysis' },
-        { id: 'ISRAEL', name: 'Israel Analysis' },
-        { id: 'IVETTE', name: 'Ivette Analysis' },
+        { id: 'CHRIS', name: 'Chris' },
+        { id: 'ISRAEL', name: 'Israel' },
+        { id: 'IVETTE', name: 'Ivette' },
     ];
 
     // Get XP based on dashboard type
@@ -147,7 +147,7 @@ export default function RealEstateDashboard() {
         const sortedData = [...data].sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
         );
-        
+    
         let streak = 0;
         const target = projections.chris.outbound.daily;
     
@@ -237,68 +237,64 @@ export default function RealEstateDashboard() {
     };
 
     useEffect(() => {
-      async function loadData() {
-          try {
-              logDebug('Starting data load for member:', selectedMember);
-              setLoading(true);
-              let salesData: TeamMemberData[] = [],
-                  mktgData: any[] = [],
-                  pData: RawData[] = [];
-  
-              if (selectedMember === 'ALL') {
-                  logDebug('Fetching data for all members...');
-                  const [chrisData, israelData, ivetteData] = await Promise.all([
-                      fetchTeamMemberData('CHRIS'),
-                      fetchTeamMemberData('ISRAEL'),
-                      fetchTeamMemberData('IVETTE')
-                  ]);
-                  salesData = [...chrisData, ...israelData, ...ivetteData];
-                  mktgData = await fetchRawData();
-                  pData = await fetchRawData();
-  
-              } else {
-                  logDebug(`Fetching data for single member: ${selectedMember}`);
-                  salesData = await fetchTeamMemberData(selectedMember);
-                  mktgData = await fetchRawData();
-                  pData = await fetchRawData();
-              }
-  
-              // Fetch projections for all members
-              const projectionsData = await fetchProjections();
-              logDebug('Projections fetched:', { projectionsData });
-  
-              setProjections(projectionsData);
-  
-              if (dateRange === 'ALL') {
-                  setData(salesData);
-                  setMarketingData(mktgData);
-                  setPersonalData(pData);
-              } else {
-                  const today = new Date();
-                  const startDate = new Date();
-                  startDate.setDate(today.getDate() - parseInt(dateRange));
-  
-                  const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                  const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                  const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-  
-                  setData(filteredSalesData);
-                  setMarketingData(filteredMktgData);
-                  setPersonalData(filteredPersonalData);
-  
-                  const streak = calculateStreak(filteredSalesData,
-                      selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                  setCurrentStreak(streak);
-              }
-          } catch (error) {
-              console.error('Error loading data:', error);
-          } finally {
-              setLoading(false);
-          }
-      }
-  
-      loadData();
-  }, [dateRange, selectedMember]);
+        async function loadData() {
+            try {
+                logDebug('Starting data load for member:', selectedMember);
+                setLoading(true);
+                let salesData: TeamMemberData[] = [],
+                    mktgData: any[] = [],
+                    pData: RawData[] = [];
+                if (selectedMember === 'ALL') {
+                    logDebug('Fetching data for all members...');
+                    const [chrisData, israelData, ivetteData] = await Promise.all([
+                        fetchTeamMemberData('CHRIS'),
+                        fetchTeamMemberData('ISRAEL'),
+                        fetchTeamMemberData('IVETTE')
+                    ]);
+                    salesData = [...chrisData, ...israelData, ...ivetteData];
+                    mktgData = await fetchRawData();
+                    pData = await fetchRawData();
+                } else {
+                    logDebug(`Fetching data for single member: ${selectedMember}`);
+                    salesData = await fetchTeamMemberData(selectedMember);
+                    mktgData = await fetchRawData();
+                    pData = await fetchRawData();
+                }
+                const projectionsData = await fetchProjections();
+                logDebug('Projections fetched:', { projectionsData });
+
+                setProjections(projectionsData);
+
+                if (dateRange === 'ALL') {
+                    setData(salesData);
+                    setMarketingData(mktgData);
+                    setPersonalData(pData);
+                } else {
+                    const today = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(today.getDate() - parseInt(dateRange));
+
+                    const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
+                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                    const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+
+                    setData(filteredSalesData);
+                    setMarketingData(filteredMktgData);
+                    setPersonalData(filteredPersonalData);
+
+                    const streak = calculateStreak(filteredSalesData,
+                        selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+                    setCurrentStreak(streak);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, [dateRange, selectedMember]);
 
     useEffect(() => {
         setTotalXP(getCurrentXP());
@@ -470,7 +466,7 @@ export default function RealEstateDashboard() {
                          <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                            <TargetBarChart
                             data={formatDataForBarChart(data)}
-                            projections={projections ? projections[selectedMember === 'ALL' ? 'chris' : selectedMember.toLowerCase()] : null}
+                            projections={projections ? projections[selectedMember.toUpperCase() as keyof TeamProjections] : null}
                            />
                         </div>
                     </div>
