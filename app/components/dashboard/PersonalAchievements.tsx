@@ -1,3 +1,4 @@
+// app/components/dashboard/PersonalAchievements.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -45,7 +46,7 @@ const PersonalAchievements = ({ salesData, marketingData }: Props) => {
   }
 
   const { activeGoal, completedAchievements } = achievements;
-  
+
   // Group completed achievements by category
   const groupedAchievements = completedAchievements.reduce((acc: { [key in CategoryType]: Goal[] }, achievement: Goal) => {
       if (!acc[achievement.category]) {
