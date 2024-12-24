@@ -5,10 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
 import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS } from './sheets';
-import type { TeamMemberData, TeamProjections, RawData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
-import PersonalAchievements from './PersonalAchievements';
+import PersonalDashboard from './PersonalDashboard';
 
 // Console logging utility for debugging
 const logDebug = (message: string, data?: any) => {
@@ -106,22 +105,22 @@ export default function RealEstateDashboard() {
     const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
     const [dashboardType, setDashboardType] = useState('sales');
     const [dateRange, setDateRange] = useState('7');
-    const [data, setData] = useState<TeamMemberData[]>([]);
+    const [data, setData] = useState<any[]>([]);
     const [marketingData, setMarketingData] = useState<any[]>([]);
-    const [personalData, setPersonalData] = useState<RawData[]>([]);
+    const [personalData, setPersonalData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [level, setLevel] = useState(7);
     const [totalXP, setTotalXP] = useState(0);
     const [nextLevelXP] = useState(50000);
     const [currentStreak, setCurrentStreak] = useState(0);
-    const [projections, setProjections] = useState<TeamProjections | null>(null);
+    const [projections, setProjections] = useState<any>(null);
     const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
     const teamMembers: { id: TeamMemberKey; name: string }[] = [
         { id: 'ALL', name: 'All Members' },
-        { id: 'CHRIS', name: 'Chris Analysis' },
-        { id: 'ISRAEL', name: 'Israel Analysis' },
-        { id: 'IVETTE', name: 'Ivette Analysis' },
+        { id: 'CHRIS', name: 'Chris' },
+        { id: 'ISRAEL', name: 'Israel' },
+        { id: 'IVETTE', name: 'Ivette' },
     ];
 
     // Get XP based on dashboard type
@@ -143,27 +142,31 @@ export default function RealEstateDashboard() {
     const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
 
     const calculateStreak = (data: any[], projections: any) => {
-        if (!data || data.length === 0 || !projections?.chris?.outbound?.daily) return 0;
-
-        const sortedData = [...data].sort((a, b) =>
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-
+        if (!data || data.length === 0 || !projections || !projections.chris || !projections.chris.outbound || !projections.chris.outbound.daily) {
+          logDebug('Not enough data for streak calculation or missing projections.');
+          return 0;
+        }
+      
+        const sortedData = [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        logDebug('Sorted data for streak calculation:', sortedData);
+      
         let streak = 0;
         const target = projections.chris.outbound.daily;
-
+        logDebug('Target for streak:', target);
+      
         for (let i = 0; i < sortedData.length; i++) {
-            if (sortedData[i].outbound >= target) {
-                streak++;
-            } else {
-                break;
-            }
+          if (sortedData[i].outbound >= target) {
+            streak++;
+          } else {
+            break; // Break the loop as soon as a day does not meet the target
+          }
         }
-
+      
+        logDebug('Calculated streak:', streak);
         return streak;
-    };
+      };
 
-    const calculateMetrics = (): Metrics => {
+      const calculateMetrics = (): Metrics => {
         if (!data || data.length === 0) {
             logDebug('No data available for metrics calculation');
             return {
@@ -245,7 +248,7 @@ export default function RealEstateDashboard() {
                 let salesData: TeamMemberData[] = [],
                     mktgData: any[] = [],
                     pData: RawData[] = [];
-
+        
                 if (selectedMember === 'ALL') {
                     logDebug('Fetching data for all members...');
                     const [chrisData, israelData, ivetteData] = await Promise.all([
@@ -254,22 +257,19 @@ export default function RealEstateDashboard() {
                         fetchTeamMemberData('IVETTE')
                     ]);
                     salesData = [...chrisData, ...israelData, ...ivetteData];
-                    // For marketing data, fetch all and combine
+        
                     mktgData = await fetchRawData();
                     pData = await fetchRawData();
-
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(selectedMember);
                     mktgData = await fetchRawData();
                     pData = await fetchRawData();
                 }
-
                 const [projectionsData, mktgProjections] = await Promise.all([
                     fetchProjections(),
                     fetchMarketingProjections()
                 ]);
-
                 logDebug('Projections fetched:', { projectionsData, mktgProjections });
 
                 setProjections(projectionsData);
@@ -283,18 +283,16 @@ export default function RealEstateDashboard() {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
-
+    
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-
+    
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
                     setPersonalData(filteredPersonalData);
-
-                    const streak = calculateStreak(filteredSalesData,
-                        selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                    setCurrentStreak(streak);
+    
+                    setCurrentStreak(calculateStreak(filteredSalesData, projectionsData?.[selectedMember.toLowerCase()]));
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -302,7 +300,7 @@ export default function RealEstateDashboard() {
                 setLoading(false);
             }
         }
-
+    
         loadData();
     }, [dateRange, selectedMember]);
 
@@ -476,7 +474,7 @@ export default function RealEstateDashboard() {
                          <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                            <TargetBarChart
                             data={formatDataForBarChart(data)}
-                            projections={projections ? projections[selectedMember === 'all' ? 'chris' : selectedMember] : null}
+                            projections={projections ? projections[selectedMember === 'ALL' ? 'chris' : selectedMember.toLowerCase()]: null}
                            />
                         </div>
                     </div>
