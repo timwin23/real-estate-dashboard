@@ -1,24 +1,23 @@
 const SHEET_TABS = {
-  CHRIS: 'Chris',
-  ISRAEL: 'Israel',
-  IVETTE: 'Ivette',
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
   PROJECTIONS: 'Projections',
   RAW_DATA: 'Raw Data',
-  ACHIEVEMENT_LIBRARY: 'Achievement Library', 
+  ACHIEVEMENT_LIBRARY: 'Achievement Library',
   GOALS: 'Goals & Achievements'
 };
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-function safeRate(value: any): number {
-  const num = parseFloat(value);
-  return isNaN(num) ? 0 : num;
-}
+export type TeamMemberKey = 'Chris Analysis' | 'Israel Analysis' | 'Ivette Analysis';
 
-export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
-export type CategoryType = 'sales' | 'marketing';
-export type TeamMemberKey = 'chris' | 'israel' | 'ivette' | string;
+// Rest of sheets.ts code remains the same but update function signatures to use correct member names
+export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
+  const range = `${memberName}!A2:X`;
+  const data = await fetchSheetRange(range);
+
 
 export interface TeamMemberData {
   date: string;
