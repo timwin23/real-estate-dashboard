@@ -237,72 +237,68 @@ export default function RealEstateDashboard() {
     };
 
     useEffect(() => {
-        async function loadData() {
-            try {
-                logDebug('Starting data load for member:', selectedMember);
-                setLoading(true);
-                let salesData: TeamMemberData[] = [],
-                    mktgData: any[] = [],
-                    pData: RawData[] = [];
-
-                if (selectedMember === 'ALL') {
-                    logDebug('Fetching data for all members...');
-                    const [chrisData, israelData, ivetteData] = await Promise.all([
-                        fetchTeamMemberData('CHRIS'),
-                        fetchTeamMemberData('ISRAEL'),
-                        fetchTeamMemberData('IVETTE')
-                    ]);
-                    salesData = [...chrisData, ...israelData, ...ivetteData];
-                    mktgData = await fetchRawData();
-                    pData = await fetchRawData();
-
-                } else {
-                    logDebug(`Fetching data for single member: ${selectedMember}`);
-                    salesData = await fetchTeamMemberData(selectedMember);
-                    mktgData = await fetchRawData();
-                    pData = await fetchRawData();
-                }
-
-                const [projectionsData, mktgProjections] = await Promise.all([
-                    fetchProjections(),
-                    fetchMarketingProjections()
-                ]);
-
-                logDebug('Projections fetched:', { projectionsData, mktgProjections });
-
-                setProjections(projectionsData);
-                setMarketingProjections(mktgProjections);
-
-                if (dateRange === 'ALL') {
-                    setData(salesData);
-                    setMarketingData(mktgData);
-                    setPersonalData(pData);
-                } else {
-                    const today = new Date();
-                    const startDate = new Date();
-                    startDate.setDate(today.getDate() - parseInt(dateRange));
-
-                    const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                    const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-
-                    setData(filteredSalesData);
-                    setMarketingData(filteredMktgData);
-                    setPersonalData(filteredPersonalData);
-
-                    const streak = calculateStreak(filteredSalesData,
-                        selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                    setCurrentStreak(streak);
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadData();
-    }, [dateRange, selectedMember]);
+      async function loadData() {
+          try {
+              logDebug('Starting data load for member:', selectedMember);
+              setLoading(true);
+              let salesData: TeamMemberData[] = [],
+                  mktgData: any[] = [],
+                  pData: RawData[] = [];
+  
+              if (selectedMember === 'ALL') {
+                  logDebug('Fetching data for all members...');
+                  const [chrisData, israelData, ivetteData] = await Promise.all([
+                      fetchTeamMemberData('CHRIS'),
+                      fetchTeamMemberData('ISRAEL'),
+                      fetchTeamMemberData('IVETTE')
+                  ]);
+                  salesData = [...chrisData, ...israelData, ...ivetteData];
+                  mktgData = await fetchRawData();
+                  pData = await fetchRawData();
+  
+              } else {
+                  logDebug(`Fetching data for single member: ${selectedMember}`);
+                  salesData = await fetchTeamMemberData(selectedMember);
+                  mktgData = await fetchRawData();
+                  pData = await fetchRawData();
+              }
+  
+              // Fetch projections for all members
+              const projectionsData = await fetchProjections();
+              logDebug('Projections fetched:', { projectionsData });
+  
+              setProjections(projectionsData);
+  
+              if (dateRange === 'ALL') {
+                  setData(salesData);
+                  setMarketingData(mktgData);
+                  setPersonalData(pData);
+              } else {
+                  const today = new Date();
+                  const startDate = new Date();
+                  startDate.setDate(today.getDate() - parseInt(dateRange));
+  
+                  const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
+                  const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                  const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+  
+                  setData(filteredSalesData);
+                  setMarketingData(filteredMktgData);
+                  setPersonalData(filteredPersonalData);
+  
+                  const streak = calculateStreak(filteredSalesData,
+                      selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+                  setCurrentStreak(streak);
+              }
+          } catch (error) {
+              console.error('Error loading data:', error);
+          } finally {
+              setLoading(false);
+          }
+      }
+  
+      loadData();
+  }, [dateRange, selectedMember]);
 
     useEffect(() => {
         setTotalXP(getCurrentXP());
