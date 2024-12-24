@@ -291,17 +291,17 @@ export default function RealEstateDashboard() {
                     ]);
                     mktgData = [...chrisMktg, ...israelMktg, ...ivetteMktg];
 
-                     const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
-                         fetchRawData(),
-                         fetchRawData(),
-                          fetchRawData()
-                      ]);
-                      pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
+                    const [chrisPersonal, israelPersonal, ivettePersonal] = await Promise.all([
+                        fetchRawData(),
+                        fetchRawData(),
+                        fetchRawData()
+                    ]);
+                    pData = [...chrisPersonal, ...israelPersonal, ...ivettePersonal];
                 } else {
                     logDebug(`Fetching data for single member: ${selectedMember}`);
                     salesData = await fetchTeamMemberData(selectedMember);
                     mktgData = await fetchTeamMemberMarketingData(selectedMember);
-                    pData = await fetchRawData();
+                     pData = await fetchRawData();
                 }
 
                 const [projectionsData, mktgProjections] = await Promise.all([
@@ -317,25 +317,25 @@ export default function RealEstateDashboard() {
                 if (dateRange === 'ALL') {
                     setData(salesData);
                     setMarketingData(mktgData);
-                    setPersonalData(pData)
+                     setPersonalData(pData);
                 } else {
                     const today = new Date();
                     const startDate = new Date();
                     startDate.setDate(today.getDate() - parseInt(dateRange));
 
                     const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                     const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                      const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
+                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                     const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
 
                     logDebug('Filtered data:', {
                         salesData: filteredSalesData,
                         marketingData: filteredMktgData,
-                          personalData: filteredPersonalData
+                           personalData: filteredPersonalData
                     });
 
                     setData(filteredSalesData);
                     setMarketingData(filteredMktgData);
-                    setPersonalData(filteredPersonalData);
+                     setPersonalData(filteredPersonalData);
 
                     const streak = calculateStreak(filteredSalesData,
                         selectedMember === 'all' ? projectionsData?.chris : projectionsData?.[selectedMember]);
@@ -481,7 +481,7 @@ export default function RealEstateDashboard() {
                             title="CONTRACTS"
                             value={metrics.totalContracts.toLocaleString()}
                             rate="Close Rate"
-                           rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                             rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
                             xp="+50 XP each"
                             icon={Trophy}
                         />
@@ -490,7 +490,7 @@ export default function RealEstateDashboard() {
                             value={`$${metrics.totalRevenue.toLocaleString()}`}
                             rate="Per Close"
                              rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
-                            xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
+                             xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
                             icon={DollarSign}
                         />
                     </div>
@@ -499,54 +499,4 @@ export default function RealEstateDashboard() {
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         {/* Line Chart */}
                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data}>
-                                    <XAxis dataKey="date" stroke="#666" />
-                                    <YAxis stroke="#666" />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #ff0000',
-                                            color: '#ffffff'
-                                        }}
-                                    />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
-                                    <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                    <Line type="monotone" dataKey="followUps" name="Follow Ups" stroke="#ff6666" dot={false} />
-                                    <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
-                                    <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* Bar Chart */}
-                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                           <TargetBarChart
-                            data={formatDataForBarChart(data)}
-                            projections={projections ? projections[selectedMember === 'all' ? 'chris' : selectedMember] : null}
-                           />
-                        </div>
-                    </div>
-                </>
-            ) : dashboardType === 'marketing' ? (
-                <MarketingDashboard
-                    marketingData={marketingData}
-                     dateRange={dateRange}
-                    onDateRangeChange={(range) => setDateRange(range)}
-                    projections={marketingProjections}
-                    teamMember={selectedMember}
-                />
-            ) : (
-                <PersonalDashboard
-                   data={personalData}
-                   dateRange={dateRange}
-                   onDateRangeChange={(range) => setDateRange(range)}
-                   salesData={data}
-                   marketingData={marketingData}
-                     projections={projections}
-                />
-            )}
-        </div>
-    );
-}
+                            <ResponsiveContainer width="100%" height="100

@@ -109,6 +109,9 @@ async function fetchSheetRange(range: string) {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
     const response = await fetch(url);
+    if (!response.ok) {
+         throw new Error(`Failed to fetch data for range ${range}: Status ${response.status}`);
+    }
     const data = await response.json();
     
     if (!data.values) {
@@ -194,18 +197,21 @@ export async function fetchProjections(): Promise<TeamProjections> {
   data.forEach((row: any[]) => {
     const metric = row[0].toLowerCase().replace(/ /g, '_');
     
+    // Chris projections (columns B,C,D)
     projections.chris[metric] = {
       daily: Number(row[1]) || 0,
       weekly: Number(row[2]) || 0,
       monthly: Number(row[3]) || 0
     };
 
+    // Israel projections (columns E,F,G)
     projections.israel[metric] = {
       daily: Number(row[4]) || 0,
       weekly: Number(row[5]) || 0,
       monthly: Number(row[6]) || 0
     };
 
+    // Ivette projections (columns H,I,J)
     projections.ivette[metric] = {
       daily: Number(row[7]) || 0,
       weekly: Number(row[8]) || 0,
@@ -258,8 +264,8 @@ export async function fetchAchievements(): Promise<AchievementsData> {
       return {
         library,
         goalsAndAchievements: goals,
-          activeGoal: goals.find(goal => goal.status === 'active') || undefined,
-        completedAchievements: goals.filter(goal => goal.status === 'completed')
+         activeGoal: goals.find(goal => goal.status === 'active') || undefined,
+          completedAchievements: goals.filter(goal => goal.status === 'completed')
       };
   }
 
