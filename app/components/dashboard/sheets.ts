@@ -210,7 +210,7 @@ export interface AchievementsData {
 }
 
 export type CategoryType = 'sales' | 'marketing';
-export type TierType = 'bronze' | 'silver' | 'gold';
+export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 
 export async function fetchAchievements() {
   const data = await fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`);
