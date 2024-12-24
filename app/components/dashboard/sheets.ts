@@ -205,8 +205,8 @@ export interface Goal extends Achievement {
 }
 
 export interface AchievementsData {
-  active: Goal[];
-  completed: Goal[];
+  activeGoal: Goal | null;
+  completedAchievements: Goal[];
 }
 
 export type CategoryType = 'sales' | 'marketing';
