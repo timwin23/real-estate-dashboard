@@ -1,3 +1,5 @@
+export {}; // This empty export makes the file a module
+
 const SHEET_TABS = {
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
