@@ -111,56 +111,58 @@ const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 // Helper function to fetch data from any sheet range
 async function fetchSheetRange(range: string) {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
-    console.log(`[sheets.ts] fetchSheetRange - Fetching data from URL: ${url}`);
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+      console.log(`[sheets.ts] fetchSheetRange - Fetching data from URL: ${url}`);
       const response = await fetch(url);
-        if (!response.ok) {
-           throw new Error(`[sheets.ts] fetchSheetRange - Failed to fetch data for range ${range}: Status ${response.status}`);
-       }
-    const data = await response.json();
+       if (!response.ok) {
+          throw new Error(`[sheets.ts] fetchSheetRange - Failed to fetch data for range ${range}: Status ${response.status}`);
+      }
+      const data = await response.json();
+    
       if (!data.values) {
           console.error(`[sheets.ts] No data values returned from range ${range}`);
           return [];
       }
-    
-    return data.values;
+      
+      return data.values;
   } catch (error) {
-    console.error(`[sheets.ts] Error fetching range ${range}:`, error);
-    return [];
+      console.error(`[sheets.ts] Error fetching range ${range}:`, error);
+      return [];
   }
 }
 
+
 // Fetch data for a specific team member
 export async function fetchTeamMemberData(memberName: string): Promise<TeamMemberData[]> {
- const range = `${memberName} Analysis!A2:X`;
+ const range = `${memberName}!A2:X`;
   console.log(`[sheets.ts] fetchTeamMemberData - Fetching data for member: ${memberName}, range: ${range}`);
 const data = await fetchSheetRange(range);
-  
-  return data.map((row: any[]) => ({
-    date: row[0] || '',
-      outbound: Number(row[1]) || 0,
-      triage: Number(row[2]) || 0,
-      triageRate: safeRate(row[3]),
-      followUps: Number(row[4]) || 0,
-      appointments: Number(row[5]) || 0,
-      setRate: safeRate(row[6]),
-      shows: Number(row[7]) || 0,
-      showRate: safeRate(row[8]),
-      contractsSigned: Number(row[9]) || 0,
-      contractRate: safeRate(row[10]),
-      closes: Number(row[11]) || 0,
-      closeRate: safeRate(row[12]),
-      revenue: Number(row[13]) || 0,
-      revenuePerClose: Number(row[14]) || 0,
-      outboundMessages: Number(row[15]) || 0,
-      positiveResponses: Number(row[16]) || 0,
-      responseRate: safeRate(row[17]),
-      postsCreated: Number(row[18]) || 0,
-      leadsGenerated: Number(row[19]) || 0,
-       leadsPerPost: safeRate(row[20]),
-      marketingXP: Number(row[21]) || 0,
-      salesXP: Number(row[22]) || 0
-  }));
+
+return data.map((row: any[]) => ({
+  date: row[0] || '',
+  outbound: Number(row[1]) || 0,
+  triage: Number(row[2]) || 0,
+  triageRate: safeRate(row[3]),
+  followUps: Number(row[4]) || 0,
+  appointments: Number(row[5]) || 0,
+  setRate: safeRate(row[6]),
+  shows: Number(row[7]) || 0,
+  showRate: safeRate(row[8]),
+  contractsSigned: Number(row[9]) || 0,
+  contractRate: safeRate(row[10]),
+  closes: Number(row[11]) || 0,
+  closeRate: safeRate(row[12]),
+  revenue: Number(row[13]) || 0,
+  revenuePerClose: Number(row[14]) || 0,
+  outboundMessages: Number(row[15]) || 0,
+  positiveResponses: Number(row[16]) || 0,
+  responseRate: safeRate(row[17]),
+  postsCreated: Number(row[18]) || 0,
+  leadsGenerated: Number(row[19]) || 0,
+  leadsPerPost: safeRate(row[20]),
+  marketingXP: Number(row[21]) || 0,
+  salesXP: Number(row[22]) || 0
+}));
 }
 
 // Fetch raw form submission data
@@ -195,7 +197,7 @@ return data.map((row: any[]) => ({
 // Fetch projections for all team members
 export async function fetchProjections(): Promise<TeamProjections> {
 const range = 'Projections!A2:J15';
- console.log(`[sheets.ts] fetchProjections - Fetching projections data with range: ${range}`);
+  console.log(`[sheets.ts] fetchProjections - Fetching projections data with range: ${range}`);
 const data = await fetchSheetRange(range);
 
 const projections: TeamProjections = {
@@ -236,40 +238,39 @@ return projections;
 export async function fetchAchievements(): Promise<AchievementsData> {
   const achievementsRange = 'Achievement Library!A2:I';
   const goalsRange = 'Goals & Achievements!A2:M';
-  
    console.log(`[sheets.ts] fetchAchievements - Fetching achievements with ranges: ${achievementsRange} and ${goalsRange}`);
   const [achievementsData, goalsData] = await Promise.all([
       fetchSheetRange(achievementsRange),
       fetchSheetRange(goalsRange)
   ]);
 
-     const library: Achievement[] = achievementsData.map((row: any[]) => ({
+    const library: Achievement[] = achievementsData.map((row: any[]) => ({
          id: row[0] || '',
         title: row[1] || '',
         category: row[2] as CategoryType || 'sales',
-        tier: row[3] as TierType || 'none',
-        description: row[4] || '',
-         target: Number(row[5]) || 0,
-          trait: row[6] || '',
-         icon: row[7] || '',
+         tier: row[3] as TierType || 'none',
+         description: row[4] || '',
+        target: Number(row[5]) || 0,
+       trait: row[6] || '',
+        icon: row[7] || '',
          isSecret: row[8] === 'TRUE'
-    }));
+   }));
 
     const goals: Goal[] = goalsData.map((row: any[]) => ({
-         id: row[0] || '',
-         type: row[1] as 'goal' | 'achievement',
-        category: row[2] as CategoryType || 'sales',
-          tier: row[3] as TierType || 'none',
-         title: row[4] || '',
+      id: row[0] || '',
+       type: row[1] as 'goal' | 'achievement',
+      category: row[2] as CategoryType || 'sales',
+       tier: row[3] as TierType || 'none',
+        title: row[4] || '',
          description: row[5] || '',
         target: Number(row[6]) || 0,
        trait: row[7] || '',
-         status: row[8] as 'active' | 'completed' | 'failed',
+       status: row[8] as 'active' | 'completed' | 'failed',
         startDate: row[9] || '',
           endDate: row[10] || null,
         progress: Number(row[11]) || 0,
-         isSecret: row[12] === 'TRUE'
-      }));
+        isSecret: row[12] === 'TRUE'
+    }));
 
   return {
     library,
@@ -290,10 +291,10 @@ const start = new Date(startDate);
 const end = new Date(endDate);
 
 return data.filter(row => {
-      try {
-        const rowDate = new Date(row.date);
-        return rowDate >= start && rowDate <= end;
-    } catch {
+    try {
+      const rowDate = new Date(row.date);
+      return rowDate >= start && rowDate <= end;
+  } catch {
       return false;
     }
 });
