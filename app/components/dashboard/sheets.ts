@@ -71,7 +71,7 @@ export interface RawData {
 export interface MetricData {
   outbound: { daily: number; weekly: number; monthly: number };
   triage: { daily: number; weekly: number; monthly: number };
-  followUps: { daily: number; weekly: number; monthly: number };
+  follow_ups: { daily: number; weekly: number; monthly: number };
   appointments: { daily: number; weekly: number; monthly: number };
   shows: { daily: number; weekly: number; monthly: number };
   contracts: { daily: number; weekly: number; monthly: number };
@@ -200,7 +200,7 @@ export async function fetchRawData(): Promise<RawData[]> {
 
 export async function fetchProjections(): Promise<TeamProjections> {
   const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
-  const metrics = ['outbound', 'triage', 'followUps', 'appointments', 'shows', 'contracts', 'closes', 'revenue'];
+  const metrics = ['outbound', 'triage', 'follow_ups', 'appointments', 'shows', 'contracts', 'closes', 'revenue'];
 
   const projections: TeamProjections = {
     CHRIS: {} as MetricData,
@@ -215,6 +215,7 @@ export async function fetchProjections(): Promise<TeamProjections> {
 
     ['CHRIS', 'ISRAEL', 'IVETTE'].forEach((member, i) => {
       const colStart = i * 3;
+      
       if (!projections[member][metric]) {
         projections[member][metric] = {
           daily: Number(row[colStart + 1]) || 0,
