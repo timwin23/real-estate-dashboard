@@ -1,7 +1,5 @@
 // app/components/dashboard/sheets.ts
 
-export {}; // This empty export makes the file a module
-
 export const SHEET_TABS = {
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
@@ -16,16 +14,12 @@ export const SHEET_TABS = {
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-// Making sure that those types are exported
+// Types
+export type TeamMemberKey = keyof typeof SHEET_TABS;
 export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 export type CategoryType = 'sales' | 'marketing';
-export type TeamMemberKey = keyof typeof SHEET_TABS;
 
-// Utility function to calculate rates safely
-function safeRate(value: any): number {
-  return isNaN(Number(value)) ? 0 : Number(value);
-}
-
+// Interfaces
 export interface TeamMemberData {
   date: string;
   outbound: number;
@@ -74,19 +68,19 @@ export interface RawData {
   reflection: string;
 }
 
-export interface TeamProjection {
-  [key: string]: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-  };
+export interface MetricData {
+  outbound: { daily: number; weekly: number; monthly: number };
+  triage: { daily: number; weekly: number; monthly: number };
+  followUps: { daily: number; weekly: number; monthly: number };
+  appointments: { daily: number; weekly: number; monthly: number };
+  shows: { daily: number; weekly: number; monthly: number };
+  contracts: { daily: number; weekly: number; monthly: number };
+  closes: { daily: number; weekly: number; monthly: number };
+  revenue: { daily: number; weekly: number; monthly: number };
 }
 
 export interface TeamProjections {
-  [key: string]: TeamProjection;
-  chris: TeamProjection;
-  israel: TeamProjection;
-  ivette: TeamProjection;
+  [key: string]: MetricData;
 }
 
 export interface Achievement {
@@ -110,21 +104,28 @@ export interface AchievementsData {
   completedAchievements: Goal[];
 }
 
+// Utility Functions
+const safeRate = (value: any): number => {
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 async function fetchSheetRange(range: string) {
   try {
-    console.log(`[sheets.ts] Fetching data from range: ${range}`);
+    console.log(`[sheets.ts] Fetching range: ${range}`);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch data: ${response.status}`);
+      throw new Error(`Failed to fetch ${range}: ${response.status}`);
     }
 
     const data = await response.json();
     if (!data.values?.length) {
-      console.log(`[sheets.ts] No data found in range: ${range}`);
+      console.warn(`[sheets.ts] No data found in range: ${range}`);
       return [];
     }
+
     return data.values;
   } catch (error) {
     console.error(`[sheets.ts] Error fetching ${range}:`, error);
@@ -133,37 +134,42 @@ async function fetchSheetRange(range: string) {
 }
 
 export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
-    if (memberName === "ALL") {
-        return []; // Or fetch and combine data from all members as needed
-      }
-    const range = `${SHEET_TABS[memberName]}!A2:X`;
-    const data = await fetchSheetRange(range);
+  if (memberName === "ALL") {
+    const [chris, israel, ivette] = await Promise.all([
+      fetchTeamMemberData("CHRIS"),
+      fetchTeamMemberData("ISRAEL"),
+      fetchTeamMemberData("IVETTE")
+    ]);
+    return [...chris, ...israel, ...ivette];
+  }
 
-    return data.map((row: any[]) => ({
-        date: row[0] || '',
-        outbound: Number(row[1]) || 0,
-        triage: Number(row[2]) || 0,
-        triageRate: safeRate(row[3]),
-        followUps: Number(row[4]) || 0,
-        appointments: Number(row[5]) || 0,
-        setRate: safeRate(row[6]),
-        shows: Number(row[7]) || 0,
-        showRate: safeRate(row[8]),
-        contractsSigned: Number(row[9]) || 0,
-        contractRate: safeRate(row[10]),
-        closes: Number(row[11]) || 0,
-        closeRate: safeRate(row[12]),
-        revenue: Number(row[13]) || 0,
-        revenuePerClose: Number(row[14]) || 0,
-        outboundMessages: Number(row[15]) || 0,
-        positiveResponses: Number(row[16]) || 0,
-        responseRate: safeRate(row[17]),
-        postsCreated: Number(row[18]) || 0,
-        leadsGenerated: Number(row[19]) || 0,
-        leadsPerPost: safeRate(row[20]),
-        marketingXP: Number(row[21]) || 0,
-        salesXP: Number(row[22]) || 0
-    }));
+  const data = await fetchSheetRange(`${SHEET_TABS[memberName]}!A2:X`);
+  
+  return data.map((row: any[]) => ({
+    date: row[0] || '',
+    outbound: Number(row[1]) || 0,
+    triage: Number(row[2]) || 0,
+    triageRate: safeRate(row[3]),
+    followUps: Number(row[4]) || 0,
+    appointments: Number(row[5]) || 0,
+    setRate: safeRate(row[6]),
+    shows: Number(row[7]) || 0,
+    showRate: safeRate(row[8]),
+    contractsSigned: Number(row[9]) || 0,
+    contractRate: safeRate(row[10]),
+    closes: Number(row[11]) || 0,
+    closeRate: safeRate(row[12]),
+    revenue: Number(row[13]) || 0,
+    revenuePerClose: Number(row[14]) || 0,
+    outboundMessages: Number(row[15]) || 0,
+    positiveResponses: Number(row[16]) || 0,
+    responseRate: safeRate(row[17]),
+    postsCreated: Number(row[18]) || 0,
+    leadsGenerated: Number(row[19]) || 0,
+    leadsPerPost: safeRate(row[20]),
+    marketingXP: Number(row[21]) || 0,
+    salesXP: Number(row[22]) || 0
+  }));
 }
 
 export async function fetchRawData(): Promise<RawData[]> {
@@ -193,37 +199,36 @@ export async function fetchRawData(): Promise<RawData[]> {
 }
 
 export async function fetchProjections(): Promise<TeamProjections> {
-    const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
+  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
+  const metrics = ['outbound', 'triage', 'followUps', 'appointments', 'shows', 'contracts', 'closes', 'revenue'];
 
-    const projections: TeamProjections = {
-        chris: {},
-        israel: {},
-        ivette: {}
-    };
+  const projections: TeamProjections = {
+    CHRIS: {} as MetricData,
+    ISRAEL: {} as MetricData,
+    IVETTE: {} as MetricData,
+    ALL: {} as MetricData
+  };
 
-    const metrics = ['outbound', 'triage', 'follow_ups', 'appointments', 'shows', 'contracts', 'revenue', 'posts', 'leads', 'outbound_messages', 'responses'];
+  data.forEach((row: any[], index: number) => {
+    const metric = metrics[index];
+    if (!metric) return;
 
-    data.forEach((row: any[], index: number) => {
-        const metric = metrics[index];
-        if (!metric) return;
-
-        const teamMembers = ['chris', 'israel', 'ivette'];
-        const columns = [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]
-        ];
-
-        teamMembers.forEach((member, i) => {
-            projections[member][metric] = {
-                daily: Number(row[columns[i][0]]) || 0,
-                weekly: Number(row[columns[i][1]]) || 0,
-                monthly: Number(row[columns[i][2]]) || 0
-            };
-        });
+    ['CHRIS', 'ISRAEL', 'IVETTE'].forEach((member, i) => {
+      const colStart = i * 3;
+      if (!projections[member][metric]) {
+        projections[member][metric] = {
+          daily: Number(row[colStart + 1]) || 0,
+          weekly: Number(row[colStart + 2]) || 0,
+          monthly: Number(row[colStart + 3]) || 0
+        };
+      }
     });
 
-    return projections;
+    // Use Chris's projections for ALL
+    projections.ALL[metric] = projections.CHRIS[metric];
+  });
+
+  return projections;
 }
 
 export async function fetchAchievements(): Promise<AchievementsData> {
@@ -252,8 +257,8 @@ export async function fetchAchievements(): Promise<AchievementsData> {
 }
 
 export function filterDataByDateRange<T extends { date: string }>(
-  data: T[], 
-  startDate: string, 
+  data: T[],
+  startDate: string,
   endDate: string
 ): T[] {
   const start = new Date(startDate);
