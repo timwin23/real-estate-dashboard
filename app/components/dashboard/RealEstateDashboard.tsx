@@ -8,6 +8,7 @@ import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawD
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import PersonalAchievements from './PersonalAchievements';
+import PersonalDashboard from './PersonalDashboard';
 
 // Console logging utility for debugging
 const logDebug = (message: string, data?: any) => {
