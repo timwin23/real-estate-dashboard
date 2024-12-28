@@ -2,149 +2,138 @@
 
 export {}; // This empty export makes the file a module
 
-// Allowed sheet tabs
-export const SHEET_TABS = {
-  CHRIS: 'Chris Analysis',
-  ISRAEL: 'Israel Analysis',
-  IVETTE: 'Ivette Analysis',
-  PROJECTIONS: 'Projections',
-  RAW_DATA: 'Raw Data',
-  ACHIEVEMENT_LIBRARY: 'Achievement Library',
-  GOALS_ACHIEVEMENTS: 'Goals & Achievements',
-  ALL: 'ALL' 
+const SHEET_TABS = {
+    CHRIS: 'Chris Analysis',
+    ISRAEL: 'Israel Analysis',
+    IVETTE: 'Ivette Analysis',
+    PROJECTIONS: 'Projections',
+    RAW_DATA: 'Raw Data',
+    ACHIEVEMENT_LIBRARY: 'Achievement Library',
+    GOALS_ACHIEVEMENTS: 'Goals & Achievements',
+    ALL: 'ALL'
 } as const;
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
+// Directly using the API key in the URL construction
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
 // Define the allowed keys for team members
 export type TeamMemberKey = keyof typeof SHEET_TABS;
 
-// Utility function to calculate rates safely, handling NaN or 0 values
+// Utility function to calculate rates safely
 function safeRate(value: any): number {
-  const num = Number(value);
-  return isNaN(num) ? 0 : num;
+    return isNaN(Number(value)) ? 0 : Number(value);
 }
 
-// Type definitions for various data structures
-export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
-export type CategoryType = 'sales' | 'marketing';
-export type MetricKey = 
-  | 'outbound' 
-  | 'triage' 
-  | 'follow_ups' 
-  | 'appointments' 
-  | 'shows' 
-  | 'contracts' 
-  | 'closes' 
-  | 'revenue'
-  | 'posts'
-  | 'leads'
-  | 'outbound_messages'
-  | 'responses';
-
+// Interface for team member data
 export interface TeamMemberData {
-  date: string;
-  outbound: number;
-  triage: number;
-  triageRate: number;
-  followUps: number;
-  appointments: number;
-  setRate: number;
-  shows: number;
-  showRate: number;
-  contractsSigned: number;
-  contractRate: number;
-  closes: number;
-  closeRate: number;
-  revenue: number;
-  revenuePerClose: number;
-  outboundMessages: number;
-  positiveResponses: number;
-  responseRate: number;
-  postsCreated: number;
-  leadsGenerated: number;
-  leadsPerPost: number;
-  marketingXP: number;
-  salesXP: number;
+    date: string;
+    outbound: number;
+    triage: number;
+    triageRate: number;
+    followUps: number;
+    appointments: number;
+    setRate: number;
+    shows: number;
+    showRate: number;
+    contractsSigned: number;
+    contractRate: number;
+    closes: number;
+    closeRate: number;
+    revenue: number;
+    revenuePerClose: number;
+    outboundMessages: number;
+    positiveResponses: number;
+    responseRate: number;
+    postsCreated: number;
+    leadsGenerated: number;
+    leadsPerPost: number;
+    marketingXP: number;
+    salesXP: number;
 }
 
+// Interface for raw data
 export interface RawData {
-  timestamp: string;
-  teamMember: string;
-  date: string;
-  outbound: number;
-  triage: number;
-  followUps: number;
-  appointments: number;
-  shows: number;
-  contractsSigned: number;
-  closes: number;
-  revenue: number;
-  postsCreated: number;
-  leadsGenerated: number;
-  outboundMessages: number;
-  positiveResponses: number;
-  energy: number;
-  confidence: number;
-  operatingPotential: number;
-  reflection: string;
+    timestamp: string;
+    teamMember: string;
+    date: string;
+    outbound: number;
+    triage: number;
+    followUps: number;
+    appointments: number;
+    shows: number;
+    contractsSigned: number;
+    closes: number;
+    revenue: number;
+    postsCreated: number;
+    leadsGenerated: number;
+    outboundMessages: number;
+    positiveResponses: number;
+    energy: number;
+    confidence: number;
+    operatingPotential: number;
+    reflection: string;
 }
 
-// Interface for metric data
-export interface MetricData {
-  [key: string]: { daily: number; weekly: number; monthly: number };
-  outbound: { daily: number; weekly: number; monthly: number };
-  triage: { daily: number; weekly: number; monthly: number };
-  follow_ups: { daily: number; weekly: number; monthly: number };
-  appointments: { daily: number; weekly: number; monthly: number };
-  shows: { daily: number; weekly: number; monthly: number };
-  contracts: { daily: number; weekly: number; monthly: number };
-  closes: { daily: number; weekly: number; monthly: number };
-  revenue: { daily: number; weekly: number; monthly: number };
-  posts: { daily: number; weekly: number; monthly: number };
-  leads: { daily: number; weekly: number; monthly: number };
-  outbound_messages: { daily: number; weekly: number; monthly: number };
-  responses: { daily: number; weekly: number; monthly: number };
+// Interface for a single metric's projection
+export interface TeamProjection {
+    [key: string]: {
+        daily: number;
+        weekly: number;
+        monthly: number;
+    };
 }
 
 // Interface for team projections
 export interface TeamProjections {
-  [key: string]: MetricData;
+    [key: string]: TeamProjection;
+    chris: TeamProjection;
+    israel: TeamProjection;
+    ivette: TeamProjection;
 }
 
+// Interface for an individual achievement
 export interface Achievement {
-  id: string;
-  title: string;
-  category: CategoryType;
-  tier: TierType;
-  description: string;
-  target: number;
-  trait: string;
-  icon: string;
-  isSecret: boolean;
+    id: string;
+    title: string;
+    category: CategoryType;
+    tier: TierType;
+    description: string;
+    target: number;
+    trait: string;
+    icon: string;
+    isSecret: boolean;
 }
 
+// Interface for a goal, extending Achievement
 export interface Goal extends Achievement {
-  progress: number;
+    progress: number;
 }
 
+// Interface for the structure of achievements data
 export interface AchievementsData {
-  activeGoal: Goal | null;
-  completedAchievements: Goal[];
+    activeGoal: Goal | null;
+    completedAchievements: Goal[];
 }
 
-// Helper function to handle errors during sheet data fetching
+// Utility function to handle errors during sheet data fetching
 function handleSheetError(error: any, range: string) {
-  console.error(`[sheets.ts] Error fetching range ${range}:`, error);
-  return []; 
+    console.error(`[sheets.ts] Error fetching range ${range}:`, error);
+    return []; // Return empty array as fallback
 }
 
-// Fetches a range of data from the Google Sheet
+// Updated fetchSheetRange function with direct API key usage
 async function fetchSheetRange(range: string): Promise<any[]> {
+    if (!API_KEY) {
+        console.error('[sheets.ts] Error: API_KEY is not defined.');
+        return [];
+    }
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+
     try {
         console.log(`[sheets.ts] Fetching data from range: ${range}`);
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+        console.log(`[sheets.ts] Request URL: ${url}`);
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -156,13 +145,15 @@ async function fetchSheetRange(range: string): Promise<any[]> {
             console.log(`[sheets.ts] No data found in range: ${range}`);
             return [];
         }
+
         return data.values;
     } catch (error) {
-        return handleSheetError(error, range);
+        console.error(`[sheets.ts] Error fetching ${range}:`, error);
+        return [];
     }
 }
 
-// Fetches team member data from the sheet
+// Fetch data for a specific team member
 export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
     if (memberName === "ALL") {
         const [chris, israel, ivette] = await Promise.all([
@@ -203,7 +194,7 @@ export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<Te
     }));
 }
 
-// Fetches raw data from the sheet
+// Fetch raw data
 export async function fetchRawData(): Promise<RawData[]> {
     const data = await fetchSheetRange(`${SHEET_TABS.RAW_DATA}!A2:S`);
 
@@ -230,7 +221,7 @@ export async function fetchRawData(): Promise<RawData[]> {
     }));
 }
 
-// Fetches team projections from the sheet
+// Fetch and map projections
 export async function fetchProjections(): Promise<TeamProjections> {
     const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
 
@@ -268,7 +259,7 @@ export async function fetchProjections(): Promise<TeamProjections> {
     return projections;
 }
 
-// Fetches achievement-related data from the sheet
+// Fetch achievements data
 export async function fetchAchievements(): Promise<AchievementsData> {
     const [achievementsData, goalsData] = await Promise.all([
         fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`),
@@ -294,7 +285,7 @@ export async function fetchAchievements(): Promise<AchievementsData> {
     };
 }
 
-// Filters data based on a date range
+// Filter data by date range
 export function filterDataByDateRange<T extends { date: string }>(
     data: T[],
     startDate: string,
