@@ -1,38 +1,42 @@
 // app/components/dashboard/sheets.ts
 
-export {}; // This empty export makes the file a module
-
-const SHEET_TABS = {
-    CHRIS: 'Chris Analysis',
-    ISRAEL: 'Israel Analysis',
-    IVETTE: 'Ivette Analysis',
-    PROJECTIONS: 'Projections',
-    RAW_DATA: 'Raw Data',
-    ACHIEVEMENT_LIBRARY: 'Achievement Library',
-    GOALS_ACHIEVEMENTS: 'Goals & Achievements',
-    ALL: 'ALL'
+// Change const to export const for SHEET_TABS
+export const SHEET_TABS = {
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
+  PROJECTIONS: 'Projections',
+  RAW_DATA: 'Raw Data',
+  ACHIEVEMENT_LIBRARY: 'Achievement Library',
+  GOALS_ACHIEVEMENTS: 'Goals & Achievements',
+  ALL: 'ALL'
 } as const;
 
+// Keep private for internal use
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-// Types
+// Export type for SHEET_TABS keys
 export type TeamMemberKey = keyof typeof SHEET_TABS;
+
+// Rest of your existing types and exports
 export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 export type CategoryType = 'sales' | 'marketing';
-export type MetricKey =
-    | 'outbound'
-    | 'triage'
-    | 'follow_ups'
-    | 'appointments'
-    | 'shows'
-    | 'contracts'
-    | 'closes'
-    | 'revenue'
-    | 'posts'
-    | 'leads'
-    | 'outbound_messages'
-    | 'responses';
+export type MetricKey = 
+  | 'outbound' 
+  | 'triage' 
+  | 'follow_ups' 
+  | 'appointments' 
+  | 'shows' 
+  | 'contracts' 
+  | 'closes' 
+  | 'revenue'
+  | 'posts'
+  | 'leads'
+  | 'outbound_messages'
+  | 'responses';
+
+// Rest of the file remains the same...
 
 // Interfaces
 export interface TeamMemberData {
