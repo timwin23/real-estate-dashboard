@@ -5,10 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, PhoneCall, Calendar, Users, DollarSign } from 'lucide-react';
 import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS } from './sheets';
-import type { TeamMemberData, TeamProjections, RawData } from './sheets';
+import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
-import MarketingDashboard from './MarketingDashboard';
-import PersonalDashboard from './PersonalDashboard';
+import PersonalAchievements from './PersonalAchievements';
 
 // Console logging utility for debugging
 const logDebug = (message: string, data?: any) => {
@@ -45,31 +44,6 @@ type ChartData = {
     shows?: number;
     contracts?: number;
     closes?: number;
-};
-
-// added for TargetBarChart
-interface MetricData {
-    outbound: { daily: number; weekly: number; monthly: number };
-    triage: { daily: number; weekly: number; monthly: number };
-    followUps: { daily: number; weekly: number; monthly: number },
-    appointments: { daily: number; weekly: number; monthly: number };
-    shows: { daily: number; weekly: number; monthly: number };
-    contracts: { daily: number; weekly: number; monthly: number },
-    closes: { daily: number; weekly: number; monthly: number },
-    revenue: { daily: number; weekly: number; monthly: number },
-    posts: { daily: number; weekly: number; monthly: number },
-    leads: { daily: number; weekly: number; monthly: number },
-    outbound_messages: { daily: number; weekly: number; monthly: number },
-    responses: { daily: number; weekly: number; monthly: number }
-}
-
-type TargetBarChartProps = {
-    data: {
-        [timeframe: string]: {
-            [metric: string]: number;
-        };
-    };
-    projections: MetricData | null;
 };
 
 // Utility function for metric colors
@@ -142,7 +116,7 @@ export default function RealEstateDashboard() {
     const [projections, setProjections] = useState<TeamProjections | null>(null);
     const [marketingProjections, setMarketingProjections] = useState<any>(null);
     const defaultProjections: TeamProjections = {
-        chris: {
+        CHRIS: {
             outbound: { daily: 0, weekly: 0, monthly: 0 },
             triage: { daily: 0, weekly: 0, monthly: 0 },
             follow_ups: { daily: 0, weekly: 0, monthly: 0 },
@@ -156,7 +130,7 @@ export default function RealEstateDashboard() {
             outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
             responses: { daily: 0, weekly: 0, monthly: 0 }
         },
-        israel: {
+        ISRAEL: {
             outbound: { daily: 0, weekly: 0, monthly: 0 },
             triage: { daily: 0, weekly: 0, monthly: 0 },
             follow_ups: { daily: 0, weekly: 0, monthly: 0 },
@@ -170,7 +144,7 @@ export default function RealEstateDashboard() {
             outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
             responses: { daily: 0, weekly: 0, monthly: 0 }
         },
-        ivette: {
+        IVETTE: {
             outbound: { daily: 0, weekly: 0, monthly: 0 },
             triage: { daily: 0, weekly: 0, monthly: 0 },
             follow_ups: { daily: 0, weekly: 0, monthly: 0 },
@@ -226,14 +200,14 @@ export default function RealEstateDashboard() {
     const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
 
     const calculateStreak = (data: any[], projections: any) => {
-        if (!data || data.length === 0 || !projections?.chris?.outbound?.daily) return 0;
+        if (!data || data.length === 0 || !projections?.CHRIS?.outbound?.daily) return 0;
 
         const sortedData = [...data].sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
         );
 
         let streak = 0;
-        const target = projections.chris.outbound.daily;
+        const target = projections.CHRIS.outbound.daily;
 
         for (let i = 0; i < sortedData.length; i++) {
             if (sortedData[i].outbound >= target) {
@@ -550,31 +524,24 @@ export default function RealEstateDashboard() {
                         </div>
 
                         {/* Bar Chart */}
-                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                         <TargetBarChart
+                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                            <TargetBarChart
                                 data={formatDataForBarChart(data)}
-                                projections={projections ? projections[selectedMember.toUpperCase() as keyof TeamProjections] : null}
-
+                                projections={projections ? (projections[selectedMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[selectedMember.toUpperCase() as keyof TeamProjections]}
                             />
                         </div>
                     </div>
                 </>
             ) : dashboardType === 'marketing' ? (
-                <MarketingDashboard
-                    marketingData={marketingData}
-                    dateRange={dateRange}
-                    onDateRangeChange={(range) => setDateRange(range)}
-                    projections={marketingProjections}
-                    teamMember={selectedMember}
-                />
+                <></>
             ) : (
                 <PersonalDashboard
-                   data={personalData}
-                   dateRange={dateRange}
-                   onDateRangeChange={(range) => setDateRange(range)}
-                   salesData={data}
-                   marketingData={marketingData}
-                   projections={projections}
+                    data={personalData}
+                    dateRange={dateRange}
+                    onDateRangeChange={(range) => setDateRange(range)}
+                    salesData={data}
+                    marketingData={marketingData}
+                    projections={projections}
                 />
             )}
         </div>
