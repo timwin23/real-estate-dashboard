@@ -1,7 +1,9 @@
 // app/components/dashboard/sheets.ts
 
-// Change const to export const for SHEET_TABS
-export const SHEET_TABS = {
+export {}; // This empty export makes the file a module
+
+// Allowed sheet tabs
+const SHEET_TABS = {
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
   IVETTE: 'Ivette Analysis',
@@ -9,17 +11,22 @@ export const SHEET_TABS = {
   RAW_DATA: 'Raw Data',
   ACHIEVEMENT_LIBRARY: 'Achievement Library',
   GOALS_ACHIEVEMENTS: 'Goals & Achievements',
-  ALL: 'ALL'
+  ALL: 'ALL' 
 } as const;
 
-// Keep private for internal use
-const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSEL_h-uB4gaBUnUhtE4";
+const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
 
-// Export type for SHEET_TABS keys
+// Define the allowed keys for team members
 export type TeamMemberKey = keyof typeof SHEET_TABS;
 
-// Rest of your existing types and exports
+// Utility function to calculate rates safely, handling NaN or 0 values
+function safeRate(value: any): number {
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+}
+
+// Type definitions for various data structures
 export type TierType = 'bronze' | 'silver' | 'gold' | 'none';
 export type CategoryType = 'sales' | 'marketing';
 export type MetricKey = 
@@ -36,111 +43,104 @@ export type MetricKey =
   | 'outbound_messages'
   | 'responses';
 
-// Rest of the file remains the same...
-
-// Interfaces
 export interface TeamMemberData {
-    date: string;
-    outbound: number;
-    triage: number;
-    triageRate: number;
-    followUps: number;
-    appointments: number;
-    setRate: number;
-    shows: number;
-    showRate: number;
-    contractsSigned: number;
-    contractRate: number;
-    closes: number;
-    closeRate: number;
-    revenue: number;
-    revenuePerClose: number;
-    outboundMessages: number;
-    positiveResponses: number;
-    responseRate: number;
-    postsCreated: number;
-    leadsGenerated: number;
-    leadsPerPost: number;
-    marketingXP: number;
-    salesXP: number;
+  date: string;
+  outbound: number;
+  triage: number;
+  triageRate: number;
+  followUps: number;
+  appointments: number;
+  setRate: number;
+  shows: number;
+  showRate: number;
+  contractsSigned: number;
+  contractRate: number;
+  closes: number;
+  closeRate: number;
+  revenue: number;
+  revenuePerClose: number;
+  outboundMessages: number;
+  positiveResponses: number;
+  responseRate: number;
+  postsCreated: number;
+  leadsGenerated: number;
+  leadsPerPost: number;
+  marketingXP: number;
+  salesXP: number;
 }
 
 export interface RawData {
-    timestamp: string;
-    teamMember: string;
-    date: string;
-    outbound: number;
-    triage: number;
-    followUps: number;
-    appointments: number;
-    shows: number;
-    contractsSigned: number;
-    closes: number;
-    revenue: number;
-    postsCreated: number;
-    leadsGenerated: number;
-    outboundMessages: number;
-    positiveResponses: number;
-    energy: number;
-    confidence: number;
-    operatingPotential: number;
-    reflection: string;
+  timestamp: string;
+  teamMember: string;
+  date: string;
+  outbound: number;
+  triage: number;
+  followUps: number;
+  appointments: number;
+  shows: number;
+  contractsSigned: number;
+  closes: number;
+  revenue: number;
+  postsCreated: number;
+  leadsGenerated: number;
+  outboundMessages: number;
+  positiveResponses: number;
+  energy: number;
+  confidence: number;
+  operatingPotential: number;
+  reflection: string;
 }
 
+// Interface for metric data
 export interface MetricData {
-    [key: string]: { daily: number; weekly: number; monthly: number };
-    outbound: { daily: number; weekly: number; monthly: number };
-    triage: { daily: number; weekly: number; monthly: number };
-    follow_ups: { daily: number; weekly: number; monthly: number };
-    appointments: { daily: number; weekly: number; monthly: number };
-    shows: { daily: number; weekly: number; monthly: number };
-    contracts: { daily: number; weekly: number; monthly: number };
-    closes: { daily: number; weekly: number; monthly: number };
-    revenue: { daily: number; weekly: number; monthly: number };
-    posts: { daily: number; weekly: number; monthly: number };
-    leads: { daily: number; weekly: number; monthly: number };
-    outbound_messages: { daily: number; weekly: number; monthly: number };
-    responses: { daily: number; weekly: number; monthly: number };
+  [key: string]: { daily: number; weekly: number; monthly: number };
+  outbound: { daily: number; weekly: number; monthly: number };
+  triage: { daily: number; weekly: number; monthly: number };
+  follow_ups: { daily: number; weekly: number; monthly: number };
+  appointments: { daily: number; weekly: number; monthly: number };
+  shows: { daily: number; weekly: number; monthly: number };
+  contracts: { daily: number; weekly: number; monthly: number };
+  closes: { daily: number; weekly: number; monthly: number };
+  revenue: { daily: number; weekly: number; monthly: number };
+  posts: { daily: number; weekly: number; monthly: number };
+  leads: { daily: number; weekly: number; monthly: number };
+  outbound_messages: { daily: number; weekly: number; monthly: number };
+  responses: { daily: number; weekly: number; monthly: number };
 }
 
+// Interface for team projections
 export interface TeamProjections {
-    [key: string]: MetricData;
+  [key: string]: MetricData;
 }
 
 export interface Achievement {
-    id: string;
-    title: string;
-    category: CategoryType;
-    tier: TierType;
-    description: string;
-    target: number;
-    trait: string;
-    icon: string;
-    isSecret: boolean;
+  id: string;
+  title: string;
+  category: CategoryType;
+  tier: TierType;
+  description: string;
+  target: number;
+  trait: string;
+  icon: string;
+  isSecret: boolean;
 }
 
 export interface Goal extends Achievement {
-    progress: number;
+  progress: number;
 }
 
 export interface AchievementsData {
-    activeGoal: Goal | null;
-    completedAchievements: Goal[];
+  activeGoal: Goal | null;
+  completedAchievements: Goal[];
 }
 
-// Utility function to calculate rates safely
-const safeRate = (value: any): number => {
-    const num = Number(value);
-    return isNaN(num) ? 0 : num;
-};
-
-// Helper function to handle errors
+// Helper function to handle errors during sheet data fetching
 function handleSheetError(error: any, range: string) {
-    console.error(`[sheets.ts] Error fetching range ${range}:`, error);
-    return []; // Return empty array as fallback
+  console.error(`[sheets.ts] Error fetching range ${range}:`, error);
+  return []; 
 }
 
-// Fetch data from Google Sheet
+// Fetches a range of data from the Google Sheet
 async function fetchSheetRange(range: string): Promise<any[]> {
     try {
         console.log(`[sheets.ts] Fetching data from range: ${range}`);
@@ -162,10 +162,15 @@ async function fetchSheetRange(range: string): Promise<any[]> {
     }
 }
 
-// Fetch data for a specific team member
+// Fetches team member data from the sheet
 export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
     if (memberName === "ALL") {
-        return [];
+        const [chris, israel, ivette] = await Promise.all([
+            fetchTeamMemberData("CHRIS"),
+            fetchTeamMemberData("ISRAEL"),
+            fetchTeamMemberData("IVETTE")
+        ]);
+        return [...chris, ...israel, ...ivette];
     }
 
     const range = `${SHEET_TABS[memberName]}!A2:X`;
@@ -198,7 +203,7 @@ export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<Te
     }));
 }
 
-// Fetch raw data
+// Fetches raw data from the sheet
 export async function fetchRawData(): Promise<RawData[]> {
     const data = await fetchSheetRange(`${SHEET_TABS.RAW_DATA}!A2:S`);
 
@@ -225,7 +230,7 @@ export async function fetchRawData(): Promise<RawData[]> {
     }));
 }
 
-// Fetch projections with correct structure and member names
+// Fetches team projections from the sheet
 export async function fetchProjections(): Promise<TeamProjections> {
     const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
 
@@ -263,7 +268,7 @@ export async function fetchProjections(): Promise<TeamProjections> {
     return projections;
 }
 
-// Fetch achievements
+// Fetches achievement-related data from the sheet
 export async function fetchAchievements(): Promise<AchievementsData> {
     const [achievementsData, goalsData] = await Promise.all([
         fetchSheetRange(`${SHEET_TABS.ACHIEVEMENT_LIBRARY}!A2:I`),
@@ -289,7 +294,7 @@ export async function fetchAchievements(): Promise<AchievementsData> {
     };
 }
 
-// Filter data by date range
+// Filters data based on a date range
 export function filterDataByDateRange<T extends { date: string }>(
     data: T[],
     startDate: string,
