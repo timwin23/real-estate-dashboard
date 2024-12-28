@@ -44,11 +44,12 @@ const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
         return value.toLocaleString();
     };
 
-    const getActualValue = (metric: string) => {
+    const getActualValue = (metric: MetricKeyType) => {
         if (metric === 'contracts') {
             return data[timeframe]?.['contractsSigned'] || 0;
         }
-        return data[timeframe]?.[metric] || 0;
+        // Convert metric to string for data object indexing
+        return data[timeframe]?.[metric.toString()] || 0;
     };
 
     const getTargetValue = (metric: MetricKeyType) => {
