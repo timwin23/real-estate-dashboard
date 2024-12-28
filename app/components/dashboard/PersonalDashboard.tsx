@@ -5,6 +5,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Brain, Flame, Target, Star, Zap } from 'lucide-react';
 import PersonalAchievements from './PersonalAchievements';
+import PersonalDashboard from './PersonalDashboard';
 
 type MetricCardProps = {
   title: string;
