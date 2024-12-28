@@ -3,7 +3,7 @@
 export {}; // This empty export makes the file a module
 
 // Allowed sheet tabs
-const SHEET_TABS = {
+export const SHEET_TABS = {
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
   IVETTE: 'Ivette Analysis',
