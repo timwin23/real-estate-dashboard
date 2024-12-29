@@ -3,15 +3,14 @@
 export {}; // This empty export makes the file a module
 
 // Constants for sheet tabs and API details
-const SHEET_TABS = {
-    CHRIS: 'Chris Analysis',
-    ISRAEL: 'Israel Analysis',
-    IVETTE: 'Ivette Analysis',
-    PROJECTIONS: 'Projections',
-    RAW_DATA: 'Raw Data',
-    ACHIEVEMENT_LIBRARY: 'Achievement Library',
-    GOALS_ACHIEVEMENTS: 'Goals & Achievements',
-    ALL: 'ALL'
+export const SHEET_TABS = {
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
+  PROJECTIONS: 'Projections',
+  RAW_DATA: 'Raw Data',
+  ACHIEVEMENT_LIBRARY: 'Achievement Library',
+  GOALS_ACHIEVEMENTS: 'Goals & Achievements'
 } as const;
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
