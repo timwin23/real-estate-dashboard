@@ -4,6 +4,7 @@ export {}; // This empty export makes the file a module
 
 // Constants for sheet tabs and API details
 export const SHEET_TABS = {
+  ALL: 'ALL',
   CHRIS: 'Chris Analysis',
   ISRAEL: 'Israel Analysis',
   IVETTE: 'Ivette Analysis',
