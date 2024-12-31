@@ -449,11 +449,15 @@ export default function RealEstateDashboard() {
     async function loadData() {
         try {
             setLoading(true);
-            const salesData = await fetchTeamMemberData(selectedMember);
-            const mktgData = await fetchMarketingData(selectedMember);
-            const projectionsData = await fetchProjections();
+            const [salesData, mktgData, projectionsData] = await Promise.all([
+                fetchTeamMemberData(selectedMember),
+                fetchMarketingData(selectedMember),
+                fetchProjections()
+            ]);
 
-            // Rest of your data loading logic
+            setData(salesData);
+            setMarketingData(mktgData);
+            setProjections(projectionsData);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -543,14 +547,43 @@ export default function RealEstateDashboard() {
            {/* Dashboard Content */}
            {dashboardType === 'sales' ? (
                <>
-                   {/* Metrics Grid */}
+                   {/* Sales Metrics Grid */}
                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                       <MetricCard title="OUTBOUND" value={metrics.totalOutbound} icon={Target} />
-                       <MetricCard title="TRIAGE" value={metrics.totalTriage} icon={Swords} />
-                       {/* Other sales metrics */}
+                       <MetricCard
+                           title="OUTBOUND"
+                           value={metrics.totalOutbound.toLocaleString()}
+                           rate="Conv. Rate"
+                           rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
+                           xp="+1 XP each"
+                           icon={Target}
+                       />
+                       <MetricCard
+                           title="TRIAGE"
+                           value={metrics.totalTriage.toLocaleString()}
+                           rate="Set Rate"
+                           rateValue={`${((metrics.totalAppointments / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
+                           xp="+10 XP each"
+                           icon={Swords}
+                       />
+                       <MetricCard
+                           title="APPOINTMENTS"
+                           value={metrics.totalAppointments.toLocaleString()}
+                           rate="Show Rate"
+                           rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
+                           xp="+25 XP each"
+                           icon={Calendar}
+                       />
+                       <MetricCard
+                           title="CONTRACTS"
+                           value={metrics.totalContracts.toLocaleString()}
+                           rate="Close Rate"
+                           rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
+                           xp="+50 XP each"
+                           icon={Trophy}
+                       />
                    </div>
 
-                   {/* Charts Section */}
+                   {/* Sales Charts */}
                    <div className="grid grid-cols-2 gap-4 mb-6">
                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                            <ResponsiveContainer width="100%" height="100%">
@@ -582,9 +615,51 @@ export default function RealEstateDashboard() {
                    </div>
                </>
            ) : (
-               <div className="text-center p-6">
-                   <h2 className="text-xl text-gray-400">Marketing Dashboard Coming Soon</h2>
-               </div>
+               <>
+                   {/* Marketing Metrics Grid */}
+                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                       <MetricCard
+                           title="POSTS"
+                           value={marketingMetrics.totalPosts.toLocaleString()}
+                           rate="Lead Rate"
+                           rateValue={`${((marketingMetrics.totalLeads / marketingMetrics.totalPosts * 100) || 0).toFixed(1)}%`}
+                           xp="+5 XP each"
+                           icon={Star}
+                       />
+                       <MetricCard
+                           title="LEADS"
+                           value={marketingMetrics.totalLeads.toLocaleString()}
+                           rate="Response Rate"
+                           rateValue={`${((marketingMetrics.totalResponses / marketingMetrics.totalOutboundMessages * 100) || 0).toFixed(1)}%`}
+                           xp="+10 XP each"
+                           icon={Users}
+                       />
+                       <MetricCard
+                           title="MESSAGES"
+                           value={marketingMetrics.totalOutboundMessages.toLocaleString()}
+                           rate="Engagement"
+                           rateValue={`${((marketingMetrics.totalResponses / marketingMetrics.totalOutboundMessages * 100) || 0).toFixed(1)}%`}
+                           xp="+1 XP each"
+                           icon={Target}
+                       />
+                       <MetricCard
+                           title="RESPONSES"
+                           value={marketingMetrics.totalResponses.toLocaleString()}
+                           rate="Total XP"
+                           rateValue={marketingMetrics.totalXP.toLocaleString()}
+                           xp="+5 XP each"
+                           icon={Trophy}
+                       />
+                   </div>
+
+                   {/* Marketing Charts - Coming in next phase */}
+                   <div className="grid grid-cols-2 gap-4 mb-6">
+                       <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                           <h3 className="text-xl text-red-500 mb-4">Marketing Activity</h3>
+                           {/* Add marketing charts here */}
+                       </div>
+                   </div>
+               </>
            )}
        </div>
    );
