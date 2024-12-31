@@ -23,12 +23,6 @@ interface MarketingMetrics {
     marketingXP: number;
     responseRate: number;
     leadsPerPost: number;
-    totalVSLViews: number;
-    totalTrials: number;
-    totalPaid: number;
-    vslViewRate: number;
-    trialRate: number;
-    paidRate: number;
 }
 
 interface MetricsFormat {
@@ -70,13 +64,7 @@ export default function MarketingDashboard({
                 totalLeadsGenerated: 0,
                 marketingXP: 0,
                 responseRate: 0,
-                leadsPerPost: 0,
-                totalVSLViews: 0,
-                totalTrials: 0,
-                totalPaid: 0,
-                vslViewRate: 0,
-                trialRate: 0,
-                paidRate: 0
+                leadsPerPost: 0
             };
         }
 
@@ -104,18 +92,12 @@ export default function MarketingDashboard({
         const totals = filteredData.reduce((acc, curr) => ({
             totalOutboundMessages: acc.totalOutboundMessages + (curr.outboundMessages || 0),
             totalPositiveResponses: acc.totalPositiveResponses + (curr.positiveResponses || 0),
-            totalVSLViews: acc.totalVSLViews + (curr.vslViews || 0),
-            totalTrials: acc.totalTrials + (curr.trialUsers || 0),
-            totalPaid: acc.totalPaid + (curr.paidUsers || 0),
             totalPostsCreated: acc.totalPostsCreated + (curr.postsCreated || 0),
             totalLeadsGenerated: acc.totalLeadsGenerated + (curr.leadsGenerated || 0),
             marketingXP: acc.marketingXP + (curr.marketingXP || 0)
         }), {
             totalOutboundMessages: 0,
             totalPositiveResponses: 0,
-            totalVSLViews: 0,
-            totalTrials: 0,
-            totalPaid: 0,
             totalPostsCreated: 0,
             totalLeadsGenerated: 0,
             marketingXP: 0
@@ -124,17 +106,14 @@ export default function MarketingDashboard({
         return {
             ...totals,
             responseRate: (totals.totalPositiveResponses / totals.totalOutboundMessages * 100) || 0,
-            vslViewRate: (totals.totalVSLViews / totals.totalOutboundMessages * 100) || 0,
-            trialRate: (totals.totalTrials / totals.totalVSLViews * 100) || 0,
-            paidRate: (totals.totalPaid / totals.totalTrials * 100) || 0,
             leadsPerPost: (totals.totalLeadsGenerated / totals.totalPostsCreated) || 0
         };
     };
 
     const formatDataForBarChart = (data: any[]) => {
-       const dailyData = data[data.length - 1] || {};
+        const dailyData = data[data.length - 1] || {};
         const formatMetrics = (row: any): MetricsFormat => {
-             return {
+            return {
                 outboundMessages: row.outboundMessages || 0,
                 positiveResponses: row.positiveResponses || 0,
                 postsCreated: row.postsCreated || 0,
@@ -142,9 +121,9 @@ export default function MarketingDashboard({
             };
         };
 
-         const weeklyData = data.slice(-7).reduce((acc, curr) => {
+        const weeklyData = data.slice(-7).reduce((acc, curr) => {
             const metrics = formatMetrics(curr);
-             return {
+            return {
                 ...acc,
                 outboundMessages: (acc.outboundMessages || 0) + metrics.outboundMessages,
                 positiveResponses: (acc.positiveResponses || 0) + metrics.positiveResponses,
@@ -153,18 +132,16 @@ export default function MarketingDashboard({
             };
         }, {} as MetricsFormat);
 
-
         const monthlyData = data.slice(-30).reduce((acc, curr) => {
-             const metrics = formatMetrics(curr);
+            const metrics = formatMetrics(curr);
             return {
                 ...acc,
-                  outboundMessages: (acc.outboundMessages || 0) + metrics.outboundMessages,
+                outboundMessages: (acc.outboundMessages || 0) + metrics.outboundMessages,
                 positiveResponses: (acc.positiveResponses || 0) + metrics.positiveResponses,
-                  postsCreated: (acc.postsCreated || 0) + metrics.postsCreated,
+                postsCreated: (acc.postsCreated || 0) + metrics.postsCreated,
                 leadsGenerated: (acc.leadsGenerated || 0) + metrics.leadsGenerated
             };
         }, {} as MetricsFormat);
-
 
         return {
             daily: formatMetrics(dailyData),
@@ -185,36 +162,24 @@ export default function MarketingDashboard({
             icon: Target
         },
         {
-            title: "VSL VIEWS",
-            value: metrics.totalVSLViews.toLocaleString(),
-            rate: "View Rate",
-            rateValue: `${metrics.vslViewRate.toFixed(1)}%`,
+            title: "RESPONSES",
+            value: metrics.totalPositiveResponses.toLocaleString(),
             xp: "+5 XP each",
-            icon: PhoneCall
-        },
-        {
-            title: "TRIALS",
-            value: metrics.totalTrials.toLocaleString(),
-            rate: "Trial Rate",
-            rateValue: `${metrics.trialRate.toFixed(1)}%`,
-            xp: "+25 XP each",
-            icon: Users
-        },
-        {
-            title: "PAID USERS",
-            value: metrics.totalPaid.toLocaleString(),
-            rate: "Conversion Rate",
-            rateValue: `${metrics.paidRate.toFixed(1)}%`,
-            xp: "+100 XP each",
-            icon: Crown
+            icon: Flame
         },
         {
             title: "POSTS",
             value: metrics.totalPostsCreated.toLocaleString(),
-            rate: "Leads per Post",
+            xp: "+10 XP each",
+            icon: Star
+        },
+        {
+            title: "LEADS",
+            value: metrics.totalLeadsGenerated.toLocaleString(),
+            rate: "Leads/Post",
             rateValue: metrics.leadsPerPost.toFixed(1),
             xp: "+25 XP each",
-            icon: Star
+            icon: Crown
         }
     ];
 
