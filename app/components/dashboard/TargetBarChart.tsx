@@ -12,14 +12,27 @@ type MetricData = {
     };
 };
 
-type MetricKeyType = keyof MetricData;
+type ChartData = {
+    outbound?: number;
+    triage?: number;
+    followUps?: number;
+    appointments?: number;
+    shows?: number;
+    contracts?: number;
+    closes?: number;
+    revenue?: number;
+};
 
-type ChartProps = {
-    data: any[];
+type TargetBarChartProps = {
+    data: {
+        daily: ChartData;
+        weekly: ChartData;
+        monthly: ChartData;
+    };
     projections: MetricData | null;
 };
 
-const TargetBarChart = ({ data, projections }: ChartProps) => {
+const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
 
     const getPerformanceColor = (actual: number, target: number) => {
@@ -31,14 +44,14 @@ const TargetBarChart = ({ data, projections }: ChartProps) => {
     };
 
     const metrics = [
-        { key: 'outbound' as MetricKeyType, label: 'Outbound' },
-        { key: 'triage' as MetricKeyType, label: 'Triage' },
-        { key: 'follow_ups' as MetricKeyType, label: 'Follow Ups' },
-        { key: 'appointments' as MetricKeyType, label: 'Appointments' },
-        { key: 'shows' as MetricKeyType, label: 'Shows' },
-        { key: 'contracts' as MetricKeyType, label: 'Contracts' },
-        { key: 'closes' as MetricKeyType, label: 'Closes' },
-        { key: 'revenue' as MetricKeyType, label: 'Revenue', isRevenue: true }
+        { key: 'outbound', label: 'Outbound' },
+        { key: 'triage', label: 'Triage' },
+        { key: 'follow_ups', label: 'Follow Ups' },
+        { key: 'appointments', label: 'Appointments' },
+        { key: 'shows', label: 'Shows' },
+        { key: 'contracts', label: 'Contracts' },
+        { key: 'closes', label: 'Closes' },
+        { key: 'revenue', label: 'Revenue', isRevenue: true }
     ];
 
     const formatValue = (value: number, isRevenue?: boolean) => {
@@ -48,24 +61,14 @@ const TargetBarChart = ({ data, projections }: ChartProps) => {
         return value.toLocaleString();
     };
 
-    const getActualValue = (data: any[], metric: MetricKeyType, timeframe: TimeframeType): number => {
-        if (!data || data.length === 0) return 0;
-
-        let relevantData: any[] = [];
-        if (timeframe === 'daily') {
-            relevantData = data.slice(-1); // Get the last day
-        } else if (timeframe === 'weekly') {
-            relevantData = data.slice(-7); // Get the last 7 days
-        } else if (timeframe === 'monthly') {
-            relevantData = data.slice(-30); // Get the last 30 days
-        }
-
-        return relevantData.reduce((sum, day) => sum + (day[metric] || 0), 0);
+    const getActualValue = (data: any, metric: string, timeframe: TimeframeType) => {
+        return data[timeframe]?.[metric] || 0;
     };
+    
 
-    const getTargetValue = (projections: MetricData | null, metric: MetricKeyType, timeframe: TimeframeType): number => {
-        if (!projections || !projections[metric]) return 0;
-        return projections[metric][timeframe] || 0;
+    const getTargetValue = (projections: MetricData | null, metric: string, timeframe: TimeframeType): number => {
+        if (!projections) return 0;
+        return projections[metric]?.[timeframe] || 0;
     };
 
     return (
