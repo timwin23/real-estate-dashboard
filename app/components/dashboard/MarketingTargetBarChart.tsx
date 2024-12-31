@@ -34,10 +34,10 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
     };
 
     const metrics = [
-        { key: 'outbound_messages', label: 'Outbound Messages' },
-        { key: 'positive_responses', label: 'Responses' },
-        { key: 'posts_created', label: 'Posts' },
-        { key: 'leads_generated', label: 'Leads' }
+        { key: 'outbound_messages', label: 'Outbound Messages', row: 'Outbound' },
+        { key: 'positive_responses', label: 'Responses', row: 'Responses' },
+        { key: 'posts_created', label: 'Posts', row: 'Posts' },
+        { key: 'leads_generated', label: 'Leads', row: 'Leads' }
     ];
 
     return (
