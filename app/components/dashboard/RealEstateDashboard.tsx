@@ -479,12 +479,20 @@ export default function RealEstateDashboard() {
                 fetchProjections()
             ]);
 
-            // Convert member format for marketing data
-            const memberName = selectedMember === 'ALL' 
-                ? 'chris' // Default to chris for ALL (you might want to handle this differently)
-                : selectedMember.toLowerCase() as 'chris' | 'israel' | 'ivette';
-            
-            const mktgData = await fetchTeamMemberMarketingData(memberName);
+            let mktgData = [];
+            if (selectedMember === 'ALL') {
+                // Fetch data for all members and combine
+                const [chrisData, israelData, ivetteData] = await Promise.all([
+                    fetchTeamMemberMarketingData('chris'),
+                    fetchTeamMemberMarketingData('israel'),
+                    fetchTeamMemberMarketingData('ivette')
+                ]);
+                mktgData = [...chrisData, ...israelData, ...ivetteData];
+            } else {
+                const memberName = selectedMember.toLowerCase() as 'chris' | 'israel' | 'ivette';
+                mktgData = await fetchTeamMemberMarketingData(memberName);
+            }
+
             const mktgProjections = await fetchMarketingProjections();
 
             setData(salesData);
