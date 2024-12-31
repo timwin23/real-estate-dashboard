@@ -5,15 +5,14 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, Calendar, Users, DollarSign } from 'lucide-react';
 import { 
-    fetchTeamMemberData, 
-    fetchMarketingData,
+    fetchTeamMemberData,
     filterDataByDateRange, 
     fetchProjections, 
     fetchRawData, 
     TeamMemberKey, 
-    SHEET_TABS,
-    MarketingData
+    SHEET_TABS
 } from './sheets';
+import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '@/lib/marketingSheets';
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
@@ -467,15 +466,23 @@ export default function RealEstateDashboard() {
     async function loadData() {
         try {
             setLoading(true);
-            const [salesData, mktgData, projectionsData] = await Promise.all([
+            const [salesData, projectionsData] = await Promise.all([
                 fetchTeamMemberData(selectedMember),
-                fetchMarketingData(selectedMember),
                 fetchProjections()
             ]);
+
+            // Convert member format for marketing data
+            const memberName = selectedMember === 'ALL' 
+                ? 'chris' // Default to chris for ALL (you might want to handle this differently)
+                : selectedMember.toLowerCase() as 'chris' | 'israel' | 'ivette';
+            
+            const mktgData = await fetchTeamMemberMarketingData(memberName);
+            const mktgProjections = await fetchMarketingProjections();
 
             setData(salesData);
             setMarketingData(mktgData);
             setProjections(projectionsData);
+            setMarketingProjections(mktgProjections);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
