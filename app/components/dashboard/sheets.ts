@@ -238,17 +238,17 @@ export const SHEET_TABS = {
     };
  
     const metricsMap: Record<number, MetricKey> = {
-        0: 'outbound',
-        1: 'triage',
-        2: 'follow_ups',
-        3: 'appointments',
-        4: 'shows',
-        5: 'contracts',
-        6: 'revenue',
-        7: 'posts',
-        8: 'leads',
-        9: 'outbound_messages',
-        10: 'responses'
+        0: 'outbound',          // Row 3
+        1: 'triage',           // Row 4
+        2: 'follow_ups',       // Row 5
+        3: 'appointments',     // Row 6
+        4: 'shows',           // Row 7
+        5: 'contracts',       // Row 8
+        6: 'revenue',         // Row 9
+        7: 'posts',           // Row 10
+        8: 'leads',          // Row 11
+        9: 'outbound_messages', // Row 12
+        10: 'responses'       // Row 13
     };
  
     data.forEach((row: any[], index: number) => {
