@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Target, Crown, Flame, Star, PhoneCall, Users } from 'lucide-react';
+import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } from 'lucide-react';
 import MarketingTargetBarChart from './MarketingTargetBarChart';
 
 type MetricCardProps = {
@@ -20,9 +20,11 @@ interface MarketingMetrics {
     totalPositiveResponses: number;
     totalPostsCreated: number;
     totalLeadsGenerated: number;
+    totalRevenue: number;
     marketingXP: number;
     responseRate: number;
     leadsPerPost: number;
+    revenuePerClose: number;
 }
 
 interface MetricsFormat {
@@ -62,9 +64,11 @@ export default function MarketingDashboard({
                 totalPositiveResponses: 0,
                 totalPostsCreated: 0,
                 totalLeadsGenerated: 0,
+                totalRevenue: 0,
                 marketingXP: 0,
                 responseRate: 0,
-                leadsPerPost: 0
+                leadsPerPost: 0,
+                revenuePerClose: 0
             };
         }
 
@@ -94,19 +98,22 @@ export default function MarketingDashboard({
             totalPositiveResponses: acc.totalPositiveResponses + (curr.positiveResponses || 0),
             totalPostsCreated: acc.totalPostsCreated + (curr.postsCreated || 0),
             totalLeadsGenerated: acc.totalLeadsGenerated + (curr.leadsGenerated || 0),
+            totalRevenue: acc.totalRevenue + (curr.revenue || 0),
             marketingXP: acc.marketingXP + (curr.marketingXP || 0)
         }), {
             totalOutboundMessages: 0,
             totalPositiveResponses: 0,
             totalPostsCreated: 0,
             totalLeadsGenerated: 0,
+            totalRevenue: 0,
             marketingXP: 0
         });
 
         return {
             ...totals,
             responseRate: (totals.totalPositiveResponses / totals.totalOutboundMessages * 100) || 0,
-            leadsPerPost: (totals.totalLeadsGenerated / totals.totalPostsCreated) || 0
+            leadsPerPost: (totals.totalLeadsGenerated / totals.totalPostsCreated) || 0,
+            revenuePerClose: totals.totalRevenue / totals.totalLeadsGenerated || 0
         };
     };
 
@@ -180,30 +187,19 @@ export default function MarketingDashboard({
             rateValue: metrics.leadsPerPost.toFixed(1),
             xp: "+25 XP each",
             icon: Crown
+        },
+        {
+            title: "REVENUE",
+            value: `$${metrics.totalRevenue.toLocaleString()}`,
+            rate: "Per Close",
+            rateValue: `$${metrics.revenuePerClose.toLocaleString()}`,
+            xp: "+100 XP each",
+            icon: DollarSign
         }
     ];
 
     return (
         <div>
-            {/* Top Controls */}
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-white">Marketing Dashboard</h2>
-                <select 
-                    value={selectedRange}
-                    onChange={(e) => {
-                        const newRange = e.target.value as keyof typeof DATE_RANGES;
-                        setSelectedRange(newRange);
-                        onDateRangeChange?.(newRange.toLowerCase());
-                    }}
-                    className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
-                >
-                    <option value="DAY">Today</option>
-                    <option value="WEEK">This Week</option>
-                    <option value="MONTH">This Month</option>
-                    <option value="ALL">All Time</option>
-                </select>
-            </div>
-
             {/* Charts Section */}
             <div className="grid grid-cols-2 gap-4 mb-6">
                 {/* Line Chart */}
@@ -238,7 +234,7 @@ export default function MarketingDashboard({
             </div>
 
             {/* Metrics Grid - Back to original style */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-6 mb-6">
                 {metricsCards.map((card, index) => (
                     <MetricCard
                         key={index}
@@ -252,21 +248,21 @@ export default function MarketingDashboard({
 
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
     return (
-        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-                <span className="text-gray-300">{title}</span>
-                {Icon && <Icon className="text-red-500" />}
+        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-6">
+            <div className="flex justify-between items-start mb-3">
+                <span className="text-gray-300 text-lg">{title}</span>
+                {Icon && <Icon className="text-red-500 w-6 h-6" />}
             </div>
-            <div className="text-2xl font-bold mb-1 text-white">{value}</div>
+            <div className="text-3xl font-bold mb-2 text-white">{value}</div>
             {rate && (
                 <>
                     <div className="text-sm text-gray-300">{rate}</div>
-                    <div className={`text-lg font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
+                    <div className={`text-xl font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
                         {rateValue}
                     </div>
                 </>
             )}
-            <div className="text-xs text-red-500 mt-2">{xp}</div>
+            <div className="text-sm text-red-500 mt-3">{xp}</div>
         </div>
     );
 }
