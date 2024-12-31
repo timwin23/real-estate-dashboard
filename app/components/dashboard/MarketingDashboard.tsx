@@ -70,7 +70,13 @@ export default function MarketingDashboard({
                 totalLeadsGenerated: 0,
                 marketingXP: 0,
                 responseRate: 0,
-                leadsPerPost:0
+                leadsPerPost: 0,
+                totalVSLViews: 0,
+                totalTrials: 0,
+                totalPaid: 0,
+                vslViewRate: 0,
+                trialRate: 0,
+                paidRate: 0
             };
         }
 
