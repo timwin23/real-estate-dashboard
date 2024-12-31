@@ -53,6 +53,14 @@ type ChartData = {
    revenue?: number;
 };
 
+type MarketingMetrics = {
+    totalPosts: number;
+    totalLeads: number;
+    totalOutboundMessages: number;
+    totalResponses: number;
+    totalXP: number;
+};
+
 const formatDateString = (date: Date): string => {
    return date.toISOString().split('T')[0];
 };
@@ -483,6 +491,7 @@ export default function RealEstateDashboard() {
    }, [data, marketingData, dashboardType, selectedMember]);
 
    const metrics = calculateMetrics();
+   const marketingMetrics = calculateMarketingMetrics();
 
    if (loading) {
        return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
