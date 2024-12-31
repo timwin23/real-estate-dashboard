@@ -108,7 +108,7 @@ interface TeamProjections {
 }
 
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
-  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J15`);
+  const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
   
   const metrics: (keyof TeamMemberProjections)[] = ['outbound', 'posts', 'leads', 'responses'];
   const members = ['chris', 'israel', 'ivette'] as const;
