@@ -68,6 +68,7 @@ const formatDateString = (date: Date): string => {
 const getRateColor = (title: string, rate?: number): string => {
    if (rate === undefined) return "text-white";
    const value = parseFloat(String(rate).replace('%', ''));
+   const numericValue = parseFloat(String(rate).replace(/[^0-9.]/g, ''));
 
    switch (title) {
        case 'OUTBOUND':
@@ -82,9 +83,13 @@ const getRateColor = (title: string, rate?: number): string => {
            if (value >= 80) return 'text-green-400';
            if (value >= 70) return 'text-yellow-400';
            return 'text-red-400';
-       case 'CONTRACTS':
+       case 'CLOSES':
            if (value >= 50) return 'text-green-400';
            if (value >= 30) return 'text-yellow-400';
+           return 'text-red-400';
+       case 'REVENUE':
+           if (numericValue >= 10000) return 'text-green-400';
+           if (numericValue >= 5000) return 'text-yellow-400';
            return 'text-red-400';
        default:
            return 'text-white';
