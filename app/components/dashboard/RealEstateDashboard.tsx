@@ -122,7 +122,7 @@ export default function RealEstateDashboard() {
    const [dashboardType, setDashboardType] = useState('sales');
    const [dateRange, setDateRange] = useState('7');
    const [data, setData] = useState<TeamMemberData[]>([]);
-   const [marketingData, setMarketingData] = useState<any[]>([]);
+   const [marketingData, setMarketingData] = useState<MarketingMetrics[]>([]);
    const [personalData, setPersonalData] = useState<RawData[]>([]);
    const [loading, setLoading] = useState(true);
    const [level, setLevel] = useState(7);
