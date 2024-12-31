@@ -91,6 +91,10 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
    );
 }
 
+const excelDateToJSDate = (excelDate: number) => {
+    return new Date((excelDate - 25569) * 86400 * 1000);
+};
+
 export default function RealEstateDashboard() {
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
    const [dashboardType, setDashboardType] = useState('sales');
@@ -316,22 +320,24 @@ export default function RealEstateDashboard() {
 
        // Weekly data (last 7 days)
        const weeklyData = sortedData.reduce((acc, curr) => {
-           const currDate = new Date(curr.date);
+           // Convert Excel date number to JS Date
+           const currDate = typeof curr.date === 'number' ? 
+               excelDateToJSDate(curr.date) : 
+               new Date(curr.date);
+           
            currDate.setHours(0, 0, 0, 0);
            
-           // Add debug logging for date comparison
-           logDebug(`Checking date for weekly: ${curr.date}`, {
-               currDate: currDate.toISOString(),
+           logDebug(`Processing date for weekly:`, {
+               originalDate: curr.date,
+               convertedDate: currDate.toISOString(),
                isAfterSevenDays: currDate >= sevenDaysAgo,
-               isBeforeToday: currDate <= today,
-               willInclude: currDate >= sevenDaysAgo && currDate <= today
+               isBeforeToday: currDate <= today
            });
            
            if (currDate >= sevenDaysAgo && currDate <= today) {
-               // Log running totals
-               logDebug(`Adding to weekly totals for ${curr.date}`, {
-                   currentTotals: { ...acc },
-                   adding: {
+               logDebug(`Adding to weekly totals:`, {
+                   date: currDate.toISOString(),
+                   data: {
                        outbound: Number(curr.outbound) || 0,
                        triage: Number(curr.triage) || 0,
                        followUps: Number(curr.followUps) || 0,
@@ -372,7 +378,10 @@ export default function RealEstateDashboard() {
 
        // Monthly data (last 30 days)
        const monthlyData = sortedData.reduce((acc, curr) => {
-           const currDate = new Date(curr.date);
+           const currDate = typeof curr.date === 'number' ? 
+               excelDateToJSDate(curr.date) : 
+               new Date(curr.date);
+           
            currDate.setHours(0, 0, 0, 0);
            
            if (currDate >= thirtyDaysAgo && currDate <= today) {
