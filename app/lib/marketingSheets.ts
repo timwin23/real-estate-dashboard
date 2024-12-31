@@ -72,20 +72,19 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
   console.log('[marketingSheets] Raw data:', data);
   
   const mappedData = data.map((row: any[]) => {
-    // Log each row's raw values for the columns we care about
     console.log('[marketingSheets] Row values:', {
       outbound: row[15],
       responses: row[16],
       posts: row[18],
       leads: row[19],
-      xp: row[20]
+      xp: row[21]
     });
 
     const outboundMessages = Number(row[15]) || 0;
     const positiveResponses = Number(row[16]) || 0;
     const postsCreated = Number(row[18]) || 0;
     const leadsGenerated = Number(row[19]) || 0;
-    const marketingXP = Number(row[20]) || 0;
+    const marketingXP = Number(row[21]) || 0;
 
     return {
       date: row[0],
