@@ -229,6 +229,8 @@ export const SHEET_TABS = {
  
  export async function fetchProjections(): Promise<TeamProjections> {
     const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
+    console.log("Raw projections data:", data); // Add this line
+
  
     const projections: TeamProjections = {
         CHRIS: {} as MetricData,
