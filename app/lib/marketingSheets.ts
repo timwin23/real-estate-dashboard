@@ -1,14 +1,14 @@
 // app/lib/marketingSheets.ts
 
 const SHEET_TABS = {
-  CHRIS: 'Chris',
-  ISRAEL: 'Israel',
-  IVETTE: 'Ivette',
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
   PROJECTIONS: 'Projections'
 };
 
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSL_h-uB4gaBUnUhtE4";
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_API_KEY;
+const API_KEY = "AIzaSyC18sJQ9feNkZcEiIlwxWI3K1xx6j5zz-8";
 
 function safeRate(numerator: any, denominator: any): number {
   const num = parseFloat(numerator);
@@ -32,6 +32,9 @@ interface MarketingMetrics {
 async function fetchSheetRange(range: string) {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+    
+    console.log('Fetching from URL:', url);
+    
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Status ${response.status}`);
     const data = await response.json();
