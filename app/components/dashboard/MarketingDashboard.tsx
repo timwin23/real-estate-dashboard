@@ -187,19 +187,21 @@ export default function MarketingDashboard({
             rateValue: metrics.leadsPerPost.toFixed(1),
             xp: "+25 XP each",
             icon: Crown
-        },
-        {
-            title: "REVENUE",
-            value: `$${metrics.totalRevenue.toLocaleString()}`,
-            rate: "Per Close",
-            rateValue: `$${metrics.revenuePerClose.toLocaleString()}`,
-            xp: "+100 XP each",
-            icon: DollarSign
         }
     ];
 
     return (
         <div>
+            {/* Metrics Grid - Now above charts */}
+            <div className="grid grid-cols-4 gap-6 mb-6">
+                {metricsCards.map((card, index) => (
+                    <MetricCard
+                        key={index}
+                        {...card}
+                    />
+                ))}
+            </div>
+
             {/* Charts Section */}
             <div className="grid grid-cols-2 gap-4 mb-6">
                 {/* Line Chart */}
@@ -228,19 +230,9 @@ export default function MarketingDashboard({
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                     <MarketingTargetBarChart
                         data={formatDataForBarChart(marketingData)}
-                       projections={projections?.[teamMember] || {}}
+                        projections={projections?.[teamMember] || {}}
                     />
                 </div>
-            </div>
-
-            {/* Metrics Grid - Back to original style */}
-            <div className="grid grid-cols-4 gap-6 mb-6">
-                {metricsCards.map((card, index) => (
-                    <MetricCard
-                        key={index}
-                        {...card}
-                    />
-                ))}
             </div>
         </div>
     );
