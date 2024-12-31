@@ -406,17 +406,49 @@ export const fetchMarketingData = async (member: TeamMemberKey): Promise<Marketi
                 .map(tab => fetchSheetData(`${tab}!A2:X`));
             
             const results = await Promise.all(promises);
-            return results.flat().map(row => ({
-                date: row[0],
-                outbound_messages: Number(row[12]) || 0,
-                responses: Number(row[13]) || 0,
-                posts: Number(row[8]) || 0,
-                leads: Number(row[9]) || 0,
-                marketingXP: Number(row[16]) || 0
-            }));
+            
+            // Debug: Log raw data
+            logDebug('Raw marketing data:', {
+                firstRow: results[0]?.[0],
+                totalRows: results.flat().length
+            });
+            
+            const mappedData = results.flat().map(row => {
+                // Debug: Log each row's mapping
+                const mapped = {
+                    date: row[0],
+                    outbound_messages: Number(row[12]) || 0,
+                    responses: Number(row[13]) || 0,
+                    posts: Number(row[8]) || 0,
+                    leads: Number(row[9]) || 0,
+                    marketingXP: Number(row[16]) || 0
+                };
+                
+                logDebug('Mapping row:', {
+                    original: row,
+                    mapped: mapped
+                });
+                
+                return mapped;
+            });
+            
+            // Debug: Log final data
+            logDebug('Final marketing data:', {
+                totalRows: mappedData.length,
+                firstRow: mappedData[0],
+                lastRow: mappedData[mappedData.length - 1]
+            });
+            
+            return mappedData;
         } else {
+            // Similar debug logging for single member data
             const tab = SHEET_TABS[member];
             const data = await fetchSheetData(`${tab}!A2:X`);
+            
+            logDebug(`Raw data for ${member}:`, {
+                firstRow: data[0],
+                totalRows: data.length
+            });
             
             return data.map(row => ({
                 date: row[0],
