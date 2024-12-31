@@ -401,7 +401,6 @@ export const fetchMarketingData = async (member: TeamMemberKey): Promise<Marketi
         logDebug(`Fetching marketing data for member: ${member}`);
         
         if (member === 'ALL') {
-            // Fetch all members' marketing data
             const promises = Object.values(SHEET_TABS)
                 .filter(tab => tab.includes('Analysis'))
                 .map(tab => fetchSheetData(`${tab}!A2:X`));
@@ -409,24 +408,23 @@ export const fetchMarketingData = async (member: TeamMemberKey): Promise<Marketi
             const results = await Promise.all(promises);
             return results.flat().map(row => ({
                 date: row[0],
-                posts: Number(row[15]) || 0,
-                leads: Number(row[16]) || 0,
-                outbound_messages: Number(row[17]) || 0,
-                responses: Number(row[18]) || 0,
-                marketingXP: Number(row[19]) || 0
+                outbound_messages: Number(row[12]) || 0,
+                responses: Number(row[13]) || 0,
+                posts: Number(row[8]) || 0,
+                leads: Number(row[9]) || 0,
+                marketingXP: Number(row[16]) || 0
             }));
         } else {
-            // Fetch single member's marketing data
             const tab = SHEET_TABS[member];
             const data = await fetchSheetData(`${tab}!A2:X`);
             
             return data.map(row => ({
                 date: row[0],
-                posts: Number(row[15]) || 0,
-                leads: Number(row[16]) || 0,
-                outbound_messages: Number(row[17]) || 0,
-                responses: Number(row[18]) || 0,
-                marketingXP: Number(row[19]) || 0
+                outbound_messages: Number(row[12]) || 0,
+                responses: Number(row[13]) || 0,
+                posts: Number(row[8]) || 0,
+                leads: Number(row[9]) || 0,
+                marketingXP: Number(row[16]) || 0
             }));
         }
     } catch (error) {
