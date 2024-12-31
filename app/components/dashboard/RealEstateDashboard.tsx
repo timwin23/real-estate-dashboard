@@ -299,19 +299,26 @@ export default function RealEstateDashboard() {
            currDate.setHours(0, 0, 0, 0);
            
            if (currDate >= sevenDaysAgo && currDate <= today) {
-               return {
-                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
-                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
-                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
-                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
-                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
-                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
-                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
-                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
-               };
+               acc.outbound = (acc.outbound || 0) + (Number(curr.outbound) || 0);
+               acc.triage = (acc.triage || 0) + (Number(curr.triage) || 0);
+               acc.follow_ups = (acc.follow_ups || 0) + (Number(curr.followUps) || 0);
+               acc.appointments = (acc.appointments || 0) + (Number(curr.appointments) || 0);
+               acc.shows = (acc.shows || 0) + (Number(curr.shows) || 0);
+               acc.contracts = (acc.contracts || 0) + (Number(curr.contractsSigned) || 0);
+               acc.closes = (acc.closes || 0) + (Number(curr.closes) || 0);
+               acc.revenue = (acc.revenue || 0) + (Number(curr.revenue) || 0);
            }
            return acc;
-       }, {} as ChartData);
+       }, {
+           outbound: 0,
+           triage: 0,
+           follow_ups: 0,
+           appointments: 0,
+           shows: 0,
+           contracts: 0,
+           closes: 0,
+           revenue: 0
+       } as ChartData);
 
        // Monthly data (last 30 days)
        const monthlyData = sortedData.reduce((acc, curr) => {
@@ -319,24 +326,36 @@ export default function RealEstateDashboard() {
            currDate.setHours(0, 0, 0, 0);
            
            if (currDate >= thirtyDaysAgo && currDate <= today) {
-               return {
-                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
-                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
-                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
-                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
-                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
-                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
-                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
-                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
-               };
+               acc.outbound = (acc.outbound || 0) + (Number(curr.outbound) || 0);
+               acc.triage = (acc.triage || 0) + (Number(curr.triage) || 0);
+               acc.follow_ups = (acc.follow_ups || 0) + (Number(curr.followUps) || 0);
+               acc.appointments = (acc.appointments || 0) + (Number(curr.appointments) || 0);
+               acc.shows = (acc.shows || 0) + (Number(curr.shows) || 0);
+               acc.contracts = (acc.contracts || 0) + (Number(curr.contractsSigned) || 0);
+               acc.closes = (acc.closes || 0) + (Number(curr.closes) || 0);
+               acc.revenue = (acc.revenue || 0) + (Number(curr.revenue) || 0);
            }
            return acc;
-       }, {} as ChartData);
+       }, {
+           outbound: 0,
+           triage: 0,
+           follow_ups: 0,
+           appointments: 0,
+           shows: 0,
+           contracts: 0,
+           closes: 0,
+           revenue: 0
+       } as ChartData);
 
-       console.log('Processed data:', {
-           daily: dailyData,
-           weekly: weeklyData,
-           monthly: monthlyData
+       console.log('Weekly/Monthly Data:', {
+           weeklyData,
+           monthlyData,
+           dateRanges: {
+               today: today.toISOString(),
+               sevenDaysAgo: sevenDaysAgo.toISOString(),
+               thirtyDaysAgo: thirtyDaysAgo.toISOString()
+           },
+           sampleDates: sortedData.slice(0, 3).map(d => d.date)
        });
 
        return {
