@@ -83,7 +83,7 @@ const getRateColor = (title: string, rate?: number): string => {
            if (value >= 80) return 'text-green-400';
            if (value >= 70) return 'text-yellow-400';
            return 'text-red-400';
-       case 'CLOSES':
+       case 'CONTRACTS':
            if (value >= 50) return 'text-green-400';
            if (value >= 30) return 'text-yellow-400';
            return 'text-red-400';
