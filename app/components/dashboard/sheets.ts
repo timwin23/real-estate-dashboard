@@ -319,12 +319,44 @@ export function filterDataByDateRange<T extends { date: string }>(
 ): T[] {
     const start = new Date(startDate);
     const end = new Date(endDate);
-
+    
+    // Add debug logging
+    console.log('Filtering date range:', {
+        startDate,
+        endDate,
+        firstRowDate: data[0]?.date,
+        dateFormat: data[0]?.date ? typeof data[0].date : 'no data'
+    });
+    
     return data.filter(row => {
         try {
-            const rowDate = new Date(row.date);
+            // Google Sheets might be returning a serial number for dates
+            // Let's check what we're actually getting
+            console.log('Row date:', {
+                raw: row.date,
+                type: typeof row.date
+            });
+            
+            let rowDate: Date;
+            
+            if (typeof row.date === 'number') {
+                // If it's a number, it's likely a Excel/Sheets serial number
+                // Convert Excel/Sheets date serial number to JS Date
+                rowDate = new Date((row.date - 25569) * 86400 * 1000);
+            } else {
+                // If it's a string, parse it normally
+                const [year, month, day] = String(row.date).split('-').map(Number);
+                rowDate = new Date(year, month - 1, day);
+            }
+            
+            // Set hours to 0 for consistent date comparison
+            rowDate.setHours(0, 0, 0, 0);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            
             return rowDate >= start && rowDate <= end;
-        } catch {
+        } catch (error) {
+            console.error('Error parsing date:', error, row.date);
             return false;
         }
     });

@@ -344,7 +344,13 @@ export default function RealEstateDashboard() {
                 const today = new Date();
                 const startDate = new Date();
                 startDate.setDate(today.getDate() - parseInt(dateRange));
-
+                
+                console.log('Date range:', {
+                    startDate: startDate.toISOString(),
+                    endDate: today.toISOString(),
+                    dateRange
+                });
+                
                 const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
                 const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
                 const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
