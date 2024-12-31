@@ -16,6 +16,7 @@ import {
 } from './sheets';
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
+import MarketingDashboard from './MarketingDashboard';
 
 const logDebug = (message: string, data?: any) => {
    console.log(`[RealEstateDashboard] ${message}`, data || '');
@@ -633,51 +634,13 @@ export default function RealEstateDashboard() {
                    </div>
                </>
            ) : (
-               <>
-                   {/* Marketing Metrics Grid */}
-                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                       <MetricCard
-                           title="POSTS"
-                           value={marketingMetrics.totalPosts.toLocaleString()}
-                           rate="Lead Rate"
-                           rateValue={`${((marketingMetrics.totalLeads / marketingMetrics.totalPosts * 100) || 0).toFixed(1)}%`}
-                           xp="+5 XP each"
-                           icon={Star}
-                       />
-                       <MetricCard
-                           title="LEADS"
-                           value={marketingMetrics.totalLeads.toLocaleString()}
-                           rate="Response Rate"
-                           rateValue={`${((marketingMetrics.totalResponses / marketingMetrics.totalOutboundMessages * 100) || 0).toFixed(1)}%`}
-                           xp="+10 XP each"
-                           icon={Users}
-                       />
-                       <MetricCard
-                           title="MESSAGES"
-                           value={marketingMetrics.totalOutboundMessages.toLocaleString()}
-                           rate="Engagement"
-                           rateValue={`${((marketingMetrics.totalResponses / marketingMetrics.totalOutboundMessages * 100) || 0).toFixed(1)}%`}
-                           xp="+1 XP each"
-                           icon={Target}
-                       />
-                       <MetricCard
-                           title="RESPONSES"
-                           value={marketingMetrics.totalResponses.toLocaleString()}
-                           rate="Total XP"
-                           rateValue={marketingMetrics.totalXP.toLocaleString()}
-                           xp="+5 XP each"
-                           icon={Trophy}
-                       />
-                   </div>
-
-                   {/* Marketing Charts - Coming in next phase */}
-                   <div className="grid grid-cols-2 gap-4 mb-6">
-                       <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                           <h3 className="text-xl text-red-500 mb-4">Marketing Activity</h3>
-                           {/* Add marketing charts here */}
-                       </div>
-                   </div>
-               </>
+               <MarketingDashboard
+                   marketingData={marketingData}
+                   dateRange={dateRange}
+                   onDateRangeChange={(range) => setDateRange(range)}
+                   projections={projections}
+                   teamMember={selectedMember}
+               />
            )}
        </div>
    );
