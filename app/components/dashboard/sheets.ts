@@ -236,14 +236,23 @@ export async function fetchProjections(): Promise<TeamProjections> {
         ALL: {} as MetricData
     };
 
-    const metrics: MetricKey[] = [
-        'outbound', 'triage', 'follow_ups', 'appointments', 'shows',
-        'contracts', 'revenue', 'posts', 'leads', 'outbound_messages',
-        'responses'
-    ];
+    // Map rows directly to metrics - exact row order from spreadsheet
+    const metricsMap = {
+        0: 'outbound',
+        1: 'triage',
+        2: 'follow_ups',
+        3: 'appointments',
+        4: 'shows',
+        5: 'contracts',
+        6: 'revenue',
+        7: 'posts',
+        8: 'leads',
+        9: 'outbound_messages',
+        10: 'responses'
+    };
 
     data.forEach((row: any[], index: number) => {
-        const metric = metrics[index];
+        const metric = metricsMap[index] as MetricKey;
         if (!metric) return;
 
         // CHRIS: B-D (indices 1,2,3)
