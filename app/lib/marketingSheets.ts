@@ -1,9 +1,9 @@
 // app/lib/marketingSheets.ts
 
 const SHEET_TABS = {
-  CHRIS: 'ChrisAnalysis',
-  ISRAEL: 'IsraelAnalysis',
-  IVETTE: 'IvetteAnalysis',
+  CHRIS: 'Chris Analysis',
+  ISRAEL: 'Israel Analysis',
+  IVETTE: 'Ivette Analysis',
   PROJECTIONS: 'Projections'
 };
 
@@ -31,8 +31,7 @@ interface MarketingMetrics {
 
 async function fetchSheetRange(range: string) {
   try {
-    const encodedRange = encodeURIComponent(range);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedRange}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}`;
     
     console.log('Fetching from URL:', url);
     
