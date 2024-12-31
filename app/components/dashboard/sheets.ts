@@ -17,6 +17,24 @@ const logDebug = (message: string, data?: any) => {
     console.log(`[sheets.ts] ${message}`, data || '');
 };
 
+// Add this near the top with other utility functions
+async function fetchSheetData(range: string): Promise<any[]> {
+    try {
+        const response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.values || [];
+    } catch (error) {
+        return handleSheetError(error, range);
+    }
+}
+
 // Export types
 export type TeamMemberKey = keyof typeof SHEET_TABS;
 export type CategoryType = 'sales' | 'marketing';
