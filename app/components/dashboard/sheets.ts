@@ -12,6 +12,11 @@ export const SHEET_TABS = {
 const SPREADSHEET_ID = "1tliv1aCy4VJEDvwwUFkNa34eSEL_h-uB4gaBUnUhtE4";
 const API_KEY = "AIzaSyC18sJQ9feNkZcEiIlwxWI3K1xx6j5zz-8";
 
+// Add this at the top of sheets.ts with other utility functions
+const logDebug = (message: string, data?: any) => {
+    console.log(`[sheets.ts] ${message}`, data || '');
+};
+
 // Export types
 export type TeamMemberKey = keyof typeof SHEET_TABS;
 export type CategoryType = 'sales' | 'marketing';
