@@ -1,9 +1,9 @@
 // app/lib/marketingSheets.ts
 
 const SHEET_TABS = {
-  CHRIS: 'Chris Analysis',
-  ISRAEL: 'Israel Analysis',
-  IVETTE: 'Ivette Analysis',
+  CHRIS: 'ChrisAnalysis',
+  ISRAEL: 'IsraelAnalysis',
+  IVETTE: 'IvetteAnalysis',
   PROJECTIONS: 'Projections'
 };
 
@@ -60,7 +60,21 @@ async function fetchSheetRange(range: string) {
 
 type SheetTabKey = keyof typeof SHEET_TABS;
 
+async function listSheets() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('[marketingSheets] Available sheets:', 
+      data.sheets?.map((s: any) => s.properties?.title)
+    );
+  } catch (error) {
+    console.error('[marketingSheets] Error listing sheets:', error);
+  }
+}
+
 export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel' | 'ivette'): Promise<MarketingMetrics[]> {
+  await listSheets();
   const upperName = memberName.toUpperCase() as SheetTabKey;
   const sheetName = SHEET_TABS[upperName];
   
