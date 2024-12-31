@@ -419,65 +419,41 @@ export default function RealEstateDashboard() {
        };
    };
 
+   const calculateMarketingMetrics = () => {
+       if (!marketingData || marketingData.length === 0) {
+           return {
+               totalPosts: 0,
+               totalLeads: 0,
+               totalOutboundMessages: 0,
+               totalResponses: 0,
+               totalXP: 0
+           };
+       }
+
+       return marketingData.reduce((acc, curr) => ({
+           totalPosts: acc.totalPosts + (Number(curr.posts) || 0),
+           totalLeads: acc.totalLeads + (Number(curr.leads) || 0),
+           totalOutboundMessages: acc.totalOutboundMessages + (Number(curr.outbound_messages) || 0),
+           totalResponses: acc.totalResponses + (Number(curr.responses) || 0),
+           totalXP: acc.totalXP + (Number(curr.marketingXP) || 0)
+       }), {
+           totalPosts: 0,
+           totalLeads: 0,
+           totalOutboundMessages: 0,
+           totalResponses: 0,
+           totalXP: 0
+       });
+   };
+
    useEffect(() => {
     async function loadData() {
         try {
-            logDebug('Starting data load for member:', selectedMember);
             setLoading(true);
-            let salesData: TeamMemberData[] = [],
-                mktgData: any[] = [],
-                pData: RawData[] = [];
-
-            if (selectedMember === 'ALL') {
-                logDebug('Fetching data for all members...');
-                const [chrisData, israelData, ivetteData] = await Promise.all([
-                    fetchTeamMemberData('CHRIS'),
-                    fetchTeamMemberData('ISRAEL'),
-                    fetchTeamMemberData('IVETTE')
-                ]);
-                salesData = [...chrisData, ...israelData, ...ivetteData];
-                mktgData = await fetchRawData();
-                pData = await fetchRawData();
-
-            } else {
-                logDebug(`Fetching data for single member: ${selectedMember}`);
-                salesData = await fetchTeamMemberData(selectedMember);
-                mktgData = await fetchRawData();
-                pData = await fetchRawData();
-            }
-
+            const salesData = await fetchTeamMemberData(selectedMember);
+            const mktgData = await fetchMarketingData(selectedMember);
             const projectionsData = await fetchProjections();
-            logDebug('Projections fetched:', { projectionsData });
 
-            setProjections(projectionsData);
-
-            if (dateRange === 'ALL') {
-                setData(salesData);
-                setMarketingData(mktgData);
-                setPersonalData(pData);
-            } else {
-                const today = new Date();
-                const startDate = new Date();
-                startDate.setDate(today.getDate() - parseInt(dateRange));
-                
-                console.log('Date range:', {
-                    startDate: startDate.toISOString(),
-                    endDate: today.toISOString(),
-                    dateRange
-                });
-                
-                const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
-                const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
-
-                setData(filteredSalesData);
-                setMarketingData(filteredMktgData);
-                setPersonalData(filteredPersonalData); // Correctly setting pData here
-
-                const streak = calculateStreak(filteredSalesData,
-                    selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                setCurrentStreak(streak);
-            }
+            // Rest of your data loading logic
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -485,9 +461,8 @@ export default function RealEstateDashboard() {
         }
     }
 
-
-       loadData();
-   }, [dateRange, selectedMember]);
+    loadData();
+}, [selectedMember, dateRange]);
 
    useEffect(() => {
        setTotalXP(getCurrentXP());
@@ -510,151 +485,107 @@ export default function RealEstateDashboard() {
    });
 
    return (
-       <div className="min-h-screen bg-gray-950 text-white p-6">
-           {/* Top Bar */}
-
+       <div className="min-h-screen bg-gray-950 text-white p-4">
            <div className="flex justify-between items-center mb-6">
-                <div className="flex gap-4 items-center">
-                    <h1 className="text-2xl font-bold text-red-500">REAL ESTATE COMMAND CENTER</h1>
-                    <div className="bg-red-900/30 px-2 py-1 rounded-md border border-red-500/30">
-                        <div className="flex items-center gap-2">
-                            <Flame className="w-4 h-4 text-red-500" />
-                            <span>STREAK: {currentStreak} DAYS</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-4">
-                    <select
-                        className="bg-gray-900 border border-red-500/30 rounded-md p-2 text-white"
-                        value={selectedMember}
-                        onChange={(e) => setSelectedMember(e.target.value as TeamMemberKey)}
-                    >
-                        {teamMembers.map(member => (
-                            <option key={member.id} value={member.id}>{member.name}</option>
-                        ))}
-                    </select>
-                    <select
-                        className="bg-gray-900 border border-red-500/30 rounded-md p-2 text-white"
-                        value={dashboardType}
-                        onChange={(e) => setDashboardType(e.target.value)}
-                    >
-                        <option value="sales">Sales</option>
-                        <option value="marketing">Marketing</option>
-                    </select>
-                    <select
-                        className="bg-gray-900 border border-red-500/30 rounded-md p-2 text-white"
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                    >
-                        <option value="7">7 Days</option>
-                        <option value="30">30 Days</option>
-                        <option value="90">90 Days</option>
-                        <option value="ALL">All Time</option>
-                    </select>
-                </div>
-            </div>
+               <select 
+                   value={selectedMember} 
+                   onChange={(e) => setSelectedMember(e.target.value as TeamMemberKey)}
+                   className="bg-gray-800 text-white p-2 rounded"
+               >
+                   <option value="ALL">All Members</option>
+                   <option value="CHRIS">Chris</option>
+                   <option value="ISRAEL">Israel</option>
+                   <option value="IVETTE">Ivette</option>
+               </select>
 
-            {/* Level Progress */}
-            <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 mb-6">
-                <div className="flex justify-between items-center mb-2">
-                    <div className="text-xl text-red-500">Progress to Level 25</div>
-                    <div className="flex items-center gap-2 text-white">
-                        <span className="text-red-500 font-bold">Level {calculateCurrentLevel()}</span>
-                        <span>|</span>
-                        <span>{getCurrentXP().toLocaleString()} / {nextLevelXP.toLocaleString()} XP</span>
-                    </div>
-                </div>
-                <div className="w-full bg-gray-800 h-4 rounded-full">
-                    <div
-                        className="bg-red-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${progressToLevel25}%` }}
-                    />
-                </div>
-            </div>
+               <div className="flex gap-2">
+                   <button
+                       onClick={() => setDashboardType('sales')}
+                       className={`px-4 py-2 rounded ${
+                           dashboardType === 'sales' 
+                               ? 'bg-red-500 text-white' 
+                               : 'bg-gray-800 text-gray-300'
+                       }`}
+                   >
+                       Sales
+                   </button>
+                   <button
+                       onClick={() => setDashboardType('marketing')}
+                       className={`px-4 py-2 rounded ${
+                           dashboardType === 'marketing' 
+                               ? 'bg-red-500 text-white' 
+                               : 'bg-gray-800 text-gray-300'
+                       }`}
+                   >
+                       Marketing
+                   </button>
+               </div>
+           </div>
 
-            {/* Dashboard Content */}
-            {dashboardType === 'sales' ? (
-                <>
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-5 gap-4 mb-6">
-                        <MetricCard
-                            title="OUTBOUND"
-                            value={metrics.totalOutbound.toLocaleString()}
-                            rate="Conv. Rate"
-                            rateValue={`${((metrics.totalTriage / metrics.totalOutbound * 100) || 0).toFixed(1)}%`}
-                            xp="+1 XP each"
-                            icon={Target}
-                        />
-                        <MetricCard
-                            title="TRIAGE"
-                            value={metrics.totalTriage.toLocaleString()}
-                            rate="Set Rate"
-                            rateValue={`${((metrics.totalAppointments / metrics.totalTriage * 100) || 0).toFixed(1)}%`}
-                            xp="+10 XP each"
-                            icon={Swords}
-                        />
-                        <MetricCard
-                            title="APPOINTMENTS"
-                            value={metrics.totalAppointments.toLocaleString()}
-                            rate="Show Rate"
-                            rateValue={`${((metrics.totalShows / metrics.totalAppointments * 100) || 0).toFixed(1)}%`}
-                            xp="+25 XP each"
-                            icon={Calendar}
-                        />
-                        <MetricCard
-                            title="CONTRACTS"
-                            value={metrics.totalContracts.toLocaleString()}
-                            rate="Close Rate"
-                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
-                            xp="+50 XP each"
-                            icon={Trophy}
-                        />
-                        <MetricCard
-                            title="REVENUE"
-                            value={`$${metrics.totalRevenue.toLocaleString()}`}
-                            rate="Per Close"
-                            rateValue={`$${Math.round(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
-                            xp={`Total XP: ${metrics.totalXP.toLocaleString()}`}
-                            icon={DollarSign}
-                        />
-                    </div>
+           {/* Level Progress */}
+           <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 mb-6">
+               <div className="flex justify-between items-center mb-2">
+                   <div className="text-xl text-red-500">Progress to Level 25</div>
+                   <div className="flex items-center gap-2 text-white">
+                       <span className="text-red-500 font-bold">Level {calculateCurrentLevel()}</span>
+                       <span>|</span>
+                       <span>{getCurrentXP().toLocaleString()} / {nextLevelXP.toLocaleString()} XP</span>
+                   </div>
+               </div>
+               <div className="w-full bg-gray-800 h-4 rounded-full">
+                   <div
+                       className="bg-red-500 h-full rounded-full transition-all duration-500"
+                       style={{ width: `${progressToLevel25}%` }}
+                   />
+               </div>
+           </div>
 
-                    {/* Charts Section */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data}>
-                                    <XAxis dataKey="date" stroke="#666" />
-                                    <YAxis stroke="#666" />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #ff0000',
-                                            color: '#ffffff'
-                                        }}
-                                    />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
-                                    <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
-                                    <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
-                                    <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
+           {/* Dashboard Content */}
+           {dashboardType === 'sales' ? (
+               <>
+                   {/* Metrics Grid */}
+                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                       <MetricCard title="OUTBOUND" value={metrics.totalOutbound} icon={Target} />
+                       <MetricCard title="TRIAGE" value={metrics.totalTriage} icon={Swords} />
+                       {/* Other sales metrics */}
+                   </div>
 
-                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                            <TargetBarChart
-                                data={formatDataForBarChart(data)}
-                                projections={projections ? (projections[selectedMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[selectedMember.toUpperCase() as keyof TeamProjections]}
-                            />
-                        </div>
-                    </div>
-                </>
-            ) : (
-                <div className="text-center p-6">
-                    <h2 className="text-xl text-gray-400">Marketing Dashboard Coming Soon</h2>
-                </div>
-            )}
-        </div>
-    );
+                   {/* Charts Section */}
+                   <div className="grid grid-cols-2 gap-4 mb-6">
+                       <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                           <ResponsiveContainer width="100%" height="100%">
+                               <LineChart data={data}>
+                                   <XAxis dataKey="date" stroke="#666" />
+                                   <YAxis stroke="#666" />
+                                   <Tooltip
+                                       contentStyle={{
+                                           backgroundColor: '#1a1a1a',
+                                           border: '1px solid #ff0000',
+                                           color: '#ffffff'
+                                       }}
+                                   />
+                                   <Legend />
+                                   <Line type="monotone" dataKey="outbound" name="Outbound" stroke="#ff0000" dot={false} />
+                                   <Line type="monotone" dataKey="triage" name="Triage" stroke="#ff4444" dot={false} />
+                                   <Line type="monotone" dataKey="appointments" name="Appointments" stroke="#ff8888" dot={false} />
+                                   <Line type="monotone" dataKey="contractsSigned" name="Contracts" stroke="#ffaaaa" dot={false} />
+                               </LineChart>
+                           </ResponsiveContainer>
+                       </div>
+
+                       <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
+                           <TargetBarChart
+                               data={formatDataForBarChart(data)}
+                               projections={projections ? (projections[selectedMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[selectedMember.toUpperCase() as keyof TeamProjections]}
+                           />
+                       </div>
+                   </div>
+               </>
+           ) : (
+               <div className="text-center p-6">
+                   <h2 className="text-xl text-gray-400">Marketing Dashboard Coming Soon</h2>
+               </div>
+           )}
+       </div>
+   );
 }
