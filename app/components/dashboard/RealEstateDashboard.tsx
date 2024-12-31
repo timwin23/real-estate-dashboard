@@ -262,26 +262,82 @@ export default function RealEstateDashboard() {
 
        // Get yesterday's data (last entry)
        const rawDailyData = sortedData[0] || {};
-       
        console.log('Raw daily data:', rawDailyData);
 
        // Map the daily data with correct field names
        const dailyData = {
            outbound: Number(rawDailyData.outbound) || 0,
            triage: Number(rawDailyData.triage) || 0,
-           follow_ups: Number(rawDailyData.followUps) || 0,  // Changed from followUps
+           follow_ups: Number(rawDailyData.followUps) || 0,
            appointments: Number(rawDailyData.appointments) || 0,
            shows: Number(rawDailyData.shows) || 0,
-           contracts: Number(rawDailyData.contractsSigned) || 0,  // Changed from contracts
+           contracts: Number(rawDailyData.contractsSigned) || 0,
            closes: Number(rawDailyData.closes) || 0,
            revenue: Number(rawDailyData.revenue) || 0
        };
 
-       console.log('Processed daily data:', dailyData);
+       // Get today's date for comparison
+       const today = new Date();
+       today.setHours(0, 0, 0, 0);
 
-       // Keep weekly and monthly calculations for now
-       const weeklyData = {} as ChartData;
-       const monthlyData = {} as ChartData;
+       // Calculate date ranges
+       const sevenDaysAgo = new Date(today);
+       sevenDaysAgo.setDate(today.getDate() - 7);
+
+       const thirtyDaysAgo = new Date(today);
+       thirtyDaysAgo.setDate(today.getDate() - 30);
+
+       console.log('Date ranges:', {
+           today: today.toISOString(),
+           sevenDaysAgo: sevenDaysAgo.toISOString(),
+           thirtyDaysAgo: thirtyDaysAgo.toISOString()
+       });
+
+       // Weekly data (last 7 days)
+       const weeklyData = sortedData.reduce((acc, curr) => {
+           const currDate = new Date(curr.date);
+           currDate.setHours(0, 0, 0, 0);
+           
+           if (currDate >= sevenDaysAgo && currDate <= today) {
+               return {
+                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
+                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
+                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
+                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
+                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
+                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
+                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
+               };
+           }
+           return acc;
+       }, {} as ChartData);
+
+       // Monthly data (last 30 days)
+       const monthlyData = sortedData.reduce((acc, curr) => {
+           const currDate = new Date(curr.date);
+           currDate.setHours(0, 0, 0, 0);
+           
+           if (currDate >= thirtyDaysAgo && currDate <= today) {
+               return {
+                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
+                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
+                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
+                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
+                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
+                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
+                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
+               };
+           }
+           return acc;
+       }, {} as ChartData);
+
+       console.log('Processed data:', {
+           daily: dailyData,
+           weekly: weeklyData,
+           monthly: monthlyData
+       });
 
        return {
            daily: dailyData,
