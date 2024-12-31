@@ -31,17 +31,26 @@ interface MarketingMetrics {
 
 async function fetchSheetRange(range: string) {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+    const encodedRange = encodeURIComponent(range);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedRange}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
     
     console.log('Fetching from URL:', url);
     
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`Status ${response.status}`);
+    if (!response.ok) {
+      console.error(`[marketingSheets] HTTP error ${response.status} for range: ${range}`);
+      const errorText = await response.text();
+      console.error(`[marketingSheets] Error details:`, errorText);
+      throw new Error(`Status ${response.status}`);
+    }
     const data = await response.json();
     if (!data.values?.length) {
       console.log(`[marketingSheets] No data found in range: ${range}`);
       return [];
     }
+    
+    console.log(`[marketingSheets] First row of data for ${range}:`, data.values[0]);
+    
     return data.values;
   } catch (error) {
     console.error(`[marketingSheets] Error fetching ${range}:`, error);
@@ -53,7 +62,11 @@ type SheetTabKey = keyof typeof SHEET_TABS;
 
 export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel' | 'ivette'): Promise<MarketingMetrics[]> {
   const upperName = memberName.toUpperCase() as SheetTabKey;
-  const data = await fetchSheetRange(`${SHEET_TABS[upperName]}!A2:X`);
+  const sheetName = SHEET_TABS[upperName];
+  
+  console.log(`[marketingSheets] Fetching data for member: ${memberName}, sheet: ${sheetName}`);
+  
+  const data = await fetchSheetRange(`${sheetName}!A2:X`);
   
   return data.map((row: any[]) => {
     const outboundMessages = Number(row[15]) || 0;
