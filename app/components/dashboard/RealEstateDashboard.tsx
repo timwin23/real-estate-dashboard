@@ -335,35 +335,34 @@ export default function RealEstateDashboard() {
 
             setProjections(projectionsData);
 
-            // Set data based on date range
-            let today = new Date();
-            let startDate = new Date();
+            if (dateRange === 'ALL') {
+                setData(salesData);
+                setMarketingData(mktgData);
+                setPersonalData(pData);
+            } else {
+                const today = new Date();
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - parseInt(dateRange));
 
-            if (dateRange === '7') {
-                startDate.setDate(today.getDate() - 6); // 7 days ago inclusive
-            } else if (dateRange === '30') {
-                startDate.setDate(today.getDate() - 29); // 30 days ago inclusive
-            } else if (dateRange === '90') {
-                startDate.setDate(today.getDate() - 89); // 90 days ago inclusive
-            } // For 'ALL', we do not filter by date.
+                const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
+                const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                const filteredPersonalData = filterDataByDateRange(pData, startDate.toISOString(), today.toISOString());
 
-            const filteredSalesData = dateRange !== 'ALL' ? filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString()) : salesData;
-            const filteredMktgData = dateRange !== 'ALL' ? filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString()) : mktgData;
-            const filteredPersonalData = dateRange !== 'ALL' ? filterDataByDateRange(pData, startDate.toISOString(), today.toISOString()) : pData;
+                setData(filteredSalesData);
+                setMarketingData(filteredMktgData);
+                setPersonalData(filteredPersonalData); // <- This line was missing
 
-            setData(filteredSalesData);
-            setMarketingData(filteredMktgData);
-            setPersonalData(filteredPersonalData);
-
-            const streak = calculateStreak(filteredSalesData,
-                selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-            setCurrentStreak(streak);
+                const streak = calculateStreak(filteredSalesData,
+                    selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+                setCurrentStreak(streak);
+            }
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
             setLoading(false);
         }
     }
+
        loadData();
    }, [dateRange, selectedMember]);
 
