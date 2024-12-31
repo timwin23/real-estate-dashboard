@@ -253,16 +253,31 @@ export default function RealEstateDashboard() {
    };
 
    const formatDataForBarChart = (data: any[]) => {
-       if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
+       if(!data || data.length === 0) {
+           console.log('No data provided to formatDataForBarChart');
+           return {daily:{}, weekly: {}, monthly:{}};
+       }
 
        // Sort data by date in descending order
        const sortedData = [...data].sort((a, b) => 
            new Date(b.date).getTime() - new Date(a.date).getTime()
        );
 
+       console.log('Sorted data first 3 entries:', sortedData.slice(0, 3));
+
        // Get yesterday's data (last entry)
        const rawDailyData = sortedData[0] || {};
-       console.log('Raw daily data:', rawDailyData);
+       console.log('Raw daily data:', {
+           date: rawDailyData.date,
+           outbound: rawDailyData.outbound,
+           triage: rawDailyData.triage,
+           followUps: rawDailyData.followUps,
+           appointments: rawDailyData.appointments,
+           shows: rawDailyData.shows,
+           contractsSigned: rawDailyData.contractsSigned,
+           closes: rawDailyData.closes,
+           revenue: rawDailyData.revenue
+       });
 
        // Map the daily data with correct field names
        const dailyData = {
@@ -299,6 +314,12 @@ export default function RealEstateDashboard() {
            currDate.setHours(0, 0, 0, 0);
            
            if (currDate >= sevenDaysAgo && currDate <= today) {
+               console.log('Adding to weekly:', {
+                   date: curr.date,
+                   outbound: curr.outbound,
+                   triage: curr.triage
+               });
+               
                acc.outbound = (acc.outbound || 0) + (Number(curr.outbound) || 0);
                acc.triage = (acc.triage || 0) + (Number(curr.triage) || 0);
                acc.follow_ups = (acc.follow_ups || 0) + (Number(curr.followUps) || 0);
@@ -319,6 +340,8 @@ export default function RealEstateDashboard() {
            closes: 0,
            revenue: 0
        } as ChartData);
+
+       console.log('Weekly totals:', weeklyData);
 
        // Monthly data (last 30 days)
        const monthlyData = sortedData.reduce((acc, curr) => {
@@ -347,15 +370,10 @@ export default function RealEstateDashboard() {
            revenue: 0
        } as ChartData);
 
-       console.log('Weekly/Monthly Data:', {
-           weeklyData,
-           monthlyData,
-           dateRanges: {
-               today: today.toISOString(),
-               sevenDaysAgo: sevenDaysAgo.toISOString(),
-               thirtyDaysAgo: thirtyDaysAgo.toISOString()
-           },
-           sampleDates: sortedData.slice(0, 3).map(d => d.date)
+       console.log('Final processed data:', {
+           daily: dailyData,
+           weekly: weeklyData,
+           monthly: monthlyData
        });
 
        return {
