@@ -319,12 +319,24 @@ export default function RealEstateDashboard() {
            const currDate = new Date(curr.date);
            currDate.setHours(0, 0, 0, 0);
            
+           // Add debug logging for date comparison
+           logDebug(`Checking date for weekly: ${curr.date}`, {
+               currDate: currDate.toISOString(),
+               isAfterSevenDays: currDate >= sevenDaysAgo,
+               isBeforeToday: currDate <= today,
+               willInclude: currDate >= sevenDaysAgo && currDate <= today
+           });
+           
            if (currDate >= sevenDaysAgo && currDate <= today) {
-               logDebug(`Adding data for ${curr.date} to weekly totals:`, {
-                   outbound: curr.outbound,
-                   triage: curr.triage,
-                   followUps: curr.followUps,
-                   contracts: curr.contractsSigned
+               // Log running totals
+               logDebug(`Adding to weekly totals for ${curr.date}`, {
+                   currentTotals: { ...acc },
+                   adding: {
+                       outbound: Number(curr.outbound) || 0,
+                       triage: Number(curr.triage) || 0,
+                       followUps: Number(curr.followUps) || 0,
+                       contracts: Number(curr.contractsSigned) || 0
+                   }
                });
                
                acc.outbound = (acc.outbound || 0) + (Number(curr.outbound) || 0);
@@ -348,7 +360,15 @@ export default function RealEstateDashboard() {
            revenue: 0
        } as ChartData);
 
-       logDebug('Weekly accumulated totals:', weeklyData);
+       // Add similar logging for monthly data
+       logDebug('Weekly data calculation complete:', {
+           totalEntries: sortedData.length,
+           entriesInRange: sortedData.filter(d => {
+               const date = new Date(d.date);
+               return date >= sevenDaysAgo && date <= today;
+           }).length,
+           finalTotals: weeklyData
+       });
 
        // Monthly data (last 30 days)
        const monthlyData = sortedData.reduce((acc, curr) => {
