@@ -103,10 +103,10 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
 }
 
 interface TeamMemberProjections {
-  outbound: Projection;
-  posts: Projection;
-  leads: Projection;
-  responses: Projection;
+  outbound_messages: Projection;
+  positive_responses: Projection;
+  posts_created: Projection;
+  leads_generated: Projection;
 }
 
 interface Projection {
@@ -161,10 +161,10 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
 
 function createEmptyProjections(): TeamMemberProjections {
   return {
-    outbound: { daily: 0, weekly: 0, monthly: 0 },
-    posts: { daily: 0, weekly: 0, monthly: 0 },
-    leads: { daily: 0, weekly: 0, monthly: 0 },
-    responses: { daily: 0, weekly: 0, monthly: 0 }
+    outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+    positive_responses: { daily: 0, weekly: 0, monthly: 0 },
+    posts_created: { daily: 0, weekly: 0, monthly: 0 },
+    leads_generated: { daily: 0, weekly: 0, monthly: 0 }
   };
 }
 
