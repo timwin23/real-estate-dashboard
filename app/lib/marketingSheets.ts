@@ -121,7 +121,7 @@ interface TeamProjections {
 }
 
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
-  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!A8:J11`);
+  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!A10:J13`);
   
   console.log('[marketingSheets] Raw projections data:', data);
   
