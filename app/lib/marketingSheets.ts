@@ -124,8 +124,8 @@ interface TeamProjections {
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
   const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!B10:J13`);
   
-  // Map the rows to their corresponding metrics
-  const metricMap = {
+  // Map the rows to their corresponding metrics with proper typing
+  const metricMap: Record<string, keyof TeamMemberProjections> = {
     'Outbound': 'outbound_messages',
     'Responses': 'positive_responses',
     'Posts': 'posts_created',
@@ -144,7 +144,7 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
     if (!row[0]) return;
     
     const metricName = row[0];
-    const metricKey = metricMap[metricName as keyof typeof metricMap];
+    const metricKey = metricMap[metricName];
     if (!metricKey) return;
 
     members.forEach((member, i) => {
