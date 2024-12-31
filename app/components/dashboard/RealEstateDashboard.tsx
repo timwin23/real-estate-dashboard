@@ -253,20 +253,32 @@ export default function RealEstateDashboard() {
    const formatDataForBarChart = (data: any[]) => {
        if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
 
-       // Get yesterday's date
-       const yesterday = new Date();
-       yesterday.setDate(yesterday.getDate() - 1);
-       const yesterdayString = formatDateString(yesterday);
+       // Sort data by date in descending order
+       const sortedData = [...data].sort((a, b) => 
+           new Date(b.date).getTime() - new Date(a.date).getTime()
+       );
 
-       // Get daily data (yesterday's numbers)
-       const dailyData = data.find(d => d.date === yesterdayString) || {};
+       // Get yesterday's data (last entry)
+       const dailyData = sortedData[0] || {};
 
-       // Get weekly data (last 7 days)
-       const weeklyData = data.reduce((acc, curr) => {
+       // Get today's date for comparison
+       const today = new Date();
+       today.setHours(0, 0, 0, 0);
+
+       // Calculate 7 days ago
+       const sevenDaysAgo = new Date(today);
+       sevenDaysAgo.setDate(today.getDate() - 7);
+
+       // Calculate 30 days ago
+       const thirtyDaysAgo = new Date(today);
+       thirtyDaysAgo.setDate(today.getDate() - 30);
+
+       // Weekly data (last 7 days)
+       const weeklyData = sortedData.reduce((acc, curr) => {
            const currDate = new Date(curr.date);
-           const daysDiff = Math.floor((yesterday.getTime() - currDate.getTime()) / (1000 * 3600 * 24));
+           currDate.setHours(0, 0, 0, 0);
            
-           if (daysDiff <= 7) {
+           if (currDate >= sevenDaysAgo && currDate <= today) {
                return {
                    outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
                    triage: (acc.triage || 0) + (Number(curr.triage) || 0),
@@ -274,17 +286,19 @@ export default function RealEstateDashboard() {
                    shows: (acc.shows || 0) + (Number(curr.shows) || 0),
                    contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
                    closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
+                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
                };
            }
            return acc;
        }, {} as ChartData);
 
-       // Get monthly data (last 30 days)
-       const monthlyData = data.reduce((acc, curr) => {
+       // Monthly data (last 30 days)
+       const monthlyData = sortedData.reduce((acc, curr) => {
            const currDate = new Date(curr.date);
-           const daysDiff = Math.floor((yesterday.getTime() - currDate.getTime()) / (1000 * 3600 * 24));
+           currDate.setHours(0, 0, 0, 0);
            
-           if (daysDiff <= 30) {
+           if (currDate >= thirtyDaysAgo && currDate <= today) {
                return {
                    outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
                    triage: (acc.triage || 0) + (Number(curr.triage) || 0),
@@ -292,10 +306,18 @@ export default function RealEstateDashboard() {
                    shows: (acc.shows || 0) + (Number(curr.shows) || 0),
                    contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
                    closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+                   follow_ups: (acc.follow_ups || 0) + (Number(curr.followUps) || 0),
+                   revenue: (acc.revenue || 0) + (Number(curr.revenue) || 0)
                };
            }
            return acc;
        }, {} as ChartData);
+
+       console.log('Formatted data:', {
+           daily: dailyData,
+           weekly: weeklyData,
+           monthly: monthlyData
+       });
 
        return {
            daily: dailyData,
