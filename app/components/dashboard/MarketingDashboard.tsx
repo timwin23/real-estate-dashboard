@@ -56,8 +56,8 @@ export default function MarketingDashboard({
     const [selectedRange, setSelectedRange] = useState<keyof typeof DATE_RANGES>('WEEK');
 
     const calculateMetrics = (): MarketingMetrics => {
-       if (!marketingData || marketingData.length === 0) {
-             return {
+        if (!marketingData || marketingData.length === 0) {
+            return {
                 totalOutboundMessages: 0,
                 totalPositiveResponses: 0,
                 totalPostsCreated: 0,
@@ -68,7 +68,28 @@ export default function MarketingDashboard({
             };
         }
 
-        const totals = marketingData.reduce((acc, curr) => {
+        const now = new Date();
+        const filteredData = marketingData.filter(entry => {
+            const entryDate = new Date(entry.date);
+            switch (selectedRange) {
+                case 'DAY':
+                    return entryDate.toDateString() === now.toDateString();
+                case 'WEEK':
+                    const weekAgo = new Date(now);
+                    weekAgo.setDate(now.getDate() - 7);
+                    return entryDate >= weekAgo;
+                case 'MONTH':
+                    const monthAgo = new Date(now);
+                    monthAgo.setMonth(now.getMonth() - 1);
+                    return entryDate >= monthAgo;
+                case 'ALL':
+                    return true;
+                default:
+                    return true;
+            }
+        });
+
+        const totals = filteredData.reduce((acc, curr) => {
             return {
                   totalOutboundMessages: acc.totalOutboundMessages + (curr.outboundMessages || 0),
                 totalPositiveResponses: acc.totalPositiveResponses + (curr.positiveResponses || 0),
@@ -146,6 +167,12 @@ export default function MarketingDashboard({
             icon: Users
         },
         {
+            title: "RESPONSES",
+            value: metrics.totalPositiveResponses.toLocaleString(),
+            xp: "+5 XP each",
+            icon: Flame
+        },
+        {
             title: "POSTS",
             value: metrics.totalPostsCreated.toLocaleString(),
             xp: "+10 XP each",
@@ -155,17 +182,9 @@ export default function MarketingDashboard({
             title: "LEADS",
             value: metrics.totalLeadsGenerated.toLocaleString(),
             rate: "Leads/Post",
-            rateValue: `${metrics.leadsPerPost?.toFixed(1) || 0}`,
+            rateValue: `${(metrics.totalLeadsGenerated / metrics.totalPostsCreated).toFixed(1) || 0}`,
             xp: "+25 XP each",
             icon: Crown
-        },
-        {
-            title: "RESPONSES",
-            value: metrics.totalPositiveResponses.toLocaleString(),
-            rate: "Response Rate",
-            rateValue: `${metrics.responseRate?.toFixed(1)}%`,
-            xp: "+5 XP each",
-            icon: Flame
         }
     ];
 
@@ -189,6 +208,8 @@ export default function MarketingDashboard({
                             <Legend />
                             <Line type="monotone" dataKey="outboundMessages" name="Outbound" stroke="#ff0000" dot={false} />
                             <Line type="monotone" dataKey="positiveResponses" name="Responses" stroke="#ff4444" dot={false} />
+                            <Line type="monotone" dataKey="postsCreated" name="Posts" stroke="#ff8888" dot={false} />
+                            <Line type="monotone" dataKey="leadsGenerated" name="Leads" stroke="#ffaaaa" dot={false} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
@@ -202,26 +223,45 @@ export default function MarketingDashboard({
                 </div>
             </div>
 
-            {/* Metrics Grid */}
-             <div className="grid grid-cols-3 gap-4 mb-6">
+            {/* Main Metrics Grid */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
                 {metricsCards.map((card, index) => (
                     <MetricCard
                         key={index}
-                        title={card.title}
-                        value={card.value}
-                        rate={card.rate}
-                        rateValue={card.rateValue}
-                        xp={card.xp}
-                        icon={card.icon}
+                        {...card}
                     />
                 ))}
+            </div>
+
+            {/* Response Rate Card - Prominent Display */}
+            <div className="mb-6">
+                <div className={`bg-gray-800 p-6 rounded-lg border ${getRateColor('RESPONSES', metrics.responseRate).replace('text-', 'border-')}/20`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Flame className={getRateColor('RESPONSES', metrics.responseRate)} />
+                            <div>
+                                <h3 className="text-xl font-bold text-white">RESPONSE RATE</h3>
+                                <p className={`text-3xl font-bold ${getRateColor('RESPONSES', metrics.responseRate)}`}>
+                                    {metrics.responseRate.toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-gray-400">
+                            {metrics.totalPositiveResponses} / {metrics.totalOutboundMessages} responses
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="flex justify-end mb-4">
                 <select 
                     value={selectedRange}
-                    onChange={(e) => setSelectedRange(e.target.value as keyof typeof DATE_RANGES)}
-                    className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
+                    onChange={(e) => {
+                        const newRange = e.target.value as keyof typeof DATE_RANGES;
+                        setSelectedRange(newRange);
+                        onDateRangeChange?.(newRange.toLowerCase());
+                    }}
+                    className="bg-gray-800 text-white border border-red-500/20 rounded px-4 py-2 text-lg font-semibold hover:bg-gray-700 transition-colors"
                 >
                     <option value="DAY">Today</option>
                     <option value="WEEK">This Week</option>
@@ -235,18 +275,39 @@ export default function MarketingDashboard({
 
 
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
+    const rateColorClass = getRateColor(title, parseFloat(String(rateValue)));
+    
     return (
-        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
+        <div className={`bg-gray-900 border ${rateColorClass.replace('text-', 'border-')}/20 rounded-lg p-4`}>
             <div className="flex justify-between items-start mb-2">
                 <span className="text-gray-300">{title}</span>
-                {Icon && <Icon className="text-red-500" />}
+                {Icon && <Icon className={rateColorClass} />}
             </div>
             <div className="text-2xl font-bold mb-1 text-white">{value}</div>
-             {rate && <div className="text-sm text-gray-300">{rate}</div>}
-              {rateValue &&<div className={`text-lg font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
-                {rateValue}
-            </div>}
-           {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
+            {rate && (
+                <>
+                    <div className="text-sm text-gray-300">{rate}</div>
+                    <div className={`text-lg font-bold ${rateColorClass}`}>
+                        {rateValue}
+                    </div>
+                </>
+            )}
+            <div className="text-xs text-red-500 mt-2">{xp}</div>
         </div>
     );
 }
+
+const getRateColor = (title: string, rate: number): string => {
+    const value = parseFloat(String(rate).replace('%', ''));
+    
+    switch (title) {
+        case 'OUTBOUND':
+        case 'RESPONSES':
+            if (value >= 5) return 'text-green-400';
+            if (value >= 3) return 'text-yellow-400';
+            return 'text-red-400';
+            
+        default:
+            return 'text-white';
+    }
+};
