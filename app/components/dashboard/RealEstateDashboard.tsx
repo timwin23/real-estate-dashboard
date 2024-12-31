@@ -104,24 +104,63 @@ export default function RealEstateDashboard() {
    const [marketingProjections, setMarketingProjections] = useState<any>(null);
 
    const defaultProjections: TeamProjections = {
-       CHRIS: {
-           outbound: { daily: 0, weekly: 0, monthly: 0 },
-           triage: { daily: 0, weekly: 0, monthly: 0 },
-           follow_ups: { daily: 0, weekly: 0, monthly: 0 },
-           appointments: { daily: 0, weekly: 0, monthly: 0 },
-           shows: { daily: 0, weekly: 0, monthly: 0 },
-           contracts: { daily: 0, weekly: 0, monthly: 0 },
-           closes: { daily: 0, weekly: 0, monthly: 0 },
-           revenue: { daily: 0, weekly: 0, monthly: 0 },
-           posts: { daily: 0, weekly: 0, monthly: 0 },
-           leads: { daily: 0, weekly: 0, monthly: 0 },
-           outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
-           responses: { daily: 0, weekly: 0, monthly: 0 }
-       },
-       ISRAEL: { /* same structure as CHRIS */ },
-       IVETTE: { /* same structure as CHRIS */ },
-       ALL: { /* same structure as CHRIS */ }
-   };
+    CHRIS: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        triage: { daily: 0, weekly: 0, monthly: 0 },
+        follow_ups: { daily: 0, weekly: 0, monthly: 0 },
+        appointments: { daily: 0, weekly: 0, monthly: 0 },
+        shows: { daily: 0, weekly: 0, monthly: 0 },
+        contracts: { daily: 0, weekly: 0, monthly: 0 },
+        closes: { daily: 0, weekly: 0, monthly: 0 },
+        revenue: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    ISRAEL: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        triage: { daily: 0, weekly: 0, monthly: 0 },
+        follow_ups: { daily: 0, weekly: 0, monthly: 0 },
+        appointments: { daily: 0, weekly: 0, monthly: 0 },
+        shows: { daily: 0, weekly: 0, monthly: 0 },
+        contracts: { daily: 0, weekly: 0, monthly: 0 },
+        closes: { daily: 0, weekly: 0, monthly: 0 },
+        revenue: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    IVETTE: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        triage: { daily: 0, weekly: 0, monthly: 0 },
+        follow_ups: { daily: 0, weekly: 0, monthly: 0 },
+        appointments: { daily: 0, weekly: 0, monthly: 0 },
+        shows: { daily: 0, weekly: 0, monthly: 0 },
+        contracts: { daily: 0, weekly: 0, monthly: 0 },
+        closes: { daily: 0, weekly: 0, monthly: 0 },
+        revenue: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    ALL: {
+        outbound: { daily: 0, weekly: 0, monthly: 0 },
+        triage: { daily: 0, weekly: 0, monthly: 0 },
+        follow_ups: { daily: 0, weekly: 0, monthly: 0 },
+        appointments: { daily: 0, weekly: 0, monthly: 0 },
+        shows: { daily: 0, weekly: 0, monthly: 0 },
+        contracts: { daily: 0, weekly: 0, monthly: 0 },
+        closes: { daily: 0, weekly: 0, monthly: 0 },
+        revenue: { daily: 0, weekly: 0, monthly: 0 },
+        posts: { daily: 0, weekly: 0, monthly: 0 },
+        leads: { daily: 0, weekly: 0, monthly: 0 },
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        responses: { daily: 0, weekly: 0, monthly: 0 }
+    }
+};
 
    const teamMembers: { id: TeamMemberKey; name: string }[] = [
        { id: 'ALL', name: 'All Members' },
