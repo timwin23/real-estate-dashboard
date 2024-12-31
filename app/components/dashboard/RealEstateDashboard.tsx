@@ -203,7 +203,7 @@ export default function RealEstateDashboard() {
        if (dashboardType === 'sales') {
            return data.reduce((acc, curr) => acc + (Number(curr.salesXP) || 0), 0);
        } else if (dashboardType === 'marketing') {
-           return marketingData.reduce((acc, curr) => acc + (Number(curr.marketingXP) || 0), 0);
+           return marketingData.reduce((acc, curr) => acc + (Number(curr.marketing_xp) || 0), 0);
        }
        return 0;
    };
@@ -453,11 +453,11 @@ export default function RealEstateDashboard() {
        }
 
        return marketingData.reduce((acc, curr) => ({
-           totalPosts: acc.totalPosts + (Number(curr.posts) || 0),
-           totalLeads: acc.totalLeads + (Number(curr.leads) || 0),
+           totalPosts: acc.totalPosts + (Number(curr.posts_created) || 0),
+           totalLeads: acc.totalLeads + (Number(curr.leads_generated) || 0),
            totalOutboundMessages: acc.totalOutboundMessages + (Number(curr.outbound_messages) || 0),
-           totalResponses: acc.totalResponses + (Number(curr.responses) || 0),
-           totalXP: acc.totalXP + (Number(curr.marketingXP) || 0)
+           totalResponses: acc.totalResponses + (Number(curr.positive_responses) || 0),
+           totalXP: acc.totalXP + (Number(curr.marketing_xp) || 0)
        }), {
            totalPosts: 0,
            totalLeads: 0,
