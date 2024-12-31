@@ -122,14 +122,15 @@ interface TeamProjections {
 }
 
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
-  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!B10:J13`);
+  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!A8:J11`);
   
-  // Map the rows to their corresponding metrics with proper typing
+  console.log('[marketingSheets] Raw projections data:', data);
+  
   const metricMap: Record<string, keyof TeamMemberProjections> = {
-    'Outbound': 'outbound_messages',
-    'Responses': 'positive_responses',
     'Posts': 'posts_created',
-    'Leads': 'leads_generated'
+    'Leads': 'leads_generated',
+    'Outbound': 'outbound_messages',
+    'Responses': 'positive_responses'
   };
 
   const members = ['chris', 'israel', 'ivette'] as const;
@@ -144,19 +145,25 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
     if (!row[0]) return;
     
     const metricName = row[0];
+    console.log('[marketingSheets] Processing metric:', metricName);
+    
     const metricKey = metricMap[metricName];
-    if (!metricKey) return;
+    if (!metricKey) {
+      console.log('[marketingSheets] No mapping found for metric:', metricName);
+      return;
+    }
 
     members.forEach((member, i) => {
-      const baseCol = i * 3;
+      const baseCol = i * 3 + 1;
       projections[member][metricKey] = {
-        daily: Number(row[baseCol + 1]) || 0,
-        weekly: Number(row[baseCol + 2]) || 0,
-        monthly: Number(row[baseCol + 3]) || 0
+        daily: Number(row[baseCol]) || 0,
+        weekly: Number(row[baseCol + 1]) || 0,
+        monthly: Number(row[baseCol + 2]) || 0
       };
     });
   });
 
+  console.log('[marketingSheets] Final projections:', projections);
   return projections;
 }
 
