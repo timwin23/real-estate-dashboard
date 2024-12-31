@@ -95,6 +95,7 @@ export default function RealEstateDashboard() {
    const [dateRange, setDateRange] = useState('7');
    const [data, setData] = useState<TeamMemberData[]>([]);
    const [marketingData, setMarketingData] = useState<any[]>([]);
+   const [personalData, setPersonalData] = useState<RawData[]>([]);
    const [loading, setLoading] = useState(true);
    const [level, setLevel] = useState(7);
    const [totalXP, setTotalXP] = useState(0);
@@ -350,7 +351,7 @@ export default function RealEstateDashboard() {
 
                 setData(filteredSalesData);
                 setMarketingData(filteredMktgData);
-                setPersonalData(filteredPersonalData);
+                setPersonalData(filteredPersonalData); // Correctly setting pData here
 
                 const streak = calculateStreak(filteredSalesData,
                     selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
@@ -362,6 +363,7 @@ export default function RealEstateDashboard() {
             setLoading(false);
         }
     }
+
 
        loadData();
    }, [dateRange, selectedMember]);
