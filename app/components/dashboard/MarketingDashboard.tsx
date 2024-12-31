@@ -1,7 +1,7 @@
 // app/components/real-estate-dashboard/MarketingDashboard.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users } from 'lucide-react';
 import MarketingTargetBarChart from './MarketingTargetBarChart';
@@ -15,7 +15,7 @@ type MetricCardProps = {
     icon: React.ComponentType<any>;
 };
 
-type MarketingMetrics = {
+interface MarketingMetrics {
     totalOutboundMessages: number;
     totalPositiveResponses: number;
     totalPostsCreated: number;
@@ -23,7 +23,7 @@ type MarketingMetrics = {
     marketingXP: number;
     responseRate: number;
     leadsPerPost?: number;
-};
+}
 
 interface MetricsFormat {
     [key: string]: number;
@@ -33,20 +33,12 @@ interface MetricsFormat {
     leadsGenerated: number;
 }
 
-
-const getRateColor = (title: string, rate?: number): string => {
-      if (rate === undefined) return 'text-white';
-    const value = parseFloat(String(rate).replace('%', ''));
-
-  switch (title) {
-         case 'OUTBOUND':
-            if (value >= 5) return 'text-green-400';
-            if (value >= 3) return 'text-yellow-400';
-             return 'text-red-400';
-        default:
-            return 'text-white';
-    }
-};
+const DATE_RANGES = {
+    DAY: 'day',
+    WEEK: 'week',
+    MONTH: 'month',
+    ALL: 'all'
+} as const;
 
 export default function MarketingDashboard({
     marketingData,
@@ -61,6 +53,8 @@ export default function MarketingDashboard({
     projections: any;
     teamMember: string;
 }) {
+    const [selectedRange, setSelectedRange] = useState<keyof typeof DATE_RANGES>('WEEK');
+
     const calculateMetrics = (): MarketingMetrics => {
        if (!marketingData || marketingData.length === 0) {
              return {
@@ -145,6 +139,36 @@ export default function MarketingDashboard({
 
     const metrics = calculateMetrics();
 
+    const metricsCards = [
+        {
+            title: "OUTBOUND",
+            value: metrics.totalOutboundMessages.toLocaleString(),
+            icon: Users
+        },
+        {
+            title: "POSTS",
+            value: metrics.totalPostsCreated.toLocaleString(),
+            xp: "+10 XP each",
+            icon: Star
+        },
+        {
+            title: "LEADS",
+            value: metrics.totalLeadsGenerated.toLocaleString(),
+            rate: "Leads/Post",
+            rateValue: `${metrics.leadsPerPost?.toFixed(1) || 0}`,
+            xp: "+25 XP each",
+            icon: Crown
+        },
+        {
+            title: "RESPONSES",
+            value: metrics.totalPositiveResponses.toLocaleString(),
+            rate: "Response Rate",
+            rateValue: `${metrics.responseRate?.toFixed(1)}%`,
+            xp: "+5 XP each",
+            icon: Flame
+        }
+    ];
+
     return (
         <div>
             {/* Charts Section */}
@@ -180,30 +204,30 @@ export default function MarketingDashboard({
 
             {/* Metrics Grid */}
              <div className="grid grid-cols-3 gap-4 mb-6">
-                <MetricCard
-                    title="OUTBOUND"
-                    value={metrics.totalOutboundMessages.toLocaleString()}
-                    rate="Response Rate"
-                    rateValue={`${metrics.responseRate.toFixed(1)}%`}
-                      xp="+1 XP each"
-                    icon={Target}
-                />
-                   <MetricCard
-                    title="POSTS"
-                    value={metrics.totalPostsCreated.toLocaleString()}
-                    rate="Leads per Post"
-                     rateValue={metrics.leadsPerPost?.toFixed(1)}
-                       xp="+25 XP each"
-                      icon={Star}
-                />
-                 <MetricCard
-                    title="LEADS"
-                    value={metrics.totalLeadsGenerated.toLocaleString()}
-                    rate="Leads Created"
-                      rateValue={`${metrics.leadsPerPost?.toFixed(1)}`}
-                    xp="+25 XP each"
-                      icon={Users}
-                />
+                {metricsCards.map((card, index) => (
+                    <MetricCard
+                        key={index}
+                        title={card.title}
+                        value={card.value}
+                        rate={card.rate}
+                        rateValue={card.rateValue}
+                        xp={card.xp}
+                        icon={card.icon}
+                    />
+                ))}
+            </div>
+
+            <div className="flex justify-end mb-4">
+                <select 
+                    value={selectedRange}
+                    onChange={(e) => setSelectedRange(e.target.value as keyof typeof DATE_RANGES)}
+                    className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
+                >
+                    <option value="DAY">Today</option>
+                    <option value="WEEK">This Week</option>
+                    <option value="MONTH">This Month</option>
+                    <option value="ALL">All Time</option>
+                </select>
             </div>
         </div>
     );
