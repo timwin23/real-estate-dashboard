@@ -246,18 +246,36 @@ export async function fetchProjections(): Promise<TeamProjections> {
         const metric = metrics[index];
         if (!metric) return;
 
-        ['CHRIS', 'ISRAEL', 'IVETTE'].forEach((member, i) => {
-            const colStart = i * 3;
-            projections[member][metric] = {
-                daily: Number(row[colStart + 1]) || 0,
-                weekly: Number(row[colStart + 2]) || 0,
-                monthly: Number(row[colStart + 3]) || 0
-            };
-        });
+        // CHRIS: Daily (B), Weekly (C), Monthly (D)
+        projections.CHRIS[metric] = {
+            daily: Number(row[1]) || 0,
+            weekly: Number(row[2]) || 0,
+            monthly: Number(row[3]) || 0
+        };
 
-        projections.ALL[metric] = { ...projections.CHRIS[metric] };
+        // ISRAEL: Daily (E), Weekly (F), Monthly (G)
+        projections.ISRAEL[metric] = {
+            daily: Number(row[4]) || 0,
+            weekly: Number(row[5]) || 0,
+            monthly: Number(row[6]) || 0
+        };
+
+        // IVETTE: Daily (H), Weekly (I), Monthly (J)
+        projections.IVETTE[metric] = {
+            daily: Number(row[7]) || 0,
+            weekly: Number(row[8]) || 0,
+            monthly: Number(row[9]) || 0
+        };
+
+        // ALL: Sum of all team members
+        projections.ALL[metric] = {
+            daily: projections.CHRIS[metric].daily + projections.ISRAEL[metric].daily + projections.IVETTE[metric].daily,
+            weekly: projections.CHRIS[metric].weekly + projections.ISRAEL[metric].weekly + projections.IVETTE[metric].weekly,
+            monthly: projections.CHRIS[metric].monthly + projections.ISRAEL[metric].monthly + projections.IVETTE[metric].monthly
+        };
     });
 
+    console.log('[sheets.ts] Fetched projections:', projections);
     return projections;
 }
 
