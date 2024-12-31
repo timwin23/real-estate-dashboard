@@ -68,14 +68,14 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
   
   console.log(`[marketingSheets] Fetching data for member: ${memberName}, sheet: ${sheetName}`);
   
-  const data = await fetchSheetData(`${sheetName}!A2:X`);
+  const data = await fetchSheetData(`${sheetName}!A2:V`);
   
   return data.map((row: any[]) => {
-    const outboundMessages = Number(row[16]) || 0;
-    const positiveResponses = Number(row[17]) || 0;
-    const postsCreated = Number(row[19]) || 0;
-    const leadsGenerated = Number(row[20]) || 0;
-    const marketingXP = Number(row[21]) || 0;
+    const outboundMessages = Number(row[15]) || 0;
+    const positiveResponses = Number(row[16]) || 0;
+    const postsCreated = Number(row[18]) || 0;
+    const leadsGenerated = Number(row[19]) || 0;
+    const marketingXP = Number(row[20]) || 0;
 
     return {
       date: row[0],
@@ -110,7 +110,7 @@ interface TeamProjections {
 }
 
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
-  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
+  const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!B10:J13`);
   
   const metrics: (keyof TeamMemberProjections)[] = ['outbound', 'posts', 'leads', 'responses'];
   const members = ['chris', 'israel', 'ivette'] as const;
