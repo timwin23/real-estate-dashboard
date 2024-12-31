@@ -350,7 +350,7 @@ export default function RealEstateDashboard() {
 
                 setData(filteredSalesData);
                 setMarketingData(filteredMktgData);
-                setPersonalData(filteredPersonalData); // <- This line was missing
+                setPersonalData(filteredPersonalData);
 
                 const streak = calculateStreak(filteredSalesData,
                     selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
