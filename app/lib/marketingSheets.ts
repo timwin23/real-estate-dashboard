@@ -20,13 +20,13 @@ function safeRate(numerator: any, denominator: any): number {
 
 interface MarketingMetrics {
   date: string;
-  outboundMessages: number;
-  positiveResponses: number;
-  responseRate: number;
-  postsCreated: number;
-  leadsGenerated: number;
-  leadsPerPost: number;
-  marketingXP: number;
+  outbound_messages: number;
+  positive_responses: number;
+  response_rate: number;
+  posts_created: number;
+  leads_generated: number;
+  leads_per_post: number;
+  marketing_xp: number;
 }
 
 async function fetchSheetData(range: string): Promise<any[]> {
@@ -89,13 +89,13 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
 
     return {
       date: row[0],
-      outboundMessages,
-      positiveResponses,
-      responseRate: safeRate(positiveResponses, outboundMessages),
-      postsCreated,
-      leadsGenerated,
-      leadsPerPost: safeRate(leadsGenerated, postsCreated),
-      marketingXP
+      outbound_messages: outboundMessages,
+      positive_responses: positiveResponses,
+      response_rate: safeRate(positiveResponses, outboundMessages),
+      posts_created: postsCreated,
+      leads_generated: leadsGenerated,
+      leads_per_post: safeRate(leadsGenerated, postsCreated),
+      marketing_xp: marketingXP
     };
   });
 
