@@ -574,7 +574,7 @@ export default function RealEstateDashboard() {
            {dashboardType === 'sales' ? (
                <>
                    {/* Sales Metrics Grid */}
-                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                   <div className="grid grid-cols-5 gap-4 mb-6">
                        <MetricCard
                            title="OUTBOUND"
                            value={metrics.totalOutbound.toLocaleString()}
@@ -600,12 +600,19 @@ export default function RealEstateDashboard() {
                            icon={Calendar}
                        />
                        <MetricCard
-                           title="CONTRACTS"
-                           value={metrics.totalContracts.toLocaleString()}
+                           title="CLOSES"
+                           value={metrics.totalCloses.toLocaleString()}
                            rate="Close Rate"
                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
-                           xp="+50 XP each"
-                           icon={Trophy}
+                           xp="+100 XP each"
+                           icon={Flame}
+                       />
+                       <MetricCard
+                           title="REVENUE"
+                           value={`$${metrics.totalRevenue.toLocaleString()}`}
+                           rate="Per Close"
+                           rateValue={`$${(metrics.totalRevenue / metrics.totalCloses || 0).toLocaleString()}`}
+                           icon={DollarSign}
                        />
                    </div>
 
