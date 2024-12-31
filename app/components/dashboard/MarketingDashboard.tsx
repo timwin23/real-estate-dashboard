@@ -94,12 +94,11 @@ export default function MarketingDashboard({
         });
 
         const totals = filteredData.reduce((acc, curr) => ({
-            totalOutboundMessages: acc.totalOutboundMessages + (curr.outboundMessages || 0),
-            totalPositiveResponses: acc.totalPositiveResponses + (curr.positiveResponses || 0),
-            totalPostsCreated: acc.totalPostsCreated + (curr.postsCreated || 0),
-            totalLeadsGenerated: acc.totalLeadsGenerated + (curr.leadsGenerated || 0),
-            totalRevenue: acc.totalRevenue + (curr.revenue || 0),
-            marketingXP: acc.marketingXP + (curr.marketingXP || 0)
+            totalOutboundMessages: acc.totalOutboundMessages + (curr.outbound_messages || 0),
+            totalPositiveResponses: acc.totalPositiveResponses + (curr.positive_responses || 0),
+            totalPostsCreated: acc.totalPostsCreated + (curr.posts_created || 0),
+            totalLeadsGenerated: acc.totalLeadsGenerated + (curr.leads_generated || 0),
+            marketingXP: acc.marketingXP + (curr.marketing_xp || 0)
         }), {
             totalOutboundMessages: 0,
             totalPositiveResponses: 0,
@@ -218,10 +217,10 @@ export default function MarketingDashboard({
                                 }}
                             />
                             <Legend />
-                            <Line type="monotone" dataKey="outboundMessages" name="Outbound" stroke="#ff0000" dot={false} />
-                            <Line type="monotone" dataKey="positiveResponses" name="Responses" stroke="#ff4444" dot={false} />
-                            <Line type="monotone" dataKey="postsCreated" name="Posts" stroke="#ff8888" dot={false} />
-                            <Line type="monotone" dataKey="leadsGenerated" name="Leads" stroke="#ffaaaa" dot={false} />
+                            <Line type="monotone" dataKey="outbound_messages" name="Outbound" stroke="#ff0000" dot={false} />
+                            <Line type="monotone" dataKey="positive_responses" name="Responses" stroke="#ff4444" dot={false} />
+                            <Line type="monotone" dataKey="posts_created" name="Posts" stroke="#ff8888" dot={false} />
+                            <Line type="monotone" dataKey="leads_generated" name="Leads" stroke="#ffaaaa" dot={false} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>

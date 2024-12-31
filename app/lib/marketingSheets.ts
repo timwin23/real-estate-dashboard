@@ -147,3 +147,12 @@ function createEmptyProjections(): TeamMemberProjections {
     responses: { daily: 0, weekly: 0, monthly: 0 }
   };
 }
+
+export interface MarketingData {
+    date: string;
+    outbound_messages: number;
+    positive_responses: number;
+    posts_created: number;
+    leads_generated: number;
+    marketing_xp: number;
+}
