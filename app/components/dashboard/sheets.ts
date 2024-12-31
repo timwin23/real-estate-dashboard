@@ -124,6 +124,16 @@ export interface AchievementsData {
     completedAchievements: Goal[];
 }
 
+// Add these types at the top with other types
+export type MarketingData = {
+    date: string | number;
+    posts: number;
+    leads: number;
+    outbound_messages: number;
+    responses: number;
+    marketingXP: number;
+};
+
 // Utility Functions
 function safeRate(value: any): number {
     return isNaN(Number(value)) ? 0 : Number(value);
@@ -361,3 +371,43 @@ export function filterDataByDateRange<T extends { date: string }>(
         }
     });
 }
+
+// Add this function with your other fetch functions
+export const fetchMarketingData = async (member: TeamMemberKey): Promise<MarketingData[]> => {
+    try {
+        logDebug(`Fetching marketing data for member: ${member}`);
+        
+        if (member === 'ALL') {
+            // Fetch all members' marketing data
+            const promises = Object.values(SHEET_TABS)
+                .filter(tab => tab.includes('Analysis'))
+                .map(tab => fetchSheetData(`${tab}!A2:X`));
+            
+            const results = await Promise.all(promises);
+            return results.flat().map(row => ({
+                date: row[0],
+                posts: Number(row[15]) || 0,
+                leads: Number(row[16]) || 0,
+                outbound_messages: Number(row[17]) || 0,
+                responses: Number(row[18]) || 0,
+                marketingXP: Number(row[19]) || 0
+            }));
+        } else {
+            // Fetch single member's marketing data
+            const tab = SHEET_TABS[member];
+            const data = await fetchSheetData(`${tab}!A2:X`);
+            
+            return data.map(row => ({
+                date: row[0],
+                posts: Number(row[15]) || 0,
+                leads: Number(row[16]) || 0,
+                outbound_messages: Number(row[17]) || 0,
+                responses: Number(row[18]) || 0,
+                marketingXP: Number(row[19]) || 0
+            }));
+        }
+    } catch (error) {
+        console.error('Error fetching marketing data:', error);
+        return [];
+    }
+};

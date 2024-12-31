@@ -4,7 +4,16 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Swords, Crown, Flame, Star, Trophy, Calendar, Users, DollarSign } from 'lucide-react';
-import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawData, TeamMemberKey, SHEET_TABS } from './sheets';
+import { 
+    fetchTeamMemberData, 
+    fetchMarketingData,
+    filterDataByDateRange, 
+    fetchProjections, 
+    fetchRawData, 
+    TeamMemberKey, 
+    SHEET_TABS,
+    MarketingData
+} from './sheets';
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 
