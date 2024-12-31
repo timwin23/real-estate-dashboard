@@ -69,8 +69,18 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
   console.log(`[marketingSheets] Fetching data for member: ${memberName}, sheet: ${sheetName}`);
   
   const data = await fetchSheetData(`${sheetName}!A2:V`);
+  console.log('[marketingSheets] Raw data:', data);
   
-  return data.map((row: any[]) => {
+  const mappedData = data.map((row: any[]) => {
+    // Log each row's raw values for the columns we care about
+    console.log('[marketingSheets] Row values:', {
+      outbound: row[15],
+      responses: row[16],
+      posts: row[18],
+      leads: row[19],
+      xp: row[20]
+    });
+
     const outboundMessages = Number(row[15]) || 0;
     const positiveResponses = Number(row[16]) || 0;
     const postsCreated = Number(row[18]) || 0;
@@ -88,6 +98,8 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
       marketingXP
     };
   });
+
+  return mappedData;
 }
 
 interface TeamMemberProjections {
