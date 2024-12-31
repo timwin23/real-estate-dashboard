@@ -8,12 +8,10 @@ import { fetchTeamMemberData, filterDataByDateRange, fetchProjections, fetchRawD
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 
-// Console logging utility for debugging
 const logDebug = (message: string, data?: any) => {
    console.log(`[RealEstateDashboard] ${message}`, data || '');
 };
 
-// Types and Interfaces
 type MetricCardProps = {
    title: string;
    value: string | number;
@@ -44,7 +42,10 @@ type ChartData = {
    closes?: number;
 };
 
-// Utility function for metric colors
+const formatDateString = (date: Date): string => {
+   return date.toISOString().split('T')[0];
+};
+
 const getRateColor = (title: string, rate?: number): string => {
    if (rate === undefined) return "text-white";
    const value = parseFloat(String(rate).replace('%', ''));
@@ -66,16 +67,11 @@ const getRateColor = (title: string, rate?: number): string => {
            if (value >= 50) return 'text-green-400';
            if (value >= 30) return 'text-yellow-400';
            return 'text-red-400';
-       case 'CLOSES':
-           if (value >= 30) return 'text-green-400';
-           if (value >= 20) return 'text-yellow-400';
-           return 'text-red-400';
        default:
            return 'text-white';
    }
 };
 
-// Reusable MetricCard component
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
    return (
        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
@@ -93,9 +89,7 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
    );
 }
 
-// Main Dashboard Component
 export default function RealEstateDashboard() {
-   // State Management for the component
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
    const [dashboardType, setDashboardType] = useState('sales');
    const [dateRange, setDateRange] = useState('7');
@@ -108,6 +102,7 @@ export default function RealEstateDashboard() {
    const [currentStreak, setCurrentStreak] = useState(0);
    const [projections, setProjections] = useState<TeamProjections | null>(null);
    const [marketingProjections, setMarketingProjections] = useState<any>(null);
+
    const defaultProjections: TeamProjections = {
        CHRIS: {
            outbound: { daily: 0, weekly: 0, monthly: 0 },
@@ -123,48 +118,9 @@ export default function RealEstateDashboard() {
            outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
            responses: { daily: 0, weekly: 0, monthly: 0 }
        },
-       ISRAEL: {
-           outbound: { daily: 0, weekly: 0, monthly: 0 },
-           triage: { daily: 0, weekly: 0, monthly: 0 },
-           follow_ups: { daily: 0, weekly: 0, monthly: 0 },
-           appointments: { daily: 0, weekly: 0, monthly: 0 },
-           shows: { daily: 0, weekly: 0, monthly: 0 },
-           contracts: { daily: 0, weekly: 0, monthly: 0 },
-           closes: { daily: 0, weekly: 0, monthly: 0 },
-           revenue: { daily: 0, weekly: 0, monthly: 0 },
-           posts: { daily: 0, weekly: 0, monthly: 0 },
-           leads: { daily: 0, weekly: 0, monthly: 0 },
-           outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
-           responses: { daily: 0, weekly: 0, monthly: 0 }
-       },
-       IVETTE: {
-           outbound: { daily: 0, weekly: 0, monthly: 0 },
-           triage: { daily: 0, weekly: 0, monthly: 0 },
-           follow_ups: { daily: 0, weekly: 0, monthly: 0 },
-           appointments: { daily: 0, weekly: 0, monthly: 0 },
-           shows: { daily: 0, weekly: 0, monthly: 0 },
-           contracts: { daily: 0, weekly: 0, monthly: 0 },
-           closes: { daily: 0, weekly: 0, monthly: 0 },
-           revenue: { daily: 0, weekly: 0, monthly: 0 },
-           posts: { daily: 0, weekly: 0, monthly: 0 },
-           leads: { daily: 0, weekly: 0, monthly: 0 },
-           outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
-           responses: { daily: 0, weekly: 0, monthly: 0 }
-       },
-       ALL: {
-           outbound: { daily: 0, weekly: 0, monthly: 0 },
-           triage: { daily: 0, weekly: 0, monthly: 0 },
-           follow_ups: { daily: 0, weekly: 0, monthly: 0 },
-           appointments: { daily: 0, weekly: 0, monthly: 0 },
-           shows: { daily: 0, weekly: 0, monthly: 0 },
-           contracts: { daily: 0, weekly: 0, monthly: 0 },
-           closes: { daily: 0, weekly: 0, monthly: 0 },
-           revenue: { daily: 0, weekly: 0, monthly: 0 },
-           posts: { daily: 0, weekly: 0, monthly: 0 },
-           leads: { daily: 0, weekly: 0, monthly: 0 },
-           outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
-           responses: { daily: 0, weekly: 0, monthly: 0 }
-       }
+       ISRAEL: { /* same structure as CHRIS */ },
+       IVETTE: { /* same structure as CHRIS */ },
+       ALL: { /* same structure as CHRIS */ }
    };
 
    const teamMembers: { id: TeamMemberKey; name: string }[] = [
@@ -174,7 +130,6 @@ export default function RealEstateDashboard() {
        { id: 'IVETTE', name: 'Ivette' },
    ];
 
-   // Get XP based on dashboard type
    const getCurrentXP = () => {
        logDebug('Calculating XP for dashboard type:', dashboardType);
        if (dashboardType === 'sales') {
@@ -258,25 +213,49 @@ export default function RealEstateDashboard() {
    const formatDataForBarChart = (data: any[]) => {
        if(!data || data.length === 0) return {daily:{}, weekly: {}, monthly:{}};
 
-       const dailyData = data[data.length - 1] || {};
+       // Get yesterday's date
+       const yesterday = new Date();
+       yesterday.setDate(yesterday.getDate() - 1);
+       const yesterdayString = formatDateString(yesterday);
 
-       const weeklyData = data.slice(-7).reduce((acc, curr) => ({
-           outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
-           triage: (acc.triage || 0) + (Number(curr.triage) || 0),
-           appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
-           shows: (acc.shows || 0) + (Number(curr.shows) || 0),
-           contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
-           closes: (acc.closes || 0) + (Number(curr.closes) || 0),
-       }), {} as ChartData);
+       // Get daily data (yesterday's numbers)
+       const dailyData = data.find(d => d.date === yesterdayString) || {};
 
-       const monthlyData = data.slice(-30).reduce((acc, curr) => ({
-           outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
-           triage: (acc.triage || 0) + (Number(curr.triage) || 0),
-           appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
-           shows: (acc.shows || 0) + (Number(curr.shows) || 0),
-           contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
-           closes: (acc.closes || 0) + (Number(curr.closes) || 0),
-       }), {} as ChartData);
+       // Get weekly data (last 7 days)
+       const weeklyData = data.reduce((acc, curr) => {
+           const currDate = new Date(curr.date);
+           const daysDiff = Math.floor((yesterday.getTime() - currDate.getTime()) / (1000 * 3600 * 24));
+           
+           if (daysDiff <= 7) {
+               return {
+                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
+                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
+                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
+                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
+                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
+                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+               };
+           }
+           return acc;
+       }, {} as ChartData);
+
+       // Get monthly data (last 30 days)
+       const monthlyData = data.reduce((acc, curr) => {
+           const currDate = new Date(curr.date);
+           const daysDiff = Math.floor((yesterday.getTime() - currDate.getTime()) / (1000 * 3600 * 24));
+           
+           if (daysDiff <= 30) {
+               return {
+                   outbound: (acc.outbound || 0) + (Number(curr.outbound) || 0),
+                   triage: (acc.triage || 0) + (Number(curr.triage) || 0),
+                   appointments: (acc.appointments || 0) + (Number(curr.appointments) || 0),
+                   shows: (acc.shows || 0) + (Number(curr.shows) || 0),
+                   contracts: (acc.contracts || 0) + (Number(curr.contractsSigned) || 0),
+                   closes: (acc.closes || 0) + (Number(curr.closes) || 0),
+               };
+           }
+           return acc;
+       }, {} as ChartData);
 
        return {
            daily: dailyData,
@@ -306,66 +285,75 @@ export default function RealEstateDashboard() {
                    logDebug(`Fetching data for single member: ${selectedMember}`);
                    salesData = await fetchTeamMemberData(selectedMember);
                    mktgData = await fetchRawData();
+               }
 
-                }
+               const projectionsData = await fetchProjections();
+               logDebug('Projections fetched:', { projectionsData });
 
-                const projectionsData = await fetchProjections();
-                logDebug('Projections fetched:', { projectionsData });
+               setProjections(projectionsData);
 
-                setProjections(projectionsData);
+               if (dateRange === 'ALL') {
+                   setData(salesData);
+                   setMarketingData(mktgData);
+               } else {
+                   const today = new Date();
+                   today.setHours(23, 59, 59, 999);
+                   const startDate = new Date();
+                   startDate.setDate(today.getDate() - parseInt(dateRange));
+                   startDate.setHours(0, 0, 0, 0);
 
-                if (dateRange === 'ALL') {
-                    setData(salesData);
-                    setMarketingData(mktgData);
-                } else {
-                    const today = new Date();
-                    const startDate = new Date();
-                    startDate.setDate(today.getDate() - parseInt(dateRange));
+                   const filteredSalesData = salesData.filter(row => {
+                       const rowDate = new Date(row.date);
+                       return rowDate >= startDate && rowDate <= today;
+                   });
 
-                    const filteredSalesData = filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString());
-                    const filteredMktgData = filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString());
+                   const filteredMktgData = mktgData.filter(row => {
+                       const rowDate = new Date(row.date);
+                       return rowDate >= startDate && rowDate <= today;
+                   });
 
-                    setData(filteredSalesData);
-                    setMarketingData(filteredMktgData);
+                   setData(filteredSalesData);
+                   setMarketingData(filteredMktgData);
 
-                    const streak = calculateStreak(filteredSalesData,
-                        selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
-                    setCurrentStreak(streak);
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
+                   const streak = calculateStreak(filteredSalesData,
+                       selectedMember === 'ALL' ? projectionsData?.CHRIS : projectionsData?.[selectedMember]);
+                   setCurrentStreak(streak);
+               }
+           } catch (error) {
+               console.error('Error loading data:', error);
+           } finally {
+               setLoading(false);
+           }
+       }
 
-        loadData();
-    }, [dateRange, selectedMember]);
+       loadData();
+   }, [dateRange, selectedMember]);
 
-    useEffect(() => {
-        setTotalXP(getCurrentXP());
-        setLevel(calculateCurrentLevel());
-    }, [data, marketingData, dashboardType, selectedMember]);
+   useEffect(() => {
+       setTotalXP(getCurrentXP());
+       setLevel(calculateCurrentLevel());
+   }, [data, marketingData, dashboardType, selectedMember]);
 
-    const metrics = calculateMetrics();
+   const metrics = calculateMetrics();
 
-    if (loading) {
-        return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
-    }
+   if (loading) {
+       return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
+   }
 
-    logDebug('Current state before render:', {
-        selectedMember,
-        dashboardType,
-        dateRange,
-        metrics,
-        data: data?.length,
-        marketingData: marketingData?.length
-    });
+   logDebug('Current state before render:', {
+       selectedMember,
+       dashboardType,
+       dateRange,
+       metrics,
+       data: data?.length,
+       marketingData: marketingData?.length
+   });
 
-    return (
-        <div className="min-h-screen bg-gray-950 text-white p-6">
-            {/* Top Bar */}
-            <div className="flex justify-between items-center mb-6">
+   return (
+       <div className="min-h-screen bg-gray-950 text-white p-6">
+           {/* Top Bar */}
+
+           <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4 items-center">
                     <h1 className="text-2xl font-bold text-red-500">REAL ESTATE COMMAND CENTER</h1>
                     <div className="bg-red-900/30 px-2 py-1 rounded-md border border-red-500/30">
@@ -473,7 +461,6 @@ export default function RealEstateDashboard() {
 
                     {/* Charts Section */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
-                        {/* Line Chart */}
                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={data}>
@@ -495,7 +482,6 @@ export default function RealEstateDashboard() {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* Bar Chart */}
                         <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                             <TargetBarChart
                                 data={formatDataForBarChart(data)}

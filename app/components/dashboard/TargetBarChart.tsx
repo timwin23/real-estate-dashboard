@@ -1,23 +1,27 @@
 "use client";
 
 import React, { useState } from 'react';
-import type { MetricData } from './sheets';
 
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
+
+type MetricData = {
+    [key: string]: {
+        daily: number;
+        weekly: number;
+        monthly: number;
+    };
+};
+
 type MetricKeyType = keyof MetricData;
 
-type TargetBarChartProps = {
-    data: {
-        [timeframe: string]: {
-            [metric: string]: number;
-        };
-    };
+type ChartProps = {
+    data: any[];
     projections: MetricData | null;
 };
 
-const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
+const TargetBarChart = ({ data, projections }: ChartProps) => {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
-    
+
     const getPerformanceColor = (actual: number, target: number) => {
         if (!target) return 'text-gray-400';
         const percent = (actual / target) * 100;
@@ -44,17 +48,24 @@ const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
         return value.toLocaleString();
     };
 
-    const getActualValue = (metric: MetricKeyType) => {
-        if (metric === 'contracts') {
-            return data[timeframe]?.['contractsSigned'] || 0;
+    const getActualValue = (data: any[], metric: MetricKeyType, timeframe: TimeframeType): number => {
+        if (!data || data.length === 0) return 0;
+
+        let relevantData: any[] = [];
+        if (timeframe === 'daily') {
+            relevantData = data.slice(-1); // Get the last day
+        } else if (timeframe === 'weekly') {
+            relevantData = data.slice(-7); // Get the last 7 days
+        } else if (timeframe === 'monthly') {
+            relevantData = data.slice(-30); // Get the last 30 days
         }
-        // Convert metric to string for data object indexing
-        return data[timeframe]?.[metric.toString()] || 0;
+
+        return relevantData.reduce((sum, day) => sum + (day[metric] || 0), 0);
     };
 
-    const getTargetValue = (metric: MetricKeyType) => {
-        if (!projections) return 0;
-        return projections[metric]?.[timeframe] || 0;
+    const getTargetValue = (projections: MetricData | null, metric: MetricKeyType, timeframe: TimeframeType): number => {
+        if (!projections || !projections[metric]) return 0;
+        return projections[metric][timeframe] || 0;
     };
 
     return (
@@ -83,8 +94,8 @@ const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
 
                     {/* Table Body */}
                     {metrics.map((metric, idx) => {
-                        const actual = getActualValue(metric.key);
-                        const target = getTargetValue(metric.key);
+                        const actual = getActualValue(data, metric.key, timeframe);
+                        const target = getTargetValue(projections, metric.key, timeframe);
 
                         return (
                             <React.Fragment key={metric.key}>
