@@ -193,7 +193,7 @@ export default function MarketingDashboard({
     return (
         <div>
             {/* Metrics Grid - Now above charts */}
-            <div className="grid grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
                 {metricsCards.map((card, index) => (
                     <MetricCard
                         key={index}
@@ -240,21 +240,21 @@ export default function MarketingDashboard({
 
 function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
     return (
-        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-6">
-            <div className="flex justify-between items-start mb-3">
-                <span className="text-gray-300 text-lg">{title}</span>
-                {Icon && <Icon className="text-red-500 w-6 h-6" />}
+        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-5">
+            <div className="flex justify-between items-start mb-2">
+                <span className="text-gray-300">{title}</span>
+                {Icon && <Icon className="text-red-500 w-5 h-5" />}
             </div>
-            <div className="text-3xl font-bold mb-2 text-white">{value}</div>
+            <div className="text-2xl font-bold mb-1 text-white">{value}</div>
             {rate && (
                 <>
                     <div className="text-sm text-gray-300">{rate}</div>
-                    <div className={`text-xl font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
+                    <div className={`text-lg font-bold ${getRateColor(title, parseFloat(String(rateValue)))}`}>
                         {rateValue}
                     </div>
                 </>
             )}
-            <div className="text-sm text-red-500 mt-3">{xp}</div>
+            <div className="text-xs text-red-500 mt-2">{xp}</div>
         </div>
     );
 }
