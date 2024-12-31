@@ -124,7 +124,13 @@ interface TeamProjections {
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
   const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!B10:J13`);
   
-  const metrics: (keyof TeamMemberProjections)[] = ['outbound', 'posts', 'leads', 'responses'];
+  const metrics: (keyof TeamMemberProjections)[] = [
+    'outbound_messages',
+    'positive_responses',
+    'posts_created',
+    'leads_generated'
+  ];
+
   const members = ['chris', 'israel', 'ivette'] as const;
   
   const projections: TeamProjections = {
@@ -134,13 +140,15 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
   };
 
   data.forEach((row: any[], index: number) => {
-    const metricIndex = Math.floor(index / 4);
-    const metric = metrics[metricIndex];
-    if (!metric) return;
+    if (!row[0]) return;
+    
+    const metricName = row[0].toLowerCase();
+    const metricKey = metrics.find(m => m.includes(metricName));
+    if (!metricKey) return;
 
     members.forEach((member, i) => {
       const baseCol = i * 3;
-      projections[member][metric] = {
+      projections[member][metricKey] = {
         daily: Number(row[baseCol + 1]) || 0,
         weekly: Number(row[baseCol + 2]) || 0,
         monthly: Number(row[baseCol + 3]) || 0
