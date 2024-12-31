@@ -25,6 +25,9 @@ type ChartProps = {
 const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
 
+    console.log('[MarketingBarChart] Received projections:', projections);
+    console.log('[MarketingBarChart] Received data:', data);
+
     const getPerformanceColor = (actual: number, target: number) => {
         if (!target) return 'text-gray-400';
         const percent = (actual / target) * 100;
@@ -67,6 +70,8 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
                     {/* Table Body */}
                     {metrics.map((metric, idx) => {
                         const actual = data[timeframe]?.[metric.key] || 0;
+                        console.log(`[MarketingBarChart] ${metric.label} projection:`, 
+                            projections[metric.key]?.[timeframe]);
                         const target = projections[metric.key]?.[timeframe] || 0;
 
                         return (
