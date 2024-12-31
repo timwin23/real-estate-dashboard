@@ -238,36 +238,36 @@ export async function fetchProjections(): Promise<TeamProjections> {
 
     const metrics: MetricKey[] = [
         'outbound', 'triage', 'follow_ups', 'appointments', 'shows',
-        'contracts', 'closes', 'revenue', 'posts', 'leads',
-        'outbound_messages', 'responses'
+        'contracts', 'revenue', 'posts', 'leads', 'outbound_messages',
+        'responses'
     ];
 
     data.forEach((row: any[], index: number) => {
         const metric = metrics[index];
         if (!metric) return;
 
-        // CHRIS: Daily (B), Weekly (C), Monthly (D)
+        // CHRIS: B-D (indices 1,2,3)
         projections.CHRIS[metric] = {
-            daily: Number(row[1]) || 0,
-            weekly: Number(row[2]) || 0,
-            monthly: Number(row[3]) || 0
+            daily: Number(row[1]) || 0,   // B column
+            weekly: Number(row[2]) || 0,   // C column
+            monthly: Number(row[3]) || 0    // D column
         };
 
-        // ISRAEL: Daily (E), Weekly (F), Monthly (G)
+        // ISRAEL: E-G (indices 4,5,6)
         projections.ISRAEL[metric] = {
-            daily: Number(row[4]) || 0,
-            weekly: Number(row[5]) || 0,
-            monthly: Number(row[6]) || 0
+            daily: Number(row[4]) || 0,   // E column
+            weekly: Number(row[5]) || 0,   // F column
+            monthly: Number(row[6]) || 0    // G column
         };
 
-        // IVETTE: Daily (H), Weekly (I), Monthly (J)
+        // IVETTE: H-J (indices 7,8,9)
         projections.IVETTE[metric] = {
-            daily: Number(row[7]) || 0,
-            weekly: Number(row[8]) || 0,
-            monthly: Number(row[9]) || 0
+            daily: Number(row[7]) || 0,   // H column
+            weekly: Number(row[8]) || 0,   // I column
+            monthly: Number(row[9]) || 0    // J column
         };
 
-        // ALL: Sum of all team members
+        // ALL: Sum of individual targets
         projections.ALL[metric] = {
             daily: projections.CHRIS[metric].daily + projections.ISRAEL[metric].daily + projections.IVETTE[metric].daily,
             weekly: projections.CHRIS[metric].weekly + projections.ISRAEL[metric].weekly + projections.IVETTE[metric].weekly,
@@ -275,7 +275,7 @@ export async function fetchProjections(): Promise<TeamProjections> {
         };
     });
 
-    console.log('[sheets.ts] Fetched projections:', projections);
+    console.log('[sheets.ts] Projections fetched:', projections);
     return projections;
 }
 
