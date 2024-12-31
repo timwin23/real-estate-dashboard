@@ -304,67 +304,66 @@ export default function RealEstateDashboard() {
    };
 
    useEffect(() => {
-       async function loadData() {
-           try {
-               logDebug('Starting data load for member:', selectedMember);
-               setLoading(true);
-               let salesData: TeamMemberData[] = [],
-                   mktgData: any[] = [];
+    async function loadData() {
+        try {
+            logDebug('Starting data load for member:', selectedMember);
+            setLoading(true);
+            let salesData: TeamMemberData[] = [],
+                mktgData: any[] = [],
+                pData: RawData[] = [];
 
-               if (selectedMember === 'ALL') {
-                   logDebug('Fetching data for all members...');
-                   const [chrisData, israelData, ivetteData] = await Promise.all([
-                       fetchTeamMemberData('CHRIS'),
-                       fetchTeamMemberData('ISRAEL'),
-                       fetchTeamMemberData('IVETTE')
-                   ]);
-                   salesData = [...chrisData, ...israelData, ...ivetteData];
-                   mktgData = await fetchRawData();
-               } else {
-                   logDebug(`Fetching data for single member: ${selectedMember}`);
-                   salesData = await fetchTeamMemberData(selectedMember);
-                   mktgData = await fetchRawData();
-               }
+            if (selectedMember === 'ALL') {
+                logDebug('Fetching data for all members...');
+                const [chrisData, israelData, ivetteData] = await Promise.all([
+                    fetchTeamMemberData('CHRIS'),
+                    fetchTeamMemberData('ISRAEL'),
+                    fetchTeamMemberData('IVETTE')
+                ]);
+                salesData = [...chrisData, ...israelData, ...ivetteData];
+                mktgData = await fetchRawData();
+                pData = await fetchRawData();
 
-               const projectionsData = await fetchProjections();
-               logDebug('Projections fetched:', { projectionsData });
+            } else {
+                logDebug(`Fetching data for single member: ${selectedMember}`);
+                salesData = await fetchTeamMemberData(selectedMember);
+                mktgData = await fetchRawData();
+                pData = await fetchRawData();
+            }
 
-               setProjections(projectionsData);
+            const projectionsData = await fetchProjections();
+            logDebug('Projections fetched:', { projectionsData });
 
-               if (dateRange === 'ALL') {
-                   setData(salesData);
-                   setMarketingData(mktgData);
-               } else {
-                   const today = new Date();
-                   today.setHours(23, 59, 59, 999);
-                   const startDate = new Date();
-                   startDate.setDate(today.getDate() - parseInt(dateRange));
-                   startDate.setHours(0, 0, 0, 0);
+            setProjections(projectionsData);
 
-                   const filteredSalesData = salesData.filter(row => {
-                       const rowDate = new Date(row.date);
-                       return rowDate >= startDate && rowDate <= today;
-                   });
+            // Set data based on date range
+            let today = new Date();
+            let startDate = new Date();
 
-                   const filteredMktgData = mktgData.filter(row => {
-                       const rowDate = new Date(row.date);
-                       return rowDate >= startDate && rowDate <= today;
-                   });
+            if (dateRange === '7') {
+                startDate.setDate(today.getDate() - 6); // 7 days ago inclusive
+            } else if (dateRange === '30') {
+                startDate.setDate(today.getDate() - 29); // 30 days ago inclusive
+            } else if (dateRange === '90') {
+                startDate.setDate(today.getDate() - 89); // 90 days ago inclusive
+            } // For 'ALL', we do not filter by date.
 
-                   setData(filteredSalesData);
-                   setMarketingData(filteredMktgData);
+            const filteredSalesData = dateRange !== 'ALL' ? filterDataByDateRange(salesData, startDate.toISOString(), today.toISOString()) : salesData;
+            const filteredMktgData = dateRange !== 'ALL' ? filterDataByDateRange(mktgData, startDate.toISOString(), today.toISOString()) : mktgData;
+            const filteredPersonalData = dateRange !== 'ALL' ? filterDataByDateRange(pData, startDate.toISOString(), today.toISOString()) : pData;
 
-                   const streak = calculateStreak(filteredSalesData,
-                       selectedMember === 'ALL' ? projectionsData?.CHRIS : projectionsData?.[selectedMember]);
-                   setCurrentStreak(streak);
-               }
-           } catch (error) {
-               console.error('Error loading data:', error);
-           } finally {
-               setLoading(false);
-           }
-       }
+            setData(filteredSalesData);
+            setMarketingData(filteredMktgData);
+            setPersonalData(filteredPersonalData);
 
+            const streak = calculateStreak(filteredSalesData,
+                selectedMember === 'ALL' ? projectionsData?.chris : projectionsData?.[selectedMember]);
+            setCurrentStreak(streak);
+        } catch (error) {
+            console.error('Error loading data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }
        loadData();
    }, [dateRange, selectedMember]);
 
