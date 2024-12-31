@@ -522,16 +522,29 @@ export default function RealEstateDashboard() {
    return (
        <div className="min-h-screen bg-gray-950 text-white p-4">
            <div className="flex justify-between items-center mb-6">
-               <select 
-                   value={selectedMember} 
-                   onChange={(e) => setSelectedMember(e.target.value as TeamMemberKey)}
-                   className="bg-gray-800 text-white p-2 rounded"
-               >
-                   <option value="ALL">All Members</option>
-                   <option value="CHRIS">Chris</option>
-                   <option value="ISRAEL">Israel</option>
-                   <option value="IVETTE">Ivette</option>
-               </select>
+               <div className="flex items-center gap-4">
+                   <select 
+                       value={selectedMember} 
+                       onChange={(e) => setSelectedMember(e.target.value as TeamMemberKey)}
+                       className="bg-gray-800 text-white p-2 rounded"
+                   >
+                       <option value="ALL">All Members</option>
+                       <option value="CHRIS">Chris</option>
+                       <option value="ISRAEL">Israel</option>
+                       <option value="IVETTE">Ivette</option>
+                   </select>
+
+                   <select 
+                       value={dateRange}
+                       onChange={(e) => setDateRange(e.target.value)}
+                       className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
+                   >
+                       <option value="day">Today</option>
+                       <option value="week">This Week</option>
+                       <option value="month">This Month</option>
+                       <option value="all">All Time</option>
+                   </select>
+               </div>
 
                <div className="flex gap-2">
                    <button
@@ -605,12 +618,12 @@ export default function RealEstateDashboard() {
                            icon={Calendar}
                        />
                        <MetricCard
-                           title="CLOSES"
-                           value={metrics.totalCloses.toLocaleString()}
+                           title="CONTRACTS"
+                           value={metrics.totalContracts.toLocaleString()}
                            rate="Close Rate"
                            rateValue={`${((metrics.totalCloses / metrics.totalContracts * 100) || 0).toFixed(1)}%`}
-                           xp="+100 XP each"
-                           icon={Flame}
+                           xp="+50 XP each"
+                           icon={Trophy}
                        />
                        <MetricCard
                            title="REVENUE"
