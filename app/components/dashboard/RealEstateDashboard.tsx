@@ -254,7 +254,7 @@ export default function RealEstateDashboard() {
 
    const formatDataForBarChart = (data: any[]) => {
        if(!data || data.length === 0) {
-           console.log('No data provided to formatDataForBarChart');
+           logDebug('No data provided to formatDataForBarChart');
            return {daily:{}, weekly: {}, monthly:{}};
        }
 
@@ -263,11 +263,17 @@ export default function RealEstateDashboard() {
            new Date(b.date).getTime() - new Date(a.date).getTime()
        );
 
-       console.log('Sorted data first 3 entries:', sortedData.slice(0, 3));
+       logDebug('First 3 entries of sorted data:', sortedData.slice(0, 3).map(d => ({
+           date: d.date,
+           outbound: d.outbound,
+           triage: d.triage,
+           followUps: d.followUps,
+           contracts: d.contractsSigned
+       })));
 
        // Get yesterday's data (last entry)
        const rawDailyData = sortedData[0] || {};
-       console.log('Raw daily data:', {
+       logDebug('Most recent data entry:', {
            date: rawDailyData.date,
            outbound: rawDailyData.outbound,
            triage: rawDailyData.triage,
@@ -302,10 +308,10 @@ export default function RealEstateDashboard() {
        const thirtyDaysAgo = new Date(today);
        thirtyDaysAgo.setDate(today.getDate() - 30);
 
-       console.log('Date ranges:', {
-           today: today.toISOString(),
-           sevenDaysAgo: sevenDaysAgo.toISOString(),
-           thirtyDaysAgo: thirtyDaysAgo.toISOString()
+       logDebug('Date ranges for calculations:', {
+           today: today.toISOString().split('T')[0],
+           sevenDaysAgo: sevenDaysAgo.toISOString().split('T')[0],
+           thirtyDaysAgo: thirtyDaysAgo.toISOString().split('T')[0]
        });
 
        // Weekly data (last 7 days)
@@ -314,10 +320,11 @@ export default function RealEstateDashboard() {
            currDate.setHours(0, 0, 0, 0);
            
            if (currDate >= sevenDaysAgo && currDate <= today) {
-               console.log('Adding to weekly:', {
-                   date: curr.date,
+               logDebug(`Adding data for ${curr.date} to weekly totals:`, {
                    outbound: curr.outbound,
-                   triage: curr.triage
+                   triage: curr.triage,
+                   followUps: curr.followUps,
+                   contracts: curr.contractsSigned
                });
                
                acc.outbound = (acc.outbound || 0) + (Number(curr.outbound) || 0);
@@ -341,7 +348,7 @@ export default function RealEstateDashboard() {
            revenue: 0
        } as ChartData);
 
-       console.log('Weekly totals:', weeklyData);
+       logDebug('Weekly accumulated totals:', weeklyData);
 
        // Monthly data (last 30 days)
        const monthlyData = sortedData.reduce((acc, curr) => {
@@ -370,7 +377,7 @@ export default function RealEstateDashboard() {
            revenue: 0
        } as ChartData);
 
-       console.log('Final processed data:', {
+       logDebug('Final data for all timeframes:', {
            daily: dailyData,
            weekly: weeklyData,
            monthly: monthlyData
