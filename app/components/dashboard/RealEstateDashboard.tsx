@@ -16,6 +16,7 @@ import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../l
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
+import type { DateRange } from '../../types';
 
 const logDebug = (message: string, data?: any) => {
    console.log(`[RealEstateDashboard] ${message}`, data || '');
@@ -119,11 +120,6 @@ function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCar
 const excelDateToJSDate = (excelDate: number) => {
     return new Date((excelDate - 25569) * 86400 * 1000);
 };
-
-interface DateRange {
-    startDate: string;
-    endDate: string;
-}
 
 export default function RealEstateDashboard() {
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
@@ -716,7 +712,10 @@ export default function RealEstateDashboard() {
                <MarketingDashboard
                    marketingData={marketingData}
                    dateRange={dateRange}
-                   onDateRangeChange={(range) => setDateRange(range)}
+                   onDateRangeChange={(range) => setDateRange({
+                       startDate: typeof range.startDate === 'string' ? range.startDate : range.startDate.toISOString().split('T')[0],
+                       endDate: typeof range.endDate === 'string' ? range.endDate : range.endDate.toISOString().split('T')[0]
+                   })}
                    projections={marketingProjections}
                    teamMember={selectedMember}
                    onMetricsCalculated={handleMarketingMetrics}
