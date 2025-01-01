@@ -102,6 +102,7 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
 }
 
 export interface TeamMemberProjections {
+  [key: string]: Projection;
   outbound_messages: Projection;
   positive_responses: Projection;
   posts_created: Projection;
