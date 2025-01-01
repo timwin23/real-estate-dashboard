@@ -238,7 +238,7 @@ export async function fetchTeamMemberData(member: TeamMemberKey): Promise<TeamMe
                 postsCreated: row.postsCreated,
                 leadsGenerated: row.leadsGenerated,
                 leadsPerPost: safeRate(row.leadsGenerated / row.postsCreated),
-                marketingXP: row.marketingXP || 0,
+                marketingXP: row.marketing_xp || 0,
                 salesXP: row.salesXP || 0
             }));
         };
