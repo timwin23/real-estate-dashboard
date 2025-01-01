@@ -62,12 +62,12 @@ async function listSheets() {
   }
 }
 
-const MARKETING_SHEET_TABS = {
-    chris: 'Chris Analysis',
-    israel: 'Israel Analysis',
-    ivette: 'Ivette Analysis',
+export const MARKETING_SHEET_TABS: Record<string, string> = {
+    CHRIS: 'Chris Analysis',
+    ISRAEL: 'Israel Analysis',
+    IVETTE: 'Ivette Analysis',
     ALL: 'ALL'
-} as const;
+};
 
 export async function fetchTeamMemberMarketingData(member: string) {
     try {
@@ -77,9 +77,9 @@ export async function fetchTeamMemberMarketingData(member: string) {
         if (member === 'ALL') {
             // Fetch all members' data
             const promises = [
-                fetchSheetData(`${MARKETING_SHEET_TABS.chris}!A2:V`),
-                fetchSheetData(`${MARKETING_SHEET_TABS.israel}!A2:V`),
-                fetchSheetData(`${MARKETING_SHEET_TABS.ivette}!A2:V`)
+                fetchSheetData(`${MARKETING_SHEET_TABS.CHRIS}!A2:V`),
+                fetchSheetData(`${MARKETING_SHEET_TABS.ISRAEL}!A2:V`),
+                fetchSheetData(`${MARKETING_SHEET_TABS.IVETTE}!A2:V`)
             ];
             
             const results = await Promise.all(promises);
@@ -87,7 +87,7 @@ export async function fetchTeamMemberMarketingData(member: string) {
         }
         
         // For individual members, get the correct sheet name
-        const sheetName = MARKETING_SHEET_TABS[member.toLowerCase()];
+        const sheetName = MARKETING_SHEET_TABS[member] || MARKETING_SHEET_TABS.ALL;
         if (!sheetName) {
             console.error(`[marketingSheets] Invalid member: ${member}`);
             return [];
