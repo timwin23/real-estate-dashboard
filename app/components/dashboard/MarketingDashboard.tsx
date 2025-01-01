@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } from 'lucide-react';
 import MarketingTargetBarChart from './MarketingTargetBarChart';
+import { TeamProjections, MetricData } from '../../lib/marketingSheets';
 
 type MetricCardProps = {
     title: string;
@@ -41,6 +42,33 @@ const DATE_RANGES = {
     MONTH: 'month',
     ALL: 'all'
 } as const;
+
+const defaultProjections: TeamProjections = {
+    CHRIS: {
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        positive_responses: { daily: 0, weekly: 0, monthly: 0 },
+        posts_created: { daily: 0, weekly: 0, monthly: 0 },
+        leads_generated: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    ISRAEL: {
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        positive_responses: { daily: 0, weekly: 0, monthly: 0 },
+        posts_created: { daily: 0, weekly: 0, monthly: 0 },
+        leads_generated: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    IVETTE: {
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        positive_responses: { daily: 0, weekly: 0, monthly: 0 },
+        posts_created: { daily: 0, weekly: 0, monthly: 0 },
+        leads_generated: { daily: 0, weekly: 0, monthly: 0 }
+    },
+    ALL: {
+        outbound_messages: { daily: 0, weekly: 0, monthly: 0 },
+        positive_responses: { daily: 0, weekly: 0, monthly: 0 },
+        posts_created: { daily: 0, weekly: 0, monthly: 0 },
+        leads_generated: { daily: 0, weekly: 0, monthly: 0 }
+    }
+};
 
 export default function MarketingDashboard({
     marketingData,
