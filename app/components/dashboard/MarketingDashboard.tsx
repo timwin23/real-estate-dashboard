@@ -178,7 +178,7 @@ export default function MarketingDashboard({
                 posts_created: (acc.posts_created || 0) + metrics.posts_created,
                 leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
-        }, {} as MetricsFormat);
+        }, {} as ChartData);
 
         const monthlyData = data.slice(-30).reduce((acc, curr) => {
             const metrics = formatMetrics(curr);
@@ -189,7 +189,7 @@ export default function MarketingDashboard({
                 posts_created: (acc.posts_created || 0) + metrics.posts_created,
                 leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
-        }, {} as MetricsFormat);
+        }, {} as ChartData);
 
         return {
             daily: formatMetrics(dailyData),
