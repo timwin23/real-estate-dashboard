@@ -9,7 +9,7 @@ export interface MarketingMetrics {
     totalPostsCreated: number;
     totalLeadsGenerated: number;
     totalRevenue: number;
-    marketing_xp: number;
+    marketingXP: number;
     responseRate: number;
     leadsPerPost: number;
     revenuePerClose: number;
