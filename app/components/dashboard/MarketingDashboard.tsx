@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } from 'lucide-react';
-import MarketingTargetBarChart from './MarketingTargetBarChart';
+import TargetBarChart from './TargetBarChart';
 import { TeamProjections, MetricData } from '../../lib/marketingSheets';
 
 type MetricCardProps = {
@@ -30,10 +30,10 @@ interface MarketingMetrics {
 
 interface MetricsFormat {
     [key: string]: number;
-    outboundMessages: number;
-    positiveResponses: number;
-    postsCreated: number;
-    leadsGenerated: number;
+    outbound_messages: number;
+    positive_responses: number;
+    posts_created: number;
+    leads_generated: number;
 }
 
 const DATE_RANGES = {
@@ -89,9 +89,7 @@ export default function MarketingDashboard({
     console.log('[MarketingDashboard] Selected team member:', teamMember);
 
     // Handle 'ALL' case by combining projections or using Chris's as default
-    const teamProjections = teamMember === 'ALL' 
-        ? projections?.chris // Use Chris's projections as default for ALL
-        : projections?.[teamMember.toLowerCase()];
+    const teamProjections = projections?.[teamMember.toUpperCase()];
 
     console.log('[MarketingDashboard] Team member projections:', teamProjections);
 
@@ -156,23 +154,22 @@ export default function MarketingDashboard({
 
     const formatDataForBarChart = (data: any[]) => {
         const dailyData = data[data.length - 1] || {};
-        const formatMetrics = (row: any): MetricsFormat => {
-            return {
-                outboundMessages: row.outboundMessages || 0,
-                positiveResponses: row.positiveResponses || 0,
-                postsCreated: row.postsCreated || 0,
-                leadsGenerated: row.leadsGenerated || 0
-            };
-        };
+        
+        const formatMetrics = (row: any): MetricsFormat => ({
+            outbound_messages: row.outbound_messages || 0,
+            positive_responses: row.positive_responses || 0,
+            posts_created: row.posts_created || 0,
+            leads_generated: row.leads_generated || 0
+        });
 
         const weeklyData = data.slice(-7).reduce((acc, curr) => {
             const metrics = formatMetrics(curr);
             return {
                 ...acc,
-                outboundMessages: (acc.outboundMessages || 0) + metrics.outboundMessages,
-                positiveResponses: (acc.positiveResponses || 0) + metrics.positiveResponses,
-                postsCreated: (acc.postsCreated || 0) + metrics.postsCreated,
-                leadsGenerated: (acc.leadsGenerated || 0) + metrics.leadsGenerated
+                outbound_messages: (acc.outbound_messages || 0) + metrics.outbound_messages,
+                positive_responses: (acc.positive_responses || 0) + metrics.positive_responses,
+                posts_created: (acc.posts_created || 0) + metrics.posts_created,
+                leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
         }, {} as MetricsFormat);
 
@@ -180,10 +177,10 @@ export default function MarketingDashboard({
             const metrics = formatMetrics(curr);
             return {
                 ...acc,
-                outboundMessages: (acc.outboundMessages || 0) + metrics.outboundMessages,
-                positiveResponses: (acc.positiveResponses || 0) + metrics.positiveResponses,
-                postsCreated: (acc.postsCreated || 0) + metrics.postsCreated,
-                leadsGenerated: (acc.leadsGenerated || 0) + metrics.leadsGenerated
+                outbound_messages: (acc.outbound_messages || 0) + metrics.outbound_messages,
+                positive_responses: (acc.positive_responses || 0) + metrics.positive_responses,
+                posts_created: (acc.posts_created || 0) + metrics.posts_created,
+                leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
         }, {} as MetricsFormat);
 
@@ -265,9 +262,15 @@ export default function MarketingDashboard({
 
                 {/* Bar Chart */}
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                    <MarketingTargetBarChart
+                    <TargetBarChart
                         data={formatDataForBarChart(marketingData)}
-                        projections={projections ? (projections[teamMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[teamMember.toUpperCase() as keyof TeamProjections]}
+                        projections={teamProjections}
+                        metrics={[
+                            { key: 'outbound_messages', label: 'Outbound Messages' },
+                            { key: 'positive_responses', label: 'Responses' },
+                            { key: 'posts_created', label: 'Posts' },
+                            { key: 'leads_generated', label: 'Leads' }
+                        ]}
                     />
                 </div>
             </div>

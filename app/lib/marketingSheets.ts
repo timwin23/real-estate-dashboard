@@ -126,8 +126,6 @@ export interface TeamProjections {
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
   const data = await fetchSheetData(`${SHEET_TABS.PROJECTIONS}!A10:J13`);
   
-  console.log('[marketingSheets] Raw projections data:', data);
-  
   const metricMap: Record<string, keyof TeamMemberProjections> = {
     'Posts': 'posts_created',
     'Leads': 'leads_generated',
@@ -135,12 +133,14 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
     'Responses': 'positive_responses'
   };
 
-  const members = ['chris', 'israel', 'ivette'] as const;
+  console.log('[marketingSheets] Raw projections data:', data);
+  console.log('[marketingSheets] Metric map:', metricMap);
   
   const projections: TeamProjections = {
-    chris: createEmptyProjections(),
-    israel: createEmptyProjections(),
-    ivette: createEmptyProjections()
+    CHRIS: createEmptyProjections(),
+    ISRAEL: createEmptyProjections(),
+    IVETTE: createEmptyProjections(),
+    ALL: createEmptyProjections()
   };
 
   data.forEach((row: any[]) => {
@@ -155,7 +155,7 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
       return;
     }
 
-    members.forEach((member, i) => {
+    ['CHRIS', 'ISRAEL', 'IVETTE'].forEach((member, i) => {
       const baseCol = i * 3 + 1;
       projections[member][metricKey] = {
         daily: Number(row[baseCol]) || 0,
@@ -163,6 +163,18 @@ export async function fetchMarketingProjections(): Promise<TeamProjections> {
         monthly: Number(row[baseCol + 2]) || 0
       };
     });
+
+    projections.ALL[metricKey] = {
+      daily: (projections.CHRIS[metricKey].daily + 
+              projections.ISRAEL[metricKey].daily + 
+              projections.IVETTE[metricKey].daily),
+      weekly: (projections.CHRIS[metricKey].weekly + 
+              projections.ISRAEL[metricKey].weekly + 
+              projections.IVETTE[metricKey].weekly),
+      monthly: (projections.CHRIS[metricKey].monthly + 
+              projections.ISRAEL[metricKey].monthly + 
+              projections.IVETTE[metricKey].monthly)
+    };
   });
 
   console.log('[marketingSheets] Final projections:', projections);

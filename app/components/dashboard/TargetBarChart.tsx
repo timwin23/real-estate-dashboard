@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import type { TeamProjections } from './sheets';
 
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
 

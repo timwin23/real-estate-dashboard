@@ -13,17 +13,28 @@ type MetricData = {
     };
 };
 
-type ChartProps = {
+interface BarChartProps {
     data: {
-        [timeframe: string]: {
-            [metric: string]: number;
-        };
+        daily: MetricsFormat;
+        weekly: MetricsFormat;
+        monthly: MetricsFormat;
     };
-    projections: MetricData;
-};
+    projections: {
+        outbound_messages: Projection;
+        positive_responses: Projection;
+        posts_created: Projection;
+        leads_generated: Projection;
+    };
+}
 
-const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
+export default function MarketingTargetBarChart({ data, projections }: BarChartProps) {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
+
+    console.log('[MarketingBarChart] Data structure:', {
+        data: data,
+        projections: projections,
+        outbound: projections?.outbound_messages  // This is undefined
+    });
 
     console.log('[MarketingBarChart] Received projections:', projections);
     console.log('[MarketingBarChart] Received data:', data);
@@ -42,6 +53,11 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
         { key: 'posts_created', label: 'Posts', row: 'Posts' },
         { key: 'leads_generated', label: 'Leads', row: 'Leads' }
     ];
+
+    const getTargetValue = (projections: any, metric: string, timeframe: TimeframeType): number => {
+        if (!projections) return 0;
+        return projections[metric]?.[timeframe] || 0;
+    };
 
     return (
         <div className="w-full h-full rounded-lg">
@@ -70,9 +86,9 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
                     {/* Table Body */}
                     {metrics.map((metric, idx) => {
                         const actual = data[timeframe]?.[metric.key] || 0;
+                        const target = getTargetValue(projections, metric.key, timeframe);
                         console.log(`[MarketingBarChart] ${metric.label} projection:`, 
                             projections[metric.key]?.[timeframe]);
-                        const target = projections[metric.key]?.[timeframe] || 0;
 
                         return (
                             <React.Fragment key={metric.key}>
@@ -92,6 +108,4 @@ const MarketingTargetBarChart = ({ data, projections }: ChartProps) => {
             </div>
         </div>
     );
-};
-
-export default MarketingTargetBarChart;
+}
