@@ -121,6 +121,10 @@ const excelDateToJSDate = (excelDate: number) => {
     return new Date((excelDate - 25569) * 86400 * 1000);
 };
 
+const ensureDateString = (date: string | Date): string => {
+    return typeof date === 'string' ? date : date.toISOString().split('T')[0];
+};
+
 export default function RealEstateDashboard() {
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
    const [dashboardType, setDashboardType] = useState('sales');

@@ -388,59 +388,26 @@ export async function fetchAchievements(): Promise<AchievementsData> {
     };
 }
 
-export function filterDataByDateRange<T extends { date: string }>(
-    data: T[],
-    startDate: string,
-    endDate: string
-): T[] {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Add more detailed debug logging
-    console.log('filterDataByDateRange input:', {
-        data: data.slice(0, 2),  // Show first 2 items
-        startDate,
-        endDate,
-        firstRowDate: data[0]?.date,
-        dateType: data[0]?.date ? typeof data[0].date : 'no data'
-    });
-    
+export const filterDataByDateRange = (
+    data: any[], 
+    startDate: string | Date, 
+    endDate: string | Date
+): any[] => {
+    if (!data?.length) return [];
+
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
     return data.filter(row => {
-        try {
-            console.log('Processing row date:', {
-                raw: row.date,
-                type: typeof row.date,
-                value: Number(row.date)
-            });
-            
-            let rowDate: Date;
-            if (typeof row.date === 'number') {
-                rowDate = excelDateToJSDate(row.date);
-            } else {
-                const [year, month, day] = String(row.date).split('-').map(Number);
-                rowDate = new Date(year, month - 1, day);
-            }
-            
-            // Set hours to 0 for consistent comparison
-            rowDate.setHours(0, 0, 0, 0);
-            start.setHours(0, 0, 0, 0);
-            end.setHours(0, 0, 0, 0);
-            
-            const isInRange = rowDate >= start && rowDate <= end;
-            console.log('Date comparison result:', {
-                rowDate,
-                start,
-                end,
-                isInRange
-            });
-            
-            return isInRange;
-        } catch (error) {
-            console.error('Error parsing date:', error, row.date);
-            return false;
-        }
+        const rowDate = typeof row.date === 'number' ? 
+            excelDateToJSDate(row.date) : 
+            new Date(row.date);
+        return rowDate >= start && rowDate <= end;
     });
-}
+};
 
 // Add this function with your other fetch functions
 export const fetchMarketingData = async (member: TeamMemberKey): Promise<MarketingData[]> => {
