@@ -23,19 +23,15 @@ type ChartData = {
     revenue?: number;
 };
 
-type TargetBarChartProps = {
+interface TargetBarChartProps {
     data: {
         daily: ChartData;
         weekly: ChartData;
         monthly: ChartData;
     };
     projections: MetricData | null;
-    metrics: {
-        key: string;
-        label: string;
-        isRevenue?: boolean;
-    }[];
-};
+    metrics: Array<{ key: string; label: string; isRevenue?: boolean }>;
+}
 
 const TargetBarChart = ({ data, projections, metrics }: TargetBarChartProps) => {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');

@@ -671,7 +671,7 @@ export default function RealEstateDashboard() {
                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                            <TargetBarChart
                                data={formatDataForBarChart(data)}
-                               projections={projections}
+                               projections={projections?.[selectedMember]}
                                metrics={[
                                    { key: 'outbound', label: 'Outbound' },
                                    { key: 'triage', label: 'Triage' },
