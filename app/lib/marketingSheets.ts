@@ -101,23 +101,25 @@ export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel
   return mappedData;
 }
 
-interface TeamMemberProjections {
+export interface TeamMemberProjections {
   outbound_messages: Projection;
   positive_responses: Projection;
   posts_created: Projection;
   leads_generated: Projection;
 }
 
-interface Projection {
+export interface Projection {
   daily: number;
   weekly: number;
   monthly: number;
 }
 
-interface TeamProjections {
-  chris: TeamMemberProjections;
-  israel: TeamMemberProjections;
-  ivette: TeamMemberProjections;
+export interface TeamProjections {
+  [key: string]: TeamMemberProjections;
+  CHRIS: TeamMemberProjections;
+  ISRAEL: TeamMemberProjections;
+  IVETTE: TeamMemberProjections;
+  ALL: TeamMemberProjections;
 }
 
 export async function fetchMarketingProjections(): Promise<TeamProjections> {
@@ -183,3 +185,11 @@ export interface MarketingData {
     leads_generated: number;
     marketing_xp: number;
 }
+
+export type MetricData = {
+    [key: string]: {
+        daily: number;
+        weekly: number;
+        monthly: number;
+    };
+};
