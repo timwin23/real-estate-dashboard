@@ -30,7 +30,7 @@ type TargetBarChartProps = {
         weekly: ChartData;
         monthly: ChartData;
     };
-    projections: TeamProjections | MetricData | null;
+    projections: MetricData | null;
     metrics: {
         key: string;
         label: string;
