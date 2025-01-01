@@ -16,7 +16,7 @@ import { fetchTeamMemberMarketingData, fetchMarketingProjections } from '../../l
 import type { TeamMemberData, TeamProjections, RawData, MetricData } from './sheets';
 import TargetBarChart from './TargetBarChart';
 import MarketingDashboard from './MarketingDashboard';
-import type { DateRange } from '../../types';
+import type { DateRange, MarketingMetrics } from '../../types';
 
 const logDebug = (message: string, data?: any) => {
    console.log(`[RealEstateDashboard] ${message}`, data || '');
@@ -52,77 +52,6 @@ type ChartData = {
    contracts?: number;
    closes?: number;
    revenue?: number;
-};
-
-type MarketingMetrics = {
-    date: string;
-    outbound_messages: number;
-    positive_responses: number;
-    response_rate: number;
-    posts_created: number;
-    leads_generated: number;
-    leads_per_post: number;
-    marketing_xp: number;
-};
-
-const formatDateString = (date: Date): string => {
-   return date.toISOString().split('T')[0];
-};
-
-const getRateColor = (title: string, rate?: number): string => {
-   if (rate === undefined) return "text-white";
-   const value = parseFloat(String(rate).replace('%', ''));
-   const numericValue = parseFloat(String(rate).replace(/[^0-9.]/g, ''));
-
-   switch (title) {
-       case 'OUTBOUND':
-           if (value >= 5) return 'text-green-400';
-           if (value >= 3) return 'text-yellow-400';
-           return 'text-red-400';
-       case 'TRIAGE':
-           if (value >= 50) return 'text-green-400';
-           if (value >= 30) return 'text-yellow-400';
-           return 'text-red-400';
-       case 'APPOINTMENTS':
-           if (value >= 80) return 'text-green-400';
-           if (value >= 70) return 'text-yellow-400';
-           return 'text-red-400';
-       case 'CONTRACTS':
-           if (value >= 50) return 'text-green-400';
-           if (value >= 30) return 'text-yellow-400';
-           return 'text-red-400';
-       case 'REVENUE':
-           if (numericValue >= 10000) return 'text-green-400';
-           if (numericValue >= 5000) return 'text-yellow-400';
-           return 'text-red-400';
-       default:
-           return 'text-white';
-   }
-};
-
-function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
-   return (
-       <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
-           <div className="flex justify-between items-start mb-2">
-               <span className="text-gray-300">{title}</span>
-               {Icon && <Icon className="text-red-500" />}
-           </div>
-           <div className="text-2xl font-bold mb-1 text-white">{value}</div>
-           {rate && <div className="text-sm text-gray-300">{rate}</div>}
-           {rateValue && <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
-               {rateValue}
-           </div>}
-           {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
-       </div>
-   );
-}
-
-const excelDateToJSDate = (excelDate: number) => {
-    return new Date((excelDate - 25569) * 86400 * 1000);
-};
-
-const ensureDateString = (date: string | Date): string => {
-    return typeof date === 'string' ? date : date.toISOString().split('T')[0];
 };
 
 export default function RealEstateDashboard() {

@@ -7,7 +7,7 @@ import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } 
 import MarketingTargetBarChart from './MarketingTargetBarChart';
 import { TeamProjections, MetricData } from '../../lib/marketingSheets';
 import { excelDateToJSDate } from './sheets';
-import type { DateRange } from '../../types';
+import type { DateRange, MarketingMetrics } from '../../types';
 
 type MetricCardProps = {
     title: string;
@@ -17,18 +17,6 @@ type MetricCardProps = {
     xp?: string;
     icon: React.ComponentType<any>;
 };
-
-interface MarketingMetrics {
-    totalOutboundMessages: number;
-    totalPositiveResponses: number;
-    totalPostsCreated: number;
-    totalLeadsGenerated: number;
-    totalRevenue: number;
-    marketingXP: number;
-    responseRate: number;
-    leadsPerPost: number;
-    revenuePerClose: number;
-}
 
 interface MetricsFormat {
     [key: string]: number;
