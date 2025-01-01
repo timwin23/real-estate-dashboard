@@ -5,13 +5,19 @@ import React, { useState } from 'react';
 
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
 
-type MetricData = {
-    [key: string]: {
-        daily: number;
-        weekly: number;
-        monthly: number;
-    };
-};
+// Add missing interfaces
+interface MetricsFormat {
+    outbound_messages: number;
+    positive_responses: number;
+    posts_created: number;
+    leads_generated: number;
+}
+
+interface Projection {
+    daily: number;
+    weekly: number;
+    monthly: number;
+}
 
 interface BarChartProps {
     data: {
