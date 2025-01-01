@@ -57,12 +57,14 @@ export default function MarketingDashboard({
 }) {
     const [selectedRange, setSelectedRange] = useState<keyof typeof DATE_RANGES>('WEEK');
 
-    // Add debug logging
     console.log('[MarketingDashboard] Received projections:', projections);
     console.log('[MarketingDashboard] Selected team member:', teamMember);
 
-    // We need to get the correct team member's projections
-    const teamProjections = projections?.[teamMember.toLowerCase()];
+    // Handle 'ALL' case by combining projections or using Chris's as default
+    const teamProjections = teamMember === 'ALL' 
+        ? projections?.chris // Use Chris's projections as default for ALL
+        : projections?.[teamMember.toLowerCase()];
+
     console.log('[MarketingDashboard] Team member projections:', teamProjections);
 
     const calculateMetrics = (): MarketingMetrics => {
@@ -237,7 +239,7 @@ export default function MarketingDashboard({
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                     <MarketingTargetBarChart
                         data={formatDataForBarChart(marketingData)}
-                        projections={teamProjections}
+                        projections={teamProjections || {}}
                     />
                 </div>
             </div>
