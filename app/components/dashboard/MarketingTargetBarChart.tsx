@@ -27,6 +27,7 @@ interface BarChartProps {
         monthly: MetricsFormat;
     };
     projections: {
+        [key: string]: Projection;
         outbound_messages: Projection;
         positive_responses: Projection;
         posts_created: Projection;
