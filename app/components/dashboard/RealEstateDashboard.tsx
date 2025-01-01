@@ -563,7 +563,7 @@ export default function RealEstateDashboard() {
                    <div className="flex gap-2 items-center">
                        <input
                            type="date"
-                           value={dateRange.startDate}
+                           value={typeof dateRange.startDate === 'string' ? dateRange.startDate : dateRange.startDate.toISOString().split('T')[0]}
                            onChange={(e) => setDateRange(prev => ({
                                ...prev,
                                startDate: e.target.value
@@ -573,7 +573,7 @@ export default function RealEstateDashboard() {
                        <span className="text-white">to</span>
                        <input
                            type="date"
-                           value={dateRange.endDate}
+                           value={typeof dateRange.endDate === 'string' ? dateRange.endDate : dateRange.endDate.toISOString().split('T')[0]}
                            onChange={(e) => setDateRange(prev => ({
                                ...prev,
                                endDate: e.target.value
