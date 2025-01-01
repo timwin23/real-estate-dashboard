@@ -671,7 +671,17 @@ export default function RealEstateDashboard() {
                        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                            <TargetBarChart
                                data={formatDataForBarChart(data)}
-                               projections={projections ? (projections[selectedMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[selectedMember.toUpperCase() as keyof TeamProjections]}
+                               projections={projections}
+                               metrics={[
+                                   { key: 'outbound', label: 'Outbound' },
+                                   { key: 'triage', label: 'Triage' },
+                                   { key: 'follow_ups', label: 'Follow Ups' },
+                                   { key: 'appointments', label: 'Appointments' },
+                                   { key: 'shows', label: 'Shows' },
+                                   { key: 'contracts', label: 'Contracts' },
+                                   { key: 'closes', label: 'Closes' },
+                                   { key: 'revenue', label: 'Revenue', isRevenue: true }
+                               ]}
                            />
                        </div>
                    </div>
@@ -681,7 +691,7 @@ export default function RealEstateDashboard() {
                    marketingData={marketingData}
                    dateRange={dateRange}
                    onDateRangeChange={(range) => setDateRange(range)}
-                   projections={projections}
+                   projections={marketingProjections}
                    teamMember={selectedMember}
                />
            )}
