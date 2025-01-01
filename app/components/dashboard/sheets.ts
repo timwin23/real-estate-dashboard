@@ -101,6 +101,7 @@ export interface RawData {
     operatingPotential: number;
     reflection: string;
     marketing_xp: number;
+    sales_xp: number;
 }
 
 export interface MetricData {
@@ -239,7 +240,7 @@ export async function fetchTeamMemberData(member: TeamMemberKey): Promise<TeamMe
                 leadsGenerated: row.leadsGenerated,
                 leadsPerPost: safeRate(row.leadsGenerated / row.postsCreated),
                 marketingXP: row.marketing_xp || 0,
-                salesXP: row.salesXP || 0
+                salesXP: row.sales_xp || 0
             }));
         };
 
