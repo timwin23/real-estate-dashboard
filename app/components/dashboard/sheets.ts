@@ -167,46 +167,95 @@ function handleSheetError(error: any, range: string) {
     return [];
 }
 
-async function fetchSheetRange(range: string): Promise<any[]> {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`;
+// Add at the top with other imports
+const CACHE_DURATION = 60000; // 1 minute cache
+const cache: { [key: string]: { data: any; timestamp: number } } = {};
+
+// Modify the fetchSheetRange function
+async function fetchSheetRange(range: string) {
+    // Check cache first
+    const cacheKey = `${range}`;
+    const now = Date.now();
     
+    if (cache[cacheKey] && (now - cache[cacheKey].timestamp) < CACHE_DURATION) {
+        console.log(`[sheets.ts] Using cached data for ${range}`);
+        return cache[cacheKey].data;
+    }
+
     try {
-        console.log(`[sheets.ts] Fetching data from range: ${range}`);
-        const response = await fetch(url);
+        const response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`
+        );
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[sheets.ts] Error response:`, errorText);
+            if (response.status === 429) {
+                console.log('[sheets.ts] Rate limit hit, using cached data if available');
+                return cache[cacheKey]?.data || [];
+            }
             throw new Error(`Failed to fetch data: ${response.status}`);
         }
 
         const data = await response.json();
-        if (!data.values?.length) {
-            console.log(`[sheets.ts] No data found in range: ${range}`);
-            return [];
-        }
+        
+        // Cache the new data
+        cache[cacheKey] = {
+            data: data.values || [],
+            timestamp: now
+        };
 
-        return data.values;
+        return data.values || [];
     } catch (error) {
-        return handleSheetError(error, range);
+        console.error('Error fetching range:', range, error);
+        // Return cached data if available, empty array if not
+        return cache[cacheKey]?.data || [];
     }
 }
 
 export async function fetchTeamMemberData(member: TeamMemberKey): Promise<TeamMemberData[]> {
     try {
+        // Define the transform function first
+        const transformData = (rawData: RawData[]): TeamMemberData[] => {
+            return rawData.map(row => ({
+                date: row.date,
+                outbound: row.outbound,
+                triage: row.triage,
+                triageRate: safeRate(row.triage / row.outbound),
+                followUps: row.followUps,
+                appointments: row.appointments,
+                setRate: safeRate(row.appointments / row.followUps),
+                shows: row.shows,
+                showRate: safeRate(row.shows / row.appointments),
+                contractsSigned: row.contractsSigned,
+                contractRate: safeRate(row.contractsSigned / row.shows),
+                closes: row.closes,
+                closeRate: safeRate(row.closes / row.contractsSigned),
+                revenue: row.revenue,
+                revenuePerClose: safeRate(row.revenue / row.closes),
+                outboundMessages: row.outboundMessages,
+                positiveResponses: row.positiveResponses,
+                responseRate: safeRate(row.positiveResponses / row.outboundMessages),
+                postsCreated: row.postsCreated,
+                leadsGenerated: row.leadsGenerated,
+                leadsPerPost: safeRate(row.leadsGenerated / row.postsCreated),
+                marketingXP: row.marketingXP || 0,
+                salesXP: row.salesXP || 0
+            }));
+        };
+
         if (member === 'ALL') {
             // Fetch all members' data
             const [chrisData, israelData, ivetteData] = await Promise.all([
-                fetchRawData('Chris Analysis'),
-                fetchRawData('Israel Analysis'), 
-                fetchRawData('Ivette Analysis')
+                fetchRawData(SHEET_TABS.CHRIS),
+                fetchRawData(SHEET_TABS.ISRAEL),
+                fetchRawData(SHEET_TABS.IVETTE)
             ]);
-            return [...chrisData, ...israelData, ...ivetteData];
-        }
 
-        // Fetch individual member data
-        const sheetName = `${member} Analysis`;
-        return await fetchRawData(sheetName);
+            return transformData([...chrisData, ...israelData, ...ivetteData]);
+        } else {
+            // Fetch single member data
+            const data = await fetchRawData(SHEET_TABS[member]);
+            return transformData(data);
+        }
     } catch (error) {
         console.error('Error fetching team member data:', error);
         return [];
@@ -218,26 +267,26 @@ export async function fetchRawData(sheetName: string): Promise<RawData[]> {
         const range = `${sheetName}!A2:X`;
         const data = await fetchSheetRange(range);
         
+        // Add debug log for team member selection
+        console.log(`[sheets.ts] Fetching data for ${sheetName}:`, {
+            hasData: data?.length > 0,
+            rowCount: data?.length,
+            firstRow: data?.[0]
+        });
+
         return data.map((row: any[]) => ({
-            timestamp: row[0] || '',
-            teamMember: row[1] || '',
-            date: row[2] || '',
-            outbound: Number(row[3]) || 0,
-            triage: Number(row[4]) || 0,
-            followUps: Number(row[5]) || 0,
-            appointments: Number(row[6]) || 0,
-            shows: Number(row[7]) || 0,
-            contractsSigned: Number(row[8]) || 0,
-            closes: Number(row[9]) || 0,
-            revenue: Number(row[10]) || 0,
-            postsCreated: Number(row[11]) || 0,
-            leadsGenerated: Number(row[12]) || 0,
-            outboundMessages: Number(row[13]) || 0,
-            positiveResponses: Number(row[14]) || 0,
-            energy: Number(row[15]) || 0,
-            confidence: Number(row[16]) || 0,
-            operatingPotential: Number(row[17]) || 0,
-            reflection: row[18] || ''
+            timestamp: row[0] || '',  // Column A - Date serial
+            teamMember: sheetName.split(' ')[0], // Extract name from sheet name
+            date: row[0] || '',       // Column A - Date serial
+            outbound: Number(row[1]) || 0,     // Column B - Outbound
+            triage: Number(row[2]) || 0,       // Column C - Triage
+            followUps: Number(row[4]) || 0,    // Column E - Follow Ups
+            appointments: Number(row[5]) || 0,  // Column F - Appointments
+            shows: Number(row[7]) || 0,        // Column H - Shows
+            contractsSigned: Number(row[9]) || 0, // Column J - Contracts
+            closes: Number(row[11]) || 0,      // Column L - Closes
+            revenue: Number(row[13]) || 0,     // Column N - Revenue
+            salesXP: Number(row[22]) || 0      // Column W - Sales XP
         }));
     } catch (error) {
         console.error('Error fetching raw data:', error);
@@ -347,41 +396,45 @@ export function filterDataByDateRange<T extends { date: string }>(
     const start = new Date(startDate);
     const end = new Date(endDate);
     
-    // Add debug logging
-    console.log('Filtering date range:', {
+    // Add more detailed debug logging
+    console.log('filterDataByDateRange input:', {
+        data: data.slice(0, 2),  // Show first 2 items
         startDate,
         endDate,
         firstRowDate: data[0]?.date,
-        dateFormat: data[0]?.date ? typeof data[0].date : 'no data'
+        dateType: data[0]?.date ? typeof data[0].date : 'no data'
     });
     
     return data.filter(row => {
         try {
-            // Google Sheets might be returning a serial number for dates
-            // Let's check what we're actually getting
-            console.log('Row date:', {
+            console.log('Processing row date:', {
                 raw: row.date,
-                type: typeof row.date
+                type: typeof row.date,
+                value: Number(row.date)
             });
             
             let rowDate: Date;
-            
             if (typeof row.date === 'number') {
-                // If it's a number, it's likely a Excel/Sheets serial number
-                // Convert Excel/Sheets date serial number to JS Date
-                rowDate = new Date((row.date - 25569) * 86400 * 1000);
+                rowDate = excelDateToJSDate(row.date);
             } else {
-                // If it's a string, parse it normally
                 const [year, month, day] = String(row.date).split('-').map(Number);
                 rowDate = new Date(year, month - 1, day);
             }
             
-            // Set hours to 0 for consistent date comparison
+            // Set hours to 0 for consistent comparison
             rowDate.setHours(0, 0, 0, 0);
             start.setHours(0, 0, 0, 0);
             end.setHours(0, 0, 0, 0);
             
-            return rowDate >= start && rowDate <= end;
+            const isInRange = rowDate >= start && rowDate <= end;
+            console.log('Date comparison result:', {
+                rowDate,
+                start,
+                end,
+                isInRange
+            });
+            
+            return isInRange;
         } catch (error) {
             console.error('Error parsing date:', error, row.date);
             return false;
@@ -443,3 +496,11 @@ export const fetchMarketingData = async (member: TeamMemberKey): Promise<Marketi
         return [];
     }
 };
+
+// Add this function and export it
+export function excelDateToJSDate(serial: number): Date {
+    const utc_days  = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;                                        
+    const date_info = new Date(utc_value * 1000);
+    return date_info;
+}

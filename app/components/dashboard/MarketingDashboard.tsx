@@ -1,11 +1,12 @@
 // app/components/real-estate-dashboard/MarketingDashboard.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } from 'lucide-react';
 import MarketingTargetBarChart from './MarketingTargetBarChart';
 import { TeamProjections, MetricData } from '../../lib/marketingSheets';
+import { excelDateToJSDate } from './sheets';
 
 type MetricCardProps = {
     title: string;
@@ -77,20 +78,40 @@ const defaultProjections: TeamProjections = {
     }
 };
 
+interface MarketingDashboardProps {
+    marketingData: any[];
+    dateRange: DateRange;
+    onDateRangeChange: (range: DateRange) => void;
+    projections: any;
+    teamMember: string;
+    onMetricsCalculated?: (metrics: MarketingMetrics) => void;
+}
+
 export default function MarketingDashboard({
     marketingData,
     dateRange,
     onDateRangeChange,
     projections,
-    teamMember
-}: {
-    marketingData: any[];
-    dateRange: string;
-    onDateRangeChange: (range: string) => void;
-    projections: any;
-    teamMember: string;
-}) {
-    const [selectedRange, setSelectedRange] = useState<keyof typeof DATE_RANGES>('WEEK');
+    teamMember,
+    onMetricsCalculated
+}: MarketingDashboardProps) {
+    const [filteredMarketingData, setFilteredMarketingData] = useState<MarketingMetrics[]>([]);
+    const [metrics, setMetrics] = useState<MarketingMetrics>({
+        totalOutboundMessages: 0,
+        totalPositiveResponses: 0,
+        totalPostsCreated: 0,
+        totalLeadsGenerated: 0,
+        totalRevenue: 0,
+        marketingXP: 0,
+        responseRate: 0,
+        leadsPerPost: 0,
+        revenuePerClose: 0
+    });
+    const [timeframeMetrics, setTimeframeMetrics] = useState({
+        daily: { outbound_messages: 0, positive_responses: 0, posts_created: 0, leads_generated: 0 },
+        weekly: { outbound_messages: 0, positive_responses: 0, posts_created: 0, leads_generated: 0 },
+        monthly: { outbound_messages: 0, positive_responses: 0, posts_created: 0, leads_generated: 0 }
+    });
 
     console.log('[MarketingDashboard] Received projections:', projections);
     console.log('[MarketingDashboard] Selected team member:', teamMember);
@@ -100,105 +121,114 @@ export default function MarketingDashboard({
 
     console.log('[MarketingDashboard] Team member projections:', teamProjections);
 
-    const calculateMetrics = (): MarketingMetrics => {
-        if (!marketingData || marketingData.length === 0) {
-            return {
-                totalOutboundMessages: 0,
-                totalPositiveResponses: 0,
-                totalPostsCreated: 0,
-                totalLeadsGenerated: 0,
-                totalRevenue: 0,
-                marketingXP: 0,
-                responseRate: 0,
-                leadsPerPost: 0,
-                revenuePerClose: 0
-            };
-        }
+    // Debug the data structure
+    console.log('Marketing data received:', marketingData[0]);
 
-        const now = new Date();
-        const filteredData = marketingData.filter(entry => {
-            const entryDate = new Date(entry.date);
-            switch (selectedRange) {
-                case 'DAY':
-                    return entryDate.toDateString() === now.toDateString();
-                case 'WEEK':
-                    const weekAgo = new Date(now);
-                    weekAgo.setDate(now.getDate() - 7);
-                    return entryDate >= weekAgo;
-                case 'MONTH':
-                    const monthAgo = new Date(now);
-                    monthAgo.setMonth(now.getMonth() - 1);
-                    return entryDate >= monthAgo;
-                case 'ALL':
-                    return true;
-                default:
-                    return true;
-            }
-        });
-
-        const totals = filteredData.reduce((acc, curr) => ({
-            totalOutboundMessages: acc.totalOutboundMessages + (curr.outbound_messages || 0),
-            totalPositiveResponses: acc.totalPositiveResponses + (curr.positive_responses || 0),
-            totalPostsCreated: acc.totalPostsCreated + (curr.posts_created || 0),
-            totalLeadsGenerated: acc.totalLeadsGenerated + (curr.leads_generated || 0),
-            marketingXP: acc.marketingXP + (curr.marketing_xp || 0)
-        }), {
-            totalOutboundMessages: 0,
-            totalPositiveResponses: 0,
-            totalPostsCreated: 0,
-            totalLeadsGenerated: 0,
-            totalRevenue: 0,
-            marketingXP: 0
-        });
-
-        return {
-            ...totals,
-            responseRate: (totals.totalPositiveResponses / totals.totalOutboundMessages * 100) || 0,
-            leadsPerPost: (totals.totalLeadsGenerated / totals.totalPostsCreated) || 0,
-            revenuePerClose: totals.totalRevenue / totals.totalLeadsGenerated || 0
-        };
-    };
-
-    const formatDataForBarChart = (data: any[]) => {
-        const dailyData = data[data.length - 1] || {};
+    // Use a single filtering function
+    const filterDataByDateRange = useCallback((data: any[]) => {
+        if (!data?.length) return [];
         
-        const formatMetrics = (row: any): MetricsFormat => ({
-            outbound_messages: row.outbound_messages || 0,
-            positive_responses: row.positive_responses || 0,
-            posts_created: row.posts_created || 0,
-            leads_generated: row.leads_generated || 0
+        return data.filter(row => {
+            const rowDate = row[0];  // Date is in first column
+            if (!rowDate) return false;
+
+            // Convert date string to Date object if it's a string
+            const date = typeof rowDate === 'string' ? new Date(rowDate) : excelDateToJSDate(rowDate);
+            const start = new Date(dateRange.startDate);
+            const end = new Date(dateRange.endDate);
+
+            return date >= start && date <= end;
         });
+    }, [dateRange]);
 
-        const weeklyData = data.slice(-7).reduce((acc, curr) => {
-            const metrics = formatMetrics(curr);
-            return {
-                ...acc,
-                outbound_messages: (acc.outbound_messages || 0) + metrics.outbound_messages,
-                positive_responses: (acc.positive_responses || 0) + metrics.positive_responses,
-                posts_created: (acc.posts_created || 0) + metrics.posts_created,
-                leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
-            };
-        }, {} as MetricsFormat);
+    // Update filtered data when raw data or date range changes
+    useEffect(() => {
+        console.log('Raw marketing data:', marketingData);
+        const filtered = filterDataByDateRange(marketingData);
+        console.log('Filtered marketing data:', filtered);
+        setFilteredMarketingData(filtered);
+    }, [marketingData, dateRange]);
 
-        const monthlyData = data.slice(-30).reduce((acc, curr) => {
-            const metrics = formatMetrics(curr);
-            return {
-                ...acc,
-                outbound_messages: (acc.outbound_messages || 0) + metrics.outbound_messages,
-                positive_responses: (acc.positive_responses || 0) + metrics.positive_responses,
-                posts_created: (acc.posts_created || 0) + metrics.posts_created,
-                leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
-            };
-        }, {} as MetricsFormat);
+    const mapDataForLineChart = (data: any[]) => {
+        return data.map(row => ({
+            date: row[0],
+            outbound_messages: Number(row[15]) || 0,
+            positive_responses: Number(row[16]) || 0,
+            posts_created: Number(row[18]) || 0,
+            leads_generated: Number(row[19]) || 0,
+            marketing_xp: Number(row[21]) || 0
+        }));
+    };
+
+    const calculateMetrics = (data: any[]) => {
+        const sortedData = [...data].sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
+        
+        // Since all data is within the filtered range:
+        // - Daily should be most recent day
+        // - Weekly should be sum of all data (since it's all within a week)
+        // - Monthly same as weekly for now (since all data is within a week)
+        
+        const dailyData = sortedData[0] || {};
+        
+        // Calculate totals from all filtered data
+        const totals = {
+            outbound_messages: data.reduce((sum, row) => sum + (Number(row[15]) || 0), 0),
+            positive_responses: data.reduce((sum, row) => sum + (Number(row[16]) || 0), 0),
+            posts_created: data.reduce((sum, row) => sum + (Number(row[18]) || 0), 0),
+            leads_generated: data.reduce((sum, row) => sum + (Number(row[19]) || 0), 0),
+            marketing_xp: data.reduce((sum, row) => sum + (Number(row[21]) || 0), 0)
+        };
+
+        const timeframeMetrics = {
+            daily: {
+                outbound_messages: Number(dailyData[15]) || 0,
+                positive_responses: Number(dailyData[16]) || 0,
+                posts_created: Number(dailyData[18]) || 0,
+                leads_generated: Number(dailyData[19]) || 0
+            },
+            weekly: {
+                ...totals  // Use the same totals for weekly since all data is within a week
+            },
+            monthly: {
+                ...totals  // Use the same totals for monthly since all data is within a week
+            }
+        };
+
+        // For the metric cards - use the same totals
+        const metricTotals = {
+            totalOutboundMessages: totals.outbound_messages,
+            totalPositiveResponses: totals.positive_responses,
+            totalPostsCreated: totals.posts_created,
+            totalLeadsGenerated: totals.leads_generated,
+            totalRevenue: 0,
+            marketingXP: totals.marketing_xp
+        };
+
+        // Calculate rates
+        const responseRate = (metricTotals.totalPositiveResponses / metricTotals.totalOutboundMessages * 100) || 0;
+        const leadsPerPost = (metricTotals.totalLeadsGenerated / metricTotals.totalPostsCreated) || 0;
 
         return {
-            daily: formatMetrics(dailyData),
-            weekly: weeklyData,
-            monthly: monthlyData
+            timeframeMetrics,
+            metrics: {
+                ...metricTotals,
+                responseRate,
+                leadsPerPost,
+                revenuePerClose: 0
+            }
         };
     };
 
-    const metrics = calculateMetrics();
+    useEffect(() => {
+        const { timeframeMetrics: newTimeframeMetrics, metrics: newMetrics } = calculateMetrics(filterDataByDateRange(marketingData));
+        setMetrics(newMetrics);
+        setTimeframeMetrics(newTimeframeMetrics);
+        onMetricsCalculated?.(newMetrics);
+    }, [marketingData, dateRange]);
+
+    console.log('Current metrics:', metrics);
+    console.log('Data being passed to LineChart:', marketingData);
+    console.log('Data being passed to BarChart:', timeframeMetrics);
 
     const metricsCards = [
         {
@@ -248,7 +278,7 @@ export default function MarketingDashboard({
                 {/* Line Chart */}
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={marketingData}>
+                        <LineChart data={mapDataForLineChart(marketingData)}>
                             <XAxis dataKey="date" stroke="#666" />
                             <YAxis stroke="#666" />
                             <Tooltip
@@ -270,7 +300,7 @@ export default function MarketingDashboard({
                 {/* Bar Chart */}
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                     <MarketingTargetBarChart
-                        data={formatDataForBarChart(marketingData)}
+                        data={timeframeMetrics}
                         projections={teamProjections}
                     />
                 </div>

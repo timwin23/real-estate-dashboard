@@ -62,43 +62,43 @@ async function listSheets() {
   }
 }
 
-export async function fetchTeamMemberMarketingData(memberName: 'chris' | 'israel' | 'ivette'): Promise<MarketingMetrics[]> {
-  const upperName = memberName.toUpperCase() as SheetTabKey;
-  const sheetName = SHEET_TABS[upperName];
-  
-  console.log(`[marketingSheets] Fetching data for member: ${memberName}, sheet: ${sheetName}`);
-  
-  const data = await fetchSheetData(`${sheetName}!A2:V`);
-  console.log('[marketingSheets] Raw data:', data);
-  
-  const mappedData = data.map((row: any[]) => {
-    console.log('[marketingSheets] Row values:', {
-      outbound: row[15],
-      responses: row[16],
-      posts: row[18],
-      leads: row[19],
-      xp: row[21]
-    });
+const MARKETING_SHEET_TABS = {
+    chris: 'Chris Analysis',
+    israel: 'Israel Analysis',
+    ivette: 'Ivette Analysis',
+    ALL: 'ALL'
+} as const;
 
-    const outboundMessages = Number(row[15]) || 0;
-    const positiveResponses = Number(row[16]) || 0;
-    const postsCreated = Number(row[18]) || 0;
-    const leadsGenerated = Number(row[19]) || 0;
-    const marketingXP = Number(row[21]) || 0;
-
-    return {
-      date: row[0],
-      outbound_messages: outboundMessages,
-      positive_responses: positiveResponses,
-      response_rate: safeRate(positiveResponses, outboundMessages),
-      posts_created: postsCreated,
-      leads_generated: leadsGenerated,
-      leads_per_post: safeRate(leadsGenerated, postsCreated),
-      marketing_xp: marketingXP
-    };
-  });
-
-  return mappedData;
+export async function fetchTeamMemberMarketingData(member: string) {
+    try {
+        console.log('[marketingSheets] Fetching data for member:', member);
+        
+        // Handle ALL case differently
+        if (member === 'ALL') {
+            // Fetch all members' data
+            const promises = [
+                fetchSheetData(`${MARKETING_SHEET_TABS.chris}!A2:V`),
+                fetchSheetData(`${MARKETING_SHEET_TABS.israel}!A2:V`),
+                fetchSheetData(`${MARKETING_SHEET_TABS.ivette}!A2:V`)
+            ];
+            
+            const results = await Promise.all(promises);
+            return results.flat(); // Combine all results
+        }
+        
+        // For individual members, get the correct sheet name
+        const sheetName = MARKETING_SHEET_TABS[member.toLowerCase()];
+        if (!sheetName) {
+            console.error(`[marketingSheets] Invalid member: ${member}`);
+            return [];
+        }
+        
+        const data = await fetchSheetData(`${sheetName}!A2:V`);
+        return data;
+    } catch (error) {
+        console.error('[marketingSheets] Error fetching marketing data:', error);
+        return [];
+    }
 }
 
 export interface TeamMemberProjections {
@@ -205,4 +205,38 @@ export type MetricData = {
         weekly: number;
         monthly: number;
     };
+};
+
+const calculateMetrics = (data: any[]) => {
+    let metrics = {
+        totalOutboundMessages: 0,
+        totalPositiveResponses: 0,
+        totalPostsCreated: 0,
+        totalLeadsGenerated: 0,
+        totalRevenue: 0,
+        marketingXP: 0,
+        responseRate: 0,
+        leadsPerPost: 0,
+        revenuePerClose: 0
+    };
+
+    data.forEach(row => {
+        const outbound = Number(row[1]) || 0;      // Column B
+        const responses = Number(row[2]) || 0;      // Column C
+        const posts = Number(row[18]) || 0;        // Column S
+        const leads = Number(row[19]) || 0;        // Column T
+        const xp = Number(row[21]) || 0;           // Column V
+
+        metrics.totalOutboundMessages += outbound;
+        metrics.totalPositiveResponses += responses;
+        metrics.totalPostsCreated += posts;
+        metrics.totalLeadsGenerated += leads;
+        metrics.marketingXP += xp;
+    });
+
+    // Calculate rates
+    metrics.responseRate = (metrics.totalPositiveResponses / metrics.totalOutboundMessages) * 100;
+    metrics.leadsPerPost = metrics.totalLeadsGenerated / metrics.totalPostsCreated;
+
+    return metrics;
 };

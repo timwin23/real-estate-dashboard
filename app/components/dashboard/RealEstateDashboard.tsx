@@ -120,10 +120,24 @@ const excelDateToJSDate = (excelDate: number) => {
     return new Date((excelDate - 25569) * 86400 * 1000);
 };
 
+interface DateRange {
+    startDate: string;
+    endDate: string;
+}
+
 export default function RealEstateDashboard() {
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
    const [dashboardType, setDashboardType] = useState('sales');
-   const [dateRange, setDateRange] = useState('7');
+   const [dateRange, setDateRange] = useState<DateRange>(() => {
+       const end = new Date();
+       const start = new Date();
+       start.setDate(end.getDate() - 7); // Default to last 7 days
+       
+       return {
+           startDate: start.toISOString().split('T')[0],
+           endDate: end.toISOString().split('T')[0]
+       };
+   });
    const [data, setData] = useState<TeamMemberData[]>([]);
    const [marketingData, setMarketingData] = useState<MarketingMetrics[]>([]);
    const [personalData, setPersonalData] = useState<RawData[]>([]);
@@ -134,6 +148,18 @@ export default function RealEstateDashboard() {
    const [currentStreak, setCurrentStreak] = useState(0);
    const [projections, setProjections] = useState<TeamProjections | null>(null);
    const [marketingProjections, setMarketingProjections] = useState<any>(null);
+
+   const defaultMetrics: Metrics = {
+       totalOutbound: 0,
+       totalTriage: 0,
+       totalFollowUps: 0,
+       totalAppointments: 0,
+       totalShows: 0,
+       totalContracts: 0,
+       totalCloses: 0,
+       totalRevenue: 0,
+       totalXP: 0
+   };
 
    const defaultProjections: TeamProjections = {
     CHRIS: {
@@ -201,58 +227,10 @@ export default function RealEstateDashboard() {
        { id: 'IVETTE', name: 'Ivette' },
    ];
 
-   const getCurrentXP = () => {
-       logDebug('Calculating XP for dashboard type:', dashboardType);
-       if (dashboardType === 'sales') {
-           return data.reduce((acc, curr) => acc + (Number(curr.salesXP) || 0), 0);
-       } else if (dashboardType === 'marketing') {
-           return marketingData.reduce((acc, curr) => acc + (Number(curr.marketing_xp) || 0), 0);
-       }
-       return 0;
-   };
-
-   const calculateCurrentLevel = () => {
-       const currentXP = getCurrentXP();
-       return Math.floor(currentXP / 2000) + 1;
-   };
-
-   const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
-
-   const calculateStreak = (data: any[], projections: any) => {
-       if (!data || data.length === 0 || !projections?.CHRIS?.outbound?.daily) return 0;
-
-       const sortedData = [...data].sort((a, b) =>
-           new Date(b.date).getTime() - new Date(a.date).getTime()
-       );
-
-       let streak = 0;
-       const target = projections.CHRIS.outbound.daily;
-
-       for (let i = 0; i < sortedData.length; i++) {
-           if (sortedData[i].outbound >= target) {
-               streak++;
-           } else {
-               break;
-           }
-       }
-
-       return streak;
-   };
-
-   const calculateMetrics = (): Metrics => {
-       if (!data || data.length === 0) {
-           logDebug('No data available for metrics calculation');
-           return {
-               totalOutbound: 0,
-               totalTriage: 0,
-               totalFollowUps: 0,
-               totalAppointments: 0,
-               totalShows: 0,
-               totalContracts: 0,
-               totalCloses: 0,
-               totalRevenue: 0,
-               totalXP: 0
-           };
+   const calculateMetrics = (data: TeamMemberData[]): Metrics => {
+       if (!data?.length) {
+           console.log('[RealEstateDashboard] No data available for metrics calculation');
+           return defaultMetrics;
        }
 
        const metrics = data.reduce((acc, curr) => ({
@@ -279,6 +257,41 @@ export default function RealEstateDashboard() {
 
        logDebug('Calculated metrics:', metrics);
        return metrics;
+   };
+
+   const metrics = calculateMetrics(data);
+
+   const getCurrentXP = () => {
+       return dashboardType === 'marketing' ? totalXP : metrics.totalXP;
+   };
+
+   const calculateCurrentLevel = () => {
+       const xp = dashboardType === 'marketing' ? totalXP : metrics.totalXP;
+       const currentXP = getCurrentXP();
+       return Math.floor(currentXP / 2000) + 1;
+   };
+
+   const progressToLevel25 = Math.min((getCurrentXP() / nextLevelXP) * 100, 100);
+
+   const calculateStreak = (data: any[], projections: any) => {
+       if (!data || data.length === 0 || !projections?.CHRIS?.outbound?.daily) return 0;
+
+       const sortedData = [...data].sort((a, b) =>
+           new Date(b.date).getTime() - new Date(a.date).getTime()
+       );
+
+       let streak = 0;
+       const target = projections.CHRIS.outbound.daily;
+
+       for (let i = 0; i < sortedData.length; i++) {
+           if (sortedData[i].outbound >= target) {
+               streak++;
+           } else {
+               break;
+           }
+       }
+
+       return streak;
    };
 
    const formatDataForBarChart = (data: any[]) => {
@@ -470,52 +483,54 @@ export default function RealEstateDashboard() {
        });
    };
 
+   const loadData = async () => {
+       try {
+           setLoading(true);
+           
+           // Fetch raw data
+           const rawData = await fetchTeamMemberData(selectedMember);
+           const marketingRawData = await fetchTeamMemberMarketingData(selectedMember);
+           
+           // Fetch projections
+           const projectionsData = await fetchProjections();
+           const marketingProjectionsData = await fetchMarketingProjections();
+           
+           // Filter data by selected date range
+           console.log('Date range being used:', dateRange);
+           const filteredData = filterDataByDateRange(rawData, dateRange.startDate, dateRange.endDate);
+           
+           // Add debug logs
+           console.log('Raw sales data:', rawData);
+           console.log('Raw marketing data:', marketingRawData);
+           
+           setData(filteredData);
+           setMarketingData(marketingRawData);  // Don't filter marketing data yet
+           setProjections(projectionsData);
+           setMarketingProjections(marketingProjectionsData);
+           
+       } catch (error) {
+           console.error('Error loading data:', error);
+       } finally {
+           setLoading(false);
+       }
+   };
+
+   // Add useEffect to reload data when date range changes
    useEffect(() => {
-    async function loadData() {
-        try {
-            setLoading(true);
-            const [salesData, projectionsData] = await Promise.all([
-                fetchTeamMemberData(selectedMember),
-                fetchProjections()
-            ]);
-
-            let mktgData = [];
-            if (selectedMember === 'ALL') {
-                // Fetch data for all members and combine
-                const [chrisData, israelData, ivetteData] = await Promise.all([
-                    fetchTeamMemberMarketingData('chris'),
-                    fetchTeamMemberMarketingData('israel'),
-                    fetchTeamMemberMarketingData('ivette')
-                ]);
-                mktgData = [...chrisData, ...israelData, ...ivetteData];
-            } else {
-                const memberName = selectedMember.toLowerCase() as 'chris' | 'israel' | 'ivette';
-                mktgData = await fetchTeamMemberMarketingData(memberName);
-            }
-
-            const mktgProjections = await fetchMarketingProjections();
-
-            setData(salesData);
-            setMarketingData(mktgData);
-            setProjections(projectionsData);
-            setMarketingProjections(mktgProjections);
-        } catch (error) {
-            console.error('Error loading data:', error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    loadData();
-}, [selectedMember, dateRange]);
+       loadData();
+   }, [selectedMember, dateRange.startDate, dateRange.endDate]);
 
    useEffect(() => {
        setTotalXP(getCurrentXP());
        setLevel(calculateCurrentLevel());
    }, [data, marketingData, dashboardType, selectedMember]);
 
-   const metrics = calculateMetrics();
    const marketingMetrics = calculateMarketingMetrics();
+
+   // Add a handler for marketing metrics
+   const handleMarketingMetrics = (metrics: MarketingMetrics) => {
+       setTotalXP(dashboardType === 'marketing' ? metrics.marketingXP : totalXP);
+   };
 
    if (loading) {
        return <div className="min-h-screen bg-gray-950 text-white p-6">Loading...</div>;
@@ -545,16 +560,27 @@ export default function RealEstateDashboard() {
                        <option value="IVETTE">Ivette</option>
                    </select>
 
-                   <select 
-                       value={dateRange}
-                       onChange={(e) => setDateRange(e.target.value)}
-                       className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
-                   >
-                       <option value="day">Today</option>
-                       <option value="week">This Week</option>
-                       <option value="month">This Month</option>
-                       <option value="all">All Time</option>
-                   </select>
+                   <div className="flex gap-2 items-center">
+                       <input
+                           type="date"
+                           value={dateRange.startDate}
+                           onChange={(e) => setDateRange(prev => ({
+                               ...prev,
+                               startDate: e.target.value
+                           }))}
+                           className="bg-gray-800 text-white rounded px-3 py-2"
+                       />
+                       <span className="text-white">to</span>
+                       <input
+                           type="date"
+                           value={dateRange.endDate}
+                           onChange={(e) => setDateRange(prev => ({
+                               ...prev,
+                               endDate: e.target.value
+                           }))}
+                           className="bg-gray-800 text-white rounded px-3 py-2"
+                       />
+                   </div>
                </div>
 
                <div className="flex gap-2">
@@ -693,6 +719,7 @@ export default function RealEstateDashboard() {
                    onDateRangeChange={(range) => setDateRange(range)}
                    projections={marketingProjections}
                    teamMember={selectedMember}
+                   onMetricsCalculated={handleMarketingMetrics}
                />
            )}
        </div>

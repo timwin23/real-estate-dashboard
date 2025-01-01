@@ -20,6 +20,13 @@ interface Projection {
     monthly: number;
 }
 
+interface Projections {
+    outbound_messages: { daily: number; weekly: number; monthly: number };
+    positive_responses: { daily: number; weekly: number; monthly: number };
+    posts_created: { daily: number; weekly: number; monthly: number };
+    leads_generated: { daily: number; weekly: number; monthly: number };
+}
+
 interface BarChartProps {
     data: {
         daily: MetricsFormat;
@@ -56,11 +63,15 @@ export default function MarketingTargetBarChart({ data, projections }: BarChartP
     };
 
     const metrics = [
-        { key: 'outbound_messages', label: 'Outbound Messages', row: 'Outbound' },
-        { key: 'positive_responses', label: 'Responses', row: 'Responses' },
-        { key: 'posts_created', label: 'Posts', row: 'Posts' },
-        { key: 'leads_generated', label: 'Leads', row: 'Leads' }
+        { key: 'outbound_messages', label: 'Outbound Messages' },
+        { key: 'positive_responses', label: 'Responses' },
+        { key: 'posts_created', label: 'Posts' },
+        { key: 'leads_generated', label: 'Leads' }
     ];
+
+    const getActualValue = (data: any, metric: string, timeframe: TimeframeType) => {
+        return data[timeframe]?.[metric] || 0;
+    };
 
     const getTargetValue = (projections: any, metric: string, timeframe: TimeframeType): number => {
         if (!projections) return 0;
@@ -93,10 +104,11 @@ export default function MarketingTargetBarChart({ data, projections }: BarChartP
 
                     {/* Table Body */}
                     {metrics.map((metric, idx) => {
-                        const actual = data[timeframe]?.[metric.key] || 0;
+                        const actual = getActualValue(data, metric.key, timeframe);
                         const target = getTargetValue(projections, metric.key, timeframe);
-                        console.log(`[MarketingBarChart] ${metric.label} projection:`, 
-                            projections[metric.key]?.[timeframe]);
+
+                        console.log(`[MarketingBarChart] ${metric.label} actual:`, actual);
+                        console.log(`[MarketingBarChart] ${metric.label} target:`, target);
 
                         return (
                             <React.Fragment key={metric.key}>
