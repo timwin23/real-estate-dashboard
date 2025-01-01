@@ -69,13 +69,14 @@ export const MARKETING_SHEET_TABS: Record<string, string> = {
     ALL: 'ALL'
 };
 
-export async function fetchTeamMemberMarketingData(member: string) {
+type MarketingTeamMemberKey = 'CHRIS' | 'ISRAEL' | 'IVETTE' | 'ALL';
+
+export async function fetchTeamMemberMarketingData(member: MarketingTeamMemberKey) {
     try {
         console.log('[marketingSheets] Fetching data for member:', member);
         
         // Handle ALL case differently
         if (member === 'ALL') {
-            // Fetch all members' data
             const promises = [
                 fetchSheetData(`${MARKETING_SHEET_TABS.CHRIS}!A2:V`),
                 fetchSheetData(`${MARKETING_SHEET_TABS.ISRAEL}!A2:V`),
@@ -83,11 +84,11 @@ export async function fetchTeamMemberMarketingData(member: string) {
             ];
             
             const results = await Promise.all(promises);
-            return results.flat(); // Combine all results
+            return results.flat();
         }
         
         // For individual members, get the correct sheet name
-        const sheetName = MARKETING_SHEET_TABS[member] || MARKETING_SHEET_TABS.ALL;
+        const sheetName = MARKETING_SHEET_TABS[member];
         if (!sheetName) {
             console.error(`[marketingSheets] Invalid member: ${member}`);
             return [];
