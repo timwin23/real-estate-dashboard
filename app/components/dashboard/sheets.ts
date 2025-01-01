@@ -100,6 +100,7 @@ export interface RawData {
     confidence: number;
     operatingPotential: number;
     reflection: string;
+    marketing_xp: number;
 }
 
 export interface MetricData {
