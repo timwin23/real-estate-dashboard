@@ -398,7 +398,7 @@ export default function RealEstateDashboard() {
            };
        }
 
-       return marketingData.reduce((acc, curr) => ({
+       return marketingData.reduce((acc, curr: MarketingMetrics) => ({
            totalPosts: acc.totalPosts + (Number(curr.posts_created) || 0),
            totalLeads: acc.totalLeads + (Number(curr.leads_generated) || 0),
            totalOutboundMessages: acc.totalOutboundMessages + (Number(curr.outbound_messages) || 0),
