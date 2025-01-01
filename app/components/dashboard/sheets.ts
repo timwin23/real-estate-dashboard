@@ -213,30 +213,36 @@ export async function fetchTeamMemberData(member: TeamMemberKey): Promise<TeamMe
     }
 }
 
-export async function fetchRawData(): Promise<RawData[]> {
-    const data = await fetchSheetRange(`${SHEET_TABS.RAW_DATA}!A2:S`);
-
-    return data.map((row: any[]) => ({
-        timestamp: row[0] || '',
-        teamMember: row[1] || '',
-        date: row[2] || '',
-        outbound: Number(row[3]) || 0,
-        triage: Number(row[4]) || 0,
-        followUps: Number(row[5]) || 0,
-        appointments: Number(row[6]) || 0,
-        shows: Number(row[7]) || 0,
-        contractsSigned: Number(row[8]) || 0,
-        closes: Number(row[9]) || 0,
-        revenue: Number(row[10]) || 0,
-        postsCreated: Number(row[11]) || 0,
-        leadsGenerated: Number(row[12]) || 0,
-        outboundMessages: Number(row[13]) || 0,
-        positiveResponses: Number(row[14]) || 0,
-        energy: Number(row[15]) || 0,
-        confidence: Number(row[16]) || 0,
-        operatingPotential: Number(row[17]) || 0,
-        reflection: row[18] || ''
-    }));
+export async function fetchRawData(sheetName: string): Promise<RawData[]> {
+    try {
+        const range = `${sheetName}!A2:X`;
+        const data = await fetchSheetRange(range);
+        
+        return data.map((row: any[]) => ({
+            timestamp: row[0] || '',
+            teamMember: row[1] || '',
+            date: row[2] || '',
+            outbound: Number(row[3]) || 0,
+            triage: Number(row[4]) || 0,
+            followUps: Number(row[5]) || 0,
+            appointments: Number(row[6]) || 0,
+            shows: Number(row[7]) || 0,
+            contractsSigned: Number(row[8]) || 0,
+            closes: Number(row[9]) || 0,
+            revenue: Number(row[10]) || 0,
+            postsCreated: Number(row[11]) || 0,
+            leadsGenerated: Number(row[12]) || 0,
+            outboundMessages: Number(row[13]) || 0,
+            positiveResponses: Number(row[14]) || 0,
+            energy: Number(row[15]) || 0,
+            confidence: Number(row[16]) || 0,
+            operatingPotential: Number(row[17]) || 0,
+            reflection: row[18] || ''
+        }));
+    } catch (error) {
+        console.error('Error fetching raw data:', error);
+        return [];
+    }
 }
 
 export async function fetchProjections(): Promise<TeamProjections> {
