@@ -240,7 +240,15 @@ export default function RealEstateDashboard() {
    const metrics = calculateMetrics(data);
 
    const getCurrentXP = () => {
-       return dashboardType === 'marketing' ? totalXP : metrics.totalXP;
+       if (dashboardType === 'marketing') {
+           const marketingXP = marketingData.reduce((sum, entry) => sum + (Number(entry.marketing_xp) || 0), 0);
+           console.log('Marketing XP:', marketingXP);
+           return marketingXP;
+       } else {
+           const salesXP = data.reduce((sum, entry) => sum + (Number(entry.salesXP) || 0), 0);
+           console.log('Sales XP:', salesXP);
+           return salesXP;
+       }
    };
 
    const calculateCurrentLevel = () => {
@@ -508,7 +516,9 @@ export default function RealEstateDashboard() {
    // Add a handler for marketing metrics
    const handleMarketingMetrics = (metrics: MarketingMetrics) => {
        if (dashboardType === 'marketing') {
-           setTotalXP(metrics.marketing_xp || 0);
+           const totalMarketingXP = metrics.marketing_xp || 0;
+           console.log('Setting marketing XP:', totalMarketingXP);
+           setTotalXP(totalMarketingXP);
        }
    };
 
