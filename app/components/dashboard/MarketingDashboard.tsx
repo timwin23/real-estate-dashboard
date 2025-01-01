@@ -162,7 +162,7 @@ export default function MarketingDashboard({
     const formatDataForBarChart = (data: any[]) => {
         const dailyData = data[data.length - 1] || {};
         
-        const formatMetrics = (row: any): ChartData => ({
+        const formatMetrics = (row: any): MetricsFormat => ({
             outbound_messages: row.outbound_messages || 0,
             positive_responses: row.positive_responses || 0,
             posts_created: row.posts_created || 0,
@@ -178,7 +178,7 @@ export default function MarketingDashboard({
                 posts_created: (acc.posts_created || 0) + metrics.posts_created,
                 leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
-        }, {} as ChartData);
+        }, {} as MetricsFormat);
 
         const monthlyData = data.slice(-30).reduce((acc, curr) => {
             const metrics = formatMetrics(curr);
@@ -189,7 +189,7 @@ export default function MarketingDashboard({
                 posts_created: (acc.posts_created || 0) + metrics.posts_created,
                 leads_generated: (acc.leads_generated || 0) + metrics.leads_generated
             };
-        }, {} as ChartData);
+        }, {} as MetricsFormat);
 
         return {
             daily: formatMetrics(dailyData),
@@ -272,12 +272,6 @@ export default function MarketingDashboard({
                     <MarketingTargetBarChart
                         data={formatDataForBarChart(marketingData)}
                         projections={teamProjections}
-                        metrics={[
-                            { key: 'outbound_messages', label: 'Outbound Messages' },
-                            { key: 'positive_responses', label: 'Responses' },
-                            { key: 'posts_created', label: 'Posts' },
-                            { key: 'leads_generated', label: 'Leads' }
-                        ]}
                     />
                 </div>
             </div>
