@@ -7,6 +7,7 @@ type TimeframeType = 'daily' | 'weekly' | 'monthly';
 
 // Add missing interfaces
 interface MetricsFormat {
+    [key: string]: number;
     outbound_messages: number;
     positive_responses: number;
     posts_created: number;
