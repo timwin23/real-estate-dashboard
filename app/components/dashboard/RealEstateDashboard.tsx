@@ -529,7 +529,7 @@ export default function RealEstateDashboard() {
 
    // Add a handler for marketing metrics
    const handleMarketingMetrics = (metrics: MarketingMetrics) => {
-       setTotalXP(dashboardType === 'marketing' ? metrics.marketingXP : totalXP);
+       setTotalXP(dashboardType === 'marketing' ? metrics.marketing_xp : totalXP);
    };
 
    if (loading) {
