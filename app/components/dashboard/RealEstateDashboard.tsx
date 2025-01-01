@@ -55,6 +55,54 @@ type ChartData = {
    revenue?: number;
 };
 
+function MetricCard({ title, value, rate, rateValue, xp, icon: Icon }: MetricCardProps) {
+    return (
+        <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-2">
+                <span className="text-gray-300">{title}</span>
+                {Icon && <Icon className="text-red-500" />}
+            </div>
+            <div className="text-2xl font-bold mb-1 text-white">{value}</div>
+            {rate && <div className="text-sm text-gray-300">{rate}</div>}
+            {rateValue && <div className={`text-lg font-bold ${getRateColor(title, rateValue ? parseFloat(String(rateValue)) : undefined)}`}>
+                {rateValue}
+            </div>}
+            {xp && <div className="text-xs text-red-500 mt-2">{xp}</div>}
+        </div>
+    );
+}
+
+const getRateColor = (title: string, rate?: number): string => {
+    if (rate === undefined) return "text-white";
+    const value = parseFloat(String(rate).replace('%', ''));
+    const numericValue = parseFloat(String(rate).replace(/[^0-9.]/g, ''));
+
+    switch (title) {
+        case 'OUTBOUND':
+            if (value >= 5) return 'text-green-400';
+            if (value >= 3) return 'text-yellow-400';
+            return 'text-red-400';
+        case 'TRIAGE':
+            if (value >= 50) return 'text-green-400';
+            if (value >= 30) return 'text-yellow-400';
+            return 'text-red-400';
+        case 'APPOINTMENTS':
+            if (value >= 80) return 'text-green-400';
+            if (value >= 70) return 'text-yellow-400';
+            return 'text-red-400';
+        case 'CONTRACTS':
+            if (value >= 50) return 'text-green-400';
+            if (value >= 30) return 'text-yellow-400';
+            return 'text-red-400';
+        case 'REVENUE':
+            if (numericValue >= 10000) return 'text-green-400';
+            if (numericValue >= 5000) return 'text-yellow-400';
+            return 'text-red-400';
+        default:
+            return 'text-white';
+    }
+};
+
 export default function RealEstateDashboard() {
    const [selectedMember, setSelectedMember] = useState<TeamMemberKey>('ALL');
    const [dashboardType, setDashboardType] = useState('sales');
