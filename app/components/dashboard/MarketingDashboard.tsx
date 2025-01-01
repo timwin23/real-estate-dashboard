@@ -7,6 +7,7 @@ import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } 
 import MarketingTargetBarChart from './MarketingTargetBarChart';
 import { TeamProjections, MetricData } from '../../lib/marketingSheets';
 import { excelDateToJSDate } from './sheets';
+import type { DateRange } from '../../types';
 
 type MetricCardProps = {
     title: string;
