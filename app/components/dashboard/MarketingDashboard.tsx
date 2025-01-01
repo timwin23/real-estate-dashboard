@@ -36,6 +36,13 @@ interface MetricsFormat {
     leads_generated: number;
 }
 
+interface ChartData {
+    outbound_messages?: number;
+    positive_responses?: number;
+    posts_created?: number;
+    leads_generated?: number;
+}
+
 const DATE_RANGES = {
     DAY: 'day',
     WEEK: 'week',
@@ -155,7 +162,7 @@ export default function MarketingDashboard({
     const formatDataForBarChart = (data: any[]) => {
         const dailyData = data[data.length - 1] || {};
         
-        const formatMetrics = (row: any): MetricsFormat => ({
+        const formatMetrics = (row: any): ChartData => ({
             outbound_messages: row.outbound_messages || 0,
             positive_responses: row.positive_responses || 0,
             posts_created: row.posts_created || 0,
