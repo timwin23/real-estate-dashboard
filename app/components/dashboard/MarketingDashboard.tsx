@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target, Crown, Flame, Star, PhoneCall, Users, DollarSign, TrendingUp } from 'lucide-react';
-import TargetBarChart from './TargetBarChart';
+import MarketingTargetBarChart from './MarketingTargetBarChart';
 import { TeamProjections, MetricData } from '../../lib/marketingSheets';
 
 type MetricCardProps = {
@@ -269,7 +269,7 @@ export default function MarketingDashboard({
 
                 {/* Bar Chart */}
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
-                    <TargetBarChart
+                    <MarketingTargetBarChart
                         data={formatDataForBarChart(marketingData)}
                         projections={teamProjections}
                         metrics={[
