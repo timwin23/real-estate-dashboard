@@ -192,44 +192,25 @@ async function fetchSheetRange(range: string): Promise<any[]> {
     }
 }
 
-export async function fetchTeamMemberData(memberName: TeamMemberKey): Promise<TeamMemberData[]> {
-    if (memberName === "ALL") {
-        const [chris, israel, ivette] = await Promise.all([
-            fetchTeamMemberData("CHRIS"),
-            fetchTeamMemberData("ISRAEL"),
-            fetchTeamMemberData("IVETTE")
-        ]);
-        return [...chris, ...israel, ...ivette];
+export async function fetchTeamMemberData(member: TeamMemberKey): Promise<TeamMemberData[]> {
+    try {
+        if (member === 'ALL') {
+            // Fetch all members' data
+            const [chrisData, israelData, ivetteData] = await Promise.all([
+                fetchRawData('Chris Analysis'),
+                fetchRawData('Israel Analysis'), 
+                fetchRawData('Ivette Analysis')
+            ]);
+            return [...chrisData, ...israelData, ...ivetteData];
+        }
+
+        // Fetch individual member data
+        const sheetName = `${member} Analysis`;
+        return await fetchRawData(sheetName);
+    } catch (error) {
+        console.error('Error fetching team member data:', error);
+        return [];
     }
-
-    const range = `${SHEET_TABS[memberName]}!A2:X`;
-    const data = await fetchSheetRange(range);
-
-    return data.map((row: any[]) => ({
-        date: row[0] || '',
-        outbound: Number(row[1]) || 0,
-        triage: Number(row[2]) || 0,
-        triageRate: safeRate(row[3]),
-        followUps: Number(row[4]) || 0,
-        appointments: Number(row[5]) || 0,
-        setRate: safeRate(row[6]),
-        shows: Number(row[7]) || 0,
-        showRate: safeRate(row[8]),
-        contractsSigned: Number(row[9]) || 0,
-        contractRate: safeRate(row[10]),
-        closes: Number(row[11]) || 0,
-        closeRate: safeRate(row[12]),
-        revenue: Number(row[13]) || 0,
-        revenuePerClose: Number(row[14]) || 0,
-        outboundMessages: Number(row[15]) || 0,
-        positiveResponses: Number(row[16]) || 0,
-        responseRate: safeRate(row[17]),
-        postsCreated: Number(row[18]) || 0,
-        leadsGenerated: Number(row[19]) || 0,
-        leadsPerPost: safeRate(row[20]),
-        marketingXP: Number(row[21]) || 0,
-        salesXP: Number(row[22]) || 0
-    }));
 }
 
 export async function fetchRawData(): Promise<RawData[]> {
@@ -259,65 +240,72 @@ export async function fetchRawData(): Promise<RawData[]> {
 }
 
 export async function fetchProjections(): Promise<TeamProjections> {
-    const data = await fetchSheetRange(`${SHEET_TABS.PROJECTIONS}!A2:J13`);
-    console.log("Raw projections data rows:", data);
-
-    const projections: TeamProjections = {
-        CHRIS: {} as MetricData,
-        ISRAEL: {} as MetricData,
-        IVETTE: {} as MetricData,
-        ALL: {} as MetricData
-    };
-
-    const metricsMap: Record<number, MetricKey> = {
-        1: 'outbound',         // Row 1 is Outbound
-        2: 'triage',          // Row 2 is Triage
-        3: 'follow_ups',      // Row 3 is Follow Ups
-        4: 'appointments',    // Row 4 is Appointments
-        5: 'shows',          // Row 5 is Shows
-        6: 'contracts',      // Row 6 is Contracts
-        7: 'revenue',        // Row 7 is Revenue
-        8: 'posts',          // Row 8 is Posts
-        9: 'leads',          // Row 9 is Leads
-        10: 'outbound_messages', // Row 10 is Outbound
-        11: 'responses'      // Row 11 is Responses
-    };
-
-    data.forEach((row: any[], index: number) => {
-        const metric = metricsMap[index] as MetricKey;
-        if (!metric) return;
-
-        // CHRIS: B-D (indices 1,2,3)
-        projections.CHRIS[metric] = {
-            daily: Number(row[1]) || 0,   // B column
-            weekly: Number(row[2]) || 0,   // C column
-            monthly: Number(row[3]) || 0    // D column
+    try {
+        const range = `${SHEET_TABS.PROJECTIONS}!A2:J13`;
+        const data = await fetchSheetRange(range);
+        
+        logDebug('Raw projections data rows:', data);
+        
+        const projections: TeamProjections = {
+            CHRIS: {} as MetricData,
+            ISRAEL: {} as MetricData,
+            IVETTE: {} as MetricData,
+            ALL: {} as MetricData
         };
 
-        // ISRAEL: E-G (indices 4,5,6)
-        projections.ISRAEL[metric] = {
-            daily: Number(row[4]) || 0,   // E column
-            weekly: Number(row[5]) || 0,   // F column
-            monthly: Number(row[6]) || 0    // G column
+        const metricsMap: Record<number, MetricKey> = {
+            1: 'outbound',         // Row 1 is Outbound
+            2: 'triage',          // Row 2 is Triage
+            3: 'follow_ups',      // Row 3 is Follow Ups
+            4: 'appointments',    // Row 4 is Appointments
+            5: 'shows',          // Row 5 is Shows
+            6: 'contracts',      // Row 6 is Contracts
+            7: 'revenue',        // Row 7 is Revenue
+            8: 'posts',          // Row 8 is Posts
+            9: 'leads',          // Row 9 is Leads
+            10: 'outbound_messages', // Row 10 is Outbound
+            11: 'responses'      // Row 11 is Responses
         };
 
-        // IVETTE: H-J (indices 7,8,9)
-        projections.IVETTE[metric] = {
-            daily: Number(row[7]) || 0,   // H column
-            weekly: Number(row[8]) || 0,   // I column
-            monthly: Number(row[9]) || 0    // J column
-        };
+        data.forEach((row: any[], index: number) => {
+            const metric = metricsMap[index] as MetricKey;
+            if (!metric) return;
 
-        // ALL: Sum of individual targets
-        projections.ALL[metric] = {
-            daily: projections.CHRIS[metric].daily + projections.ISRAEL[metric].daily + projections.IVETTE[metric].daily,
-            weekly: projections.CHRIS[metric].weekly + projections.ISRAEL[metric].weekly + projections.IVETTE[metric].weekly,
-            monthly: projections.CHRIS[metric].monthly + projections.ISRAEL[metric].monthly + projections.IVETTE[metric].monthly
-        };
-    });
+            // CHRIS: B-D (indices 1,2,3)
+            projections.CHRIS[metric] = {
+                daily: Number(row[1]) || 0,   // B column
+                weekly: Number(row[2]) || 0,   // C column
+                monthly: Number(row[3]) || 0    // D column
+            };
 
-    console.log('[sheets.ts] Projections fetched:', projections);
-    return projections;
+            // ISRAEL: E-G (indices 4,5,6)
+            projections.ISRAEL[metric] = {
+                daily: Number(row[4]) || 0,   // E column
+                weekly: Number(row[5]) || 0,   // F column
+                monthly: Number(row[6]) || 0    // G column
+            };
+
+            // IVETTE: H-J (indices 7,8,9)
+            projections.IVETTE[metric] = {
+                daily: Number(row[7]) || 0,   // H column
+                weekly: Number(row[8]) || 0,   // I column
+                monthly: Number(row[9]) || 0    // J column
+            };
+
+            // ALL: Sum of individual targets
+            projections.ALL[metric] = {
+                daily: projections.CHRIS[metric].daily + projections.ISRAEL[metric].daily + projections.IVETTE[metric].daily,
+                weekly: projections.CHRIS[metric].weekly + projections.ISRAEL[metric].weekly + projections.IVETTE[metric].weekly,
+                monthly: projections.CHRIS[metric].monthly + projections.ISRAEL[metric].monthly + projections.IVETTE[metric].monthly
+            };
+        });
+
+        logDebug('Projections fetched:', projections);
+        return projections;
+    } catch (error) {
+        console.error('Error fetching projections:', error);
+        return defaultProjections;
+    }
 }
 
 export async function fetchAchievements(): Promise<AchievementsData> {
