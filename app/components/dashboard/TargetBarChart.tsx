@@ -29,10 +29,15 @@ type TargetBarChartProps = {
         weekly: ChartData;
         monthly: ChartData;
     };
-    projections: MetricData | null;
+    projections: TeamProjections | MetricData | null;
+    metrics: {
+        key: string;
+        label: string;
+        isRevenue?: boolean;
+    }[];
 };
 
-const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
+const TargetBarChart = ({ data, projections, metrics }: TargetBarChartProps) => {
     const [timeframe, setTimeframe] = useState<TimeframeType>('daily');
 
     const getPerformanceColor = (actual: number, target: number) => {
@@ -42,17 +47,6 @@ const TargetBarChart = ({ data, projections }: TargetBarChartProps) => {
         if (percent >= 90) return 'bg-yellow-500/20 text-yellow-400';
         return 'bg-red-500/20 text-red-400';
     };
-
-    const metrics = [
-        { key: 'outbound', label: 'Outbound' },
-        { key: 'triage', label: 'Triage' },
-        { key: 'follow_ups', label: 'Follow Ups' },
-        { key: 'appointments', label: 'Appointments' },
-        { key: 'shows', label: 'Shows' },
-        { key: 'contracts', label: 'Contracts' },
-        { key: 'closes', label: 'Closes' },
-        { key: 'revenue', label: 'Revenue', isRevenue: true }
-    ];
 
     const formatValue = (value: number, isRevenue?: boolean) => {
         if (isRevenue) {
