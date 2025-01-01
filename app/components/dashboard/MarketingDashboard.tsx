@@ -239,7 +239,7 @@ export default function MarketingDashboard({
                 <div className="bg-gray-900 border border-red-500/20 rounded-lg p-4 h-[400px]">
                     <MarketingTargetBarChart
                         data={formatDataForBarChart(marketingData)}
-                        projections={teamProjections || {}}
+                        projections={projections ? (projections[teamMember.toUpperCase() as keyof TeamProjections] as MetricData) : defaultProjections[teamMember.toUpperCase() as keyof TeamProjections]}
                     />
                 </div>
             </div>
