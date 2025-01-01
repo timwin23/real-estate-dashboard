@@ -69,10 +69,15 @@ export const MARKETING_SHEET_TABS: Record<string, string> = {
     ALL: 'ALL'
 };
 
-type MarketingTeamMemberKey = 'CHRIS' | 'ISRAEL' | 'IVETTE' | 'ALL';
+import { TeamMemberKey } from '../components/dashboard/sheets';
 
-export async function fetchTeamMemberMarketingData(member: MarketingTeamMemberKey) {
+export async function fetchTeamMemberMarketingData(member: TeamMemberKey) {
     try {
+        // Filter out non-marketing tabs
+        if (!['CHRIS', 'ISRAEL', 'IVETTE', 'ALL'].includes(member)) {
+            return [];
+        }
+        
         console.log('[marketingSheets] Fetching data for member:', member);
         
         // Handle ALL case differently
